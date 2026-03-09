@@ -16,7 +16,7 @@ out/
 *.userprefs
 
 # Visual Studio
-.vs/
+*.vs/
 *.vsp
 *.vspx
 *.psess
@@ -106,3 +106,8 @@ yarn-debug.log*
 yarn-error.log*
 dist/
 build/
+
+.vs/
+/OnlineLearning/.vs/OnlineLearning/v17/.suo
+/OnlineLearning/.vs/OnlineLearning/v17/DocumentLayout.backup.json
+/OnlineLearning/.vs/OnlineLearning/v17/DocumentLayout.json
