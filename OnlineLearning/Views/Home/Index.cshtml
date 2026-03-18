@@ -1,6 +1,12 @@
 ﻿@{
     ViewData["Title"] = "Dashboard";
 }
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-danger mt-3">
+        @ViewBag.Message
+    </div>
+}
 
 <div class="row">
     <!-- card1 start -->
