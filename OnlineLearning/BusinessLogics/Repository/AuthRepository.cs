@@ -19,6 +19,8 @@ public class AuthRepository : IAuthRepository
     {
         get
         {
+
+
             return new SqlConnection(
                 _config.GetConnectionString("DefaultConnection"));
         }
