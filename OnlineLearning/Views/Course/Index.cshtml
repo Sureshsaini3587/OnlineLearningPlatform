@@ -1,0 +1,51 @@
+﻿@model IEnumerable<Course>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>📚 Course Management</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Add Course</a>
+    </div>
+
+    <table class="table table-hover table-bordered shadow">
+        <thead class="table-dark">
+            <tr>
+                <th>Thumbnail</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Level</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th width="180">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <img src="@item.Thumbnail" width="80" class="rounded" />
+                    </td>
+                    <td>@item.CourseTitle</td>
+                    <td>@item.CategoryName</td>
+                    <td>@item.Level</td>
+                    <td>₹@item.Price</td>
+                    <td>
+                        @if (item.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.CourseId" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.CourseId" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

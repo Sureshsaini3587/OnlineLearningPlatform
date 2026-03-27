@@ -1,0 +1,47 @@
+﻿@model Course
+
+<div class="container mt-4">
+    <div class="card shadow p-4">
+        <h3 class="mb-3">➕ Add New Course</h3>
+
+        <form asp-action="Create">
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Course Title</label>
+                    <input asp-for="CourseTitle" class="form-control" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Price</label>
+                    <input asp-for="Price" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label>Description</label>
+                <textarea asp-for="Description" class="form-control"></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Category</label>
+                    <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control"></select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Level</label>
+                    <select asp-for="Level" asp-items="ViewBag.Levels" class="form-control"></select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label>Thumbnail URL</label>
+                <input asp-for="Thumbnail" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-success">Save</button>
+            <a asp-action="Index" class="btn btn-secondary">Back</a>
+        </form>
+    </div>
+</div>

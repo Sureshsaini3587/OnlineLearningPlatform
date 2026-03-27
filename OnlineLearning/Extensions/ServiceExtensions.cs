@@ -1,4 +1,6 @@
-﻿using OnlineLearning.BusinessLogics.Services;
+﻿using OnlineLearning.BusinessLogics.IRepository;
+using OnlineLearning.BusinessLogics.Repository;
+using OnlineLearning.BusinessLogics.Services;
 
 namespace OnlineLearning.Extensions
 {
@@ -7,6 +9,7 @@ namespace OnlineLearning.Extensions
         public static void RegisterRepositories(this IServiceCollection services)
         {
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<ICourseRepository, CourseRepository>();
         }
     }
 }
