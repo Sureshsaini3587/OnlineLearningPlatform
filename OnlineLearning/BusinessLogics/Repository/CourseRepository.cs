@@ -24,8 +24,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                     _config.GetConnectionString("DbConnection"));
             }
         }
-
-        // 📋 GET ALL
+         
         public async Task<List<Course>> GetAllAsync()
         {
             var query = "SELECT * FROM Courses WHERE IsDeleted = 0";
@@ -34,9 +33,7 @@ namespace OnlineLearning.BusinessLogics.Repository
             var data = await db.QueryAsync<Course>(query);
 
             return data.ToList();
-        }
-
-        // 📋 GET ALL WITH DETAILS (JOIN)
+        } 
         public async Task<List<Course>> GetAllWithDetails()
         {
             var query = @"
