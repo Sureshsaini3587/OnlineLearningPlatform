@@ -1,9 +1,9 @@
 ﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using OnlineLearning.BusinessLogics.Services;
 using OnlineLearning.Models;
 using OnlineLearning.Models.ResponseModel;
-using System.Data;
-using System.Data.SqlClient;
+using System.Data; 
 
 public class AuthRepository : IAuthRepository
 {
@@ -20,10 +20,9 @@ public class AuthRepository : IAuthRepository
         get
         {
             return new SqlConnection(
-                _config.GetConnectionString("DefaultConnection"));
+                _config.GetConnectionString("DbConnection"));
         }
     }
-
     public async Task<User> LoginUserAsync(LoginViewModel loginViewModel)
     {
 
