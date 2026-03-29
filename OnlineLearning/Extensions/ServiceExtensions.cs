@@ -9,6 +9,8 @@ namespace OnlineLearning.Extensions
         public static void RegisterRepositories(this IServiceCollection services)
         {
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<ICourseLevelRepository, CourseLevelRepository>();
+            services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
         }
     }

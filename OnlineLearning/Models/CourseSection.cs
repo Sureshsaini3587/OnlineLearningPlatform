@@ -16,12 +16,12 @@ namespace OnlineLearning.Models
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 
-        public string CreatedBy { get; set; }
+        public int CreatedBy { get; set; }
         public DateTime CreatedOn { get; set; }
 
-        public string UpdatedBy { get; set; }
+        public int UpdatedBy { get; set; }
         public DateTime? UpdatedOn { get; set; }         
-        public List<CourseVideo> Videos { get; set; }
+        public List<CourseVideoDTO> Videos { get; set; }
     }
 
 }

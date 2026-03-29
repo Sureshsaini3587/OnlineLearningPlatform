@@ -1,9 +1,10 @@
 ﻿namespace OnlineLearning.Models
 {
-    public class CourseCategories
+    public class CourseCategoriesDTO
     {
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }
+        public string ParentCategoryName { get; set; }
         public int? ParentCategoryId { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

@@ -1,47 +1,109 @@
-﻿@model Course
-
-<div class="container mt-4">
-    <div class="card shadow p-4">
-        <h3 class="mb-3">➕ Add New Course</h3>
-
-        <form asp-action="Create">
-            
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label>Course Title</label>
-                    <input asp-for="CourseTitle" class="form-control" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Price</label>
-                    <input asp-for="Price" class="form-control" />
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label>Description</label>
-                <textarea asp-for="Description" class="form-control"></textarea>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label>Category</label>
-                    <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control"></select>
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Level</label>
-                    <select asp-for="Level" asp-items="ViewBag.Levels" class="form-control"></select>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label>Thumbnail URL</label>
-                <input asp-for="Thumbnail" class="form-control" />
-            </div>
-
-            <button type="submit" class="btn btn-success">Save</button>
-            <a asp-action="Index" class="btn btn-secondary">Back</a>
-        </form>
+﻿@model Course 
+ 
+@if (ViewBag.Success != null)
+{ 
+    <div class="alert alert-success mt-3">
+        @ViewBag.Success
     </div>
-</div>
+} 
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger mt-3">
+        @ViewBag.Error
+    </div>
+} 
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card"> 
+            <div class="card-block">
+                <div class="d-flex justify-content-end  mb-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="history.back()">
+                        ← Back
+                    </button>
+                </div>
+                <h4 class="sub-title">Course Details</h4> 
+               
+                <form asp-action="Create" method="post">  
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">Course Title *</label>
+                        <div class="col-sm-10">
+                            <input asp-for="CourseTitle" class="form-control" />
+                            <span asp-validation-for="CourseTitle" class="text-danger"></span>
+                        </div>
+                    </div> 
+                    <div class="form-group row mt-2">
+                        <label class="col-sm-2 col-form-label">Price *</label>
+                        <div class="col-sm-10"> 
+                            <input asp-for="Price" class="form-control" type="number" step="0.01" min="0" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                    </div> 
+                    <div class="form-group row mt-2">
+                        <label class="col-sm-2 col-form-label">Category *</label>
+                        <div class="col-sm-10">
+                            <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+                    </div> 
+                    <div class="form-group row mt-2">
+                        <label class="col-sm-2 col-form-label">Level *</label>
+                        <div class="col-sm-10">
+                            <select asp-for="Level" asp-items="ViewBag.Levels" class="form-control">
+                                <option value="">-- Select Level --</option>
+                            </select>
+                            <span asp-validation-for="Level" class="text-danger"></span>
+                        </div>
+                    </div> 
+                    <div class="form-group row mt-2">
+                        <label class="col-sm-2 col-form-label">Language *</label>
+                        <div class="col-sm-10">
+                            <input asp-for="Language" class="form-control" />
+                            <span asp-validation-for="Language" class="text-danger"></span>
+                        </div>
+                    </div> 
+                    <div class="form-group row mt-2">
+                        <label class="col-sm-2 col-form-label">Instructor Id *</label>
+                        <div class="col-sm-10">
+                            <input asp-for="InstructorId" class="form-control" type="number"/>
+                            <span asp-validation-for="InstructorId" class="text-danger"></span>
+                        </div>
+                    </div> 
+                    <div class="form-group row mt-2">
+                        <label class="col-sm-2 col-form-label">Thumbnail URL</label>
+                        <div class="col-sm-10">
+                            <input asp-for="Thumbnail" class="form-control" />
+                            <span asp-validation-for="Thumbnail" class="text-danger"></span>
+                        </div>
+                    </div> 
+                    <div class="form-group row mt-2">
+                        <label class="col-sm-2 col-form-label">Description *</label>
+                        <div class="col-sm-10">
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div> 
+                    <div class="form-group row mt-3">
+                        <div class="col-sm-10 offset-sm-2">
+                            <div class="form-check">
+                                <input asp-for="IsPublished" class="form-check-input" />
+                                <label class="form-check-label">Published</label>
+                            </div> 
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" checked />
+                                <label class="form-check-label">Active</label>
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="form-group row mt-4 d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-success">Save</button>
+                        <button type="reset" class="btn btn-secondary">Reset</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div> 
+ 

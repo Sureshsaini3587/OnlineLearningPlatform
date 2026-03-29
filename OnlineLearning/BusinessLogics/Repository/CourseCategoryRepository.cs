@@ -6,12 +6,12 @@ using System.Data;
 
 namespace OnlineLearning.BusinessLogics.Repository
 {
-    public class CourseRepository : ICourseRepository
+    public class CourseCategoryRepository : ICourseCategoryRepository
     {
 
         private readonly IConfiguration _config;
 
-        public CourseRepository(IConfiguration config)
+        public CourseCategoryRepository(IConfiguration config)
         {
             _config = config;
         }
@@ -25,56 +25,49 @@ namespace OnlineLearning.BusinessLogics.Repository
             }
         }
          
-        public async Task<List<CourseDTO>> GetAllAsync()
+        public async Task<List<CourseCategoriesDTO>> GetAllAsync()
         {  
             using var db = Connection; 
-            var data = await db.QueryAsync<CourseDTO>(
-                  "sp_Course",
+            var data = await db.QueryAsync<CourseCategoriesDTO>(
+                  "sp_CourseCategory",
                   new { Action = "GET_ALL" },
                   commandType: CommandType.StoredProcedure
               ); 
             return data.ToList();
-        }  
-        public async Task<List<CourseDTO>> GetAllWithDetails()
+        }
+        public async Task<List<CourseCategoriesDTO>> GetAllWithDetails()
         {
             using var db = Connection;
 
-            var data = await db.QueryAsync<CourseDTO>(
-                "sp_Course",               
+            var data = await db.QueryAsync<CourseCategoriesDTO>(
+                "sp_CourseCategory",                
                 new { Action = "GET_ALL_DETAILS" },
-                commandType: CommandType.StoredProcedure
+                commandType: CommandType.StoredProcedure                
             );
 
             return data.ToList();
         }
 
-        public async Task<CourseDTO?> GetByIdAsync(int id)
+        public async Task<CourseCategoriesDTO?> GetByIdAsync(int id)
         {  
             using var db = Connection;
-            return await db.QueryFirstOrDefaultAsync<CourseDTO>(
-                "sp_Course",
-                new { Action = "GET_BY_ID", CourseId = id },
+            return await db.QueryFirstOrDefaultAsync<CourseCategoriesDTO>(
+                "sp_CourseCategory",
+                new { Action = "GET_BY_ID", CategoryId = id },
                 commandType: CommandType.StoredProcedure
             );  
         }
 
-        public async Task<bool> AddAsync(CourseDTO entity)
+        public async Task<bool> AddAsync(CourseCategoriesDTO entity)
         {
             using var db = Connection;
             var result = await db.ExecuteAsync(
-                 "sp_Course",
+                 "sp_CourseCategory",
                  new
                  {
                      Action = "INSERT",
-                     entity.CourseTitle,
-                     entity.Description,
-                     entity.CategoryId,
-                     entity.InstructorId,
-                     entity.Price,
-                     entity.Thumbnail,
-                     entity.Language,
-                     entity.Level,
-                     entity.IsPublished,
+                     entity.CategoryName,
+                     entity.ParentCategoryId, 
                      entity.IsActive,
                      entity.CreatedBy
                  },
@@ -82,25 +75,18 @@ namespace OnlineLearning.BusinessLogics.Repository
              ); 
             return result > 0; 
         }
-        public async Task<bool> UpdateAsync(CourseDTO entity)
+        public async Task<bool> UpdateAsync(CourseCategoriesDTO entity)
         {
             using var db = Connection;
 
             var result = await db.ExecuteAsync(
-                "sp_Course",
+                "sp_CourseCategory",
                 new
                 {
                     Action = "UPDATE",
-                    entity.CourseId,
-                    entity.CourseTitle,
-                    entity.Description,
                     entity.CategoryId,
-                    entity.InstructorId,
-                    entity.Price,
-                    entity.Thumbnail,
-                    entity.Language,
-                    entity.Level,
-                    entity.IsPublished,
+                    entity.CategoryName,
+                    entity.ParentCategoryId,  
                     entity.IsActive,
                     entity.UpdatedBy
                 },
@@ -109,13 +95,13 @@ namespace OnlineLearning.BusinessLogics.Repository
 
             return result > 0;
         }
-        public async Task<bool> DeleteAsync(CourseDTO entity)
+        public async Task<bool> DeleteAsync(CourseCategoriesDTO entity)
         {
             using var db = Connection;
 
             var result = await db.ExecuteAsync(
-                "sp_Course",
-                new { Action = "DELETE", entity.CourseId },
+                "sp_CourseCategory",
+                new { Action = "DELETE", entity.CategoryId },
                 commandType: CommandType.StoredProcedure
             );
 

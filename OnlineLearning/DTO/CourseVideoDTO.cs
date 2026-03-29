@@ -3,7 +3,7 @@
 namespace OnlineLearning.Models
 {
 
-    public class CourseVideo
+    public class CourseVideoDTO
     {
         public int VideoId { get; set; }
 

@@ -2,8 +2,8 @@
 
 namespace OnlineLearning.BusinessLogics.IRepository
 {
-    public interface ICourseRepository: ICommonRepository<Course>
+    public interface ICourseRepository: ICommonRepository<CourseDTO>
     {
-       Task<List<Course>> GetAllWithDetails();
+       Task<List<CourseDTO>> GetAllWithDetails();
     }
 }

@@ -44,7 +44,8 @@ namespace OnlineLearning.Controllers
             {
                 var claims = new List<Claim>()
             {
-                new Claim(ClaimTypes.Name, "Admin"),
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.FullName),
                 new Claim(ClaimTypes.Email, model.Email),
                 new Claim(ClaimTypes.Role, "Admin")
             };

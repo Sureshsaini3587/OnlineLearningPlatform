@@ -1,8 +1,8 @@
-﻿@model IEnumerable<CourseDTO>
+﻿@model IEnumerable<CourseCategoriesDTO>
 <div class="card">
     <div class="card-header">
         <div class="d-flex justify-content-between mb-3">
-            <h5>📚 Course Management</h5>
+            <h5>📚 Course Category Management</h5>
             <a asp-action="Create" class="btn btn-primary">+ Add Course</a>
         </div>   
     </div>
@@ -11,12 +11,9 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Sr.No.</th>
-                        <th>Thumbnail</th>
-                        <th>Title</th>
-                        <th>Category</th>
-                        <th>Level</th>
-                        <th>Price</th>
+                        <th>Sr.No.</th> 
+                        <th>Category Name</th>
+                        <th>Parent Category</th> 
                         <th>Status</th>
                         <th width="180">Action</th> 
                     </tr>
@@ -29,14 +26,9 @@
                     {
                         <tr>
                             
-                            <th scope="row">@srNo</th>
-                            <td>
-                                <img src="@item.Thumbnail" width="80" class="rounded" />
-                            </td>
-                            <td>@item.CourseTitle</td>
+                            <th scope="row">@srNo</th> 
                             <td>@item.CategoryName</td>
-                            <td>@item.LevelName</td>
-                            <td>₹@item.Price</td>
+                            <td>@item.ParentCategoryName</td> 
                             <td>
                                 @if (item.IsActive)
                                 {
@@ -48,8 +40,8 @@
                                 }
                             </td>
                             <td> 
-                                <a asp-action="Edit" title="Edit" asp-route-id="@item.CourseId" class="btn   btn-outline-primary"><i class="icofont icofont-pencil-alt-5"></i></a>
-                                <a asp-action="Delete" title="Delete" asp-route-id="@item.CourseId" class="btn   btn-outline-danger"><i class="icofont icofont-ui-delete"></i></a>
+                                <a asp-action="CategoryEdit" title="Edit" asp-route-id="@item.CategoryId" class="btn   btn-outline-primary"><i class="icofont icofont-pencil-alt-5"></i></a>
+                                <a asp-action="CategoryDelete" title="Delete" asp-route-id="@item.CategoryId" class="btn   btn-outline-danger"><i class="icofont icofont-ui-delete"></i></a>
                             </td>
                         </tr>
                         srNo++;

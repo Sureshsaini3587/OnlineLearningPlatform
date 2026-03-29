@@ -1,80 +1,144 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineLearning.BusinessLogics.IRepository;
+using OnlineLearning.Helpers;
 using OnlineLearning.Models;
 
 namespace OnlineLearning.Controllers
-{
+{  
+    [Authorize]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class CourseController : Controller
     {
+        private readonly ICourseLevelRepository _courseLevel;
         private readonly ICourseRepository _course;
+        private readonly ICourseCategoryRepository _coursecategory;
 
-        public CourseController(ICourseRepository cousre)
+        public CourseController(ICourseRepository cousre, ICourseCategoryRepository coursecategory, ICourseLevelRepository courseLevel)
         {
             _course = cousre;
+            _coursecategory = coursecategory;
+            _courseLevel = courseLevel;
         }
-         
+
+        #region Courses
         public async Task<IActionResult> Index()
         {
             var courses = await _course.GetAllWithDetails(); 
             return View(courses);
         }
          
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            //LoadDropdowns();
+            await LoadDropdowns();
             return View();
         }
-         
+        
         [HttpPost]
         public async Task<IActionResult> Create(Course model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                model.CreatedOn = DateTime.Now;
-                model.IsActive = true;
-                model.IsDeleted = false;
+                await LoadDropdowns();
+                return View(model);
+            }
+            int userId = UserHelper.GetUserId(User);
+            var CourseDTO = new CourseDTO
+            {
+                CourseTitle=model.CourseTitle,
+                Price=model.Price,
+                CategoryId=model.CategoryId,
+                Level=model.Level,
+                Language=model.Language,
+                InstructorId=model.InstructorId,
+                Thumbnail=model.Thumbnail,
+                Description=model.Description,
+                IsPublished=model.IsPublished,
+                IsActive=model.IsActive,
+                CreatedBy=userId
+            };
+            var result = await _course.AddAsync(CourseDTO);
 
-              var result = await _course.AddAsync(model);
-                if (!result)
-                    ViewBag.Message = "An Error Occured  While Saving !";
-
+            if (result)
+            {
+                ViewBag.Success = "Course saved successfully!";
                 return RedirectToAction("Index");
             }
-            //LoadDropdowns();
+
+            ViewBag.Error = "Something went wrong!";
+           await LoadDropdowns();
+
             return View(model);
         }
-         
+
         public async Task<IActionResult> Edit(int id)
         {
             var course = await _course.GetByIdAsync(id);
             if (course == null) return NotFound();
 
-            //LoadDropdowns();
-            return View(course);
+            await LoadDropdowns();
+            var CourseDTO = new Course
+            {
+                CourseId = course.CourseId,
+                CourseTitle = course.CourseTitle,
+                Price = course.Price,
+                CategoryId = course.CategoryId,
+                Level = course.Level,
+                Language = course.Language,
+                InstructorId = course.InstructorId,
+                Thumbnail = course.Thumbnail,
+                Description = course.Description,
+                IsPublished = course.IsPublished,
+                IsActive = course.IsActive 
+            };
+            return View(CourseDTO);
         }
          
         [HttpPost]
         public async Task<IActionResult> Edit(Course model)
         {
             if (ModelState.IsValid)
-            {
-                model.UpdatedOn = DateTime.Now;
-
-               var result= await _course.UpdateAsync(model);
+            { 
+                int userId = UserHelper.GetUserId(User); 
+                var CourseDTO = new CourseDTO
+                {
+                    CourseId=model.CourseId,
+                    CourseTitle = model.CourseTitle,
+                    Price = model.Price,
+                    CategoryId = model.CategoryId,
+                    Level = model.Level,
+                    Language = model.Language,
+                    InstructorId = model.InstructorId,
+                    Thumbnail = model.Thumbnail,
+                    Description = model.Description,
+                    IsPublished = model.IsPublished,
+                    IsActive = model.IsActive,
+                    UpdatedBy = userId
+                };
+                var result= await _course.UpdateAsync(CourseDTO);
                 if (!result)
-                    ViewBag.Message = "An Error Occures While Updating Course Details !";
-                return RedirectToAction("Index");
-            }
+                {
+                    ViewBag.Error = "An Error Occures While Updating Course Details !";
+                    await LoadDropdowns();
+                    return View(model);
+                }
 
-            //LoadDropdowns();
+
+                return RedirectToAction("Index");
+            } 
+            await LoadDropdowns();
             return View(model);
         }
          
         public async Task<IActionResult> Delete(int id)
         {
             var course = await _course.GetByIdAsync(id);
-            return View(course);
+            var CourseDTO = new Course
+            {
+                CourseId = course.CourseId 
+            };
+            return View(CourseDTO);
         }
          
         [HttpPost]
@@ -85,24 +149,128 @@ namespace OnlineLearning.Controllers
             var result = await _course.DeleteAsync(course); 
 
             return RedirectToAction("Index");
-        } 
-        //private void LoadDropdowns()
-        //{
-        //    ViewBag.Categories = _context.CourseCategories
-        //        .Where(x => x.IsActive && !x.IsDeleted)
-        //        .Select(x => new SelectListItem
-        //        {
-        //            Value = x.CategoryId.ToString(),
-        //            Text = x.CategoryName
-        //        }).ToList();
+        }
+        private async Task LoadDropdowns()
+        {
+            var Categorys =  _coursecategory.GetAllAsync();
+            ViewBag.Categories = Categorys.Result
+                .Select(x => new SelectListItem
+                {
+                    Value = x.CategoryId.ToString(),
+                    Text = x.CategoryName
+                }).ToList();
+            var Level= _courseLevel.GetAllAsync();
+            ViewBag.Levels =Level.Result 
+                .Select(x => new SelectListItem
+                {
+                    Value = x.LevelId.ToString(),
+                    Text = x.LevelName
+                }).ToList();
+        }
 
-        //    ViewBag.Levels = _context.CourseLevels
-        //        .Where(x => x.IsActive && !x.IsDeleted)
-        //        .Select(x => new SelectListItem
-        //        {
-        //            Value = x.LevelId.ToString(),
-        //            Text = x.LevelName
-        //        }).ToList();
-        //}
+        #endregion
+        #region Course Categories
+
+        [HttpGet]
+        public async Task<IActionResult> Categories()
+        {
+            var courses = await _coursecategory.GetAllWithDetails();
+            return View(courses);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CategoriesCreate()
+        { 
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CategoriesCreate(CourseCategories model)
+        {
+            if (!ModelState.IsValid)
+            { 
+                return View(model);
+            }
+            int userId = UserHelper.GetUserId(User);
+            var CourseDTO = new CourseCategoriesDTO
+            { 
+                CategoryName = model.CategoryName,
+                ParentCategoryId = model.ParentCategoryId,
+                IsActive = model.IsActive,
+                CreatedBy=userId
+            };
+            var result = await _coursecategory.AddAsync(CourseDTO);
+
+            if (result)
+            {
+                ViewBag.Success = "Categories saved successfully!";
+                return RedirectToAction("Categories");
+            }
+
+            ViewBag.Error = "Something went wrong!";
+           
+            return View(model);
+        }
+        [HttpGet]
+        public async Task<IActionResult> CategoryEdit(int id)
+        {
+            var course = await _coursecategory.GetByIdAsync(id);
+            if (course == null) return NotFound();
+             
+            var CourseDTO = new CourseCategories
+            {
+                CategoryId = course.CategoryId,
+                CategoryName = course.CategoryName,
+                ParentCategoryId = course.ParentCategoryId,
+                IsActive = course.IsActive                
+            };
+            return View(CourseDTO);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CategoryEdit(CourseCategories model)
+        {
+            if (ModelState.IsValid)
+            {
+                int userId = UserHelper.GetUserId(User);
+                var CourseDTO = new CourseCategoriesDTO
+                {
+                    CategoryId = model.CategoryId,
+                    CategoryName = model.CategoryName,
+                    ParentCategoryId = model.ParentCategoryId,
+                    IsActive = model.IsActive,
+                    UpdatedBy = userId
+                };
+                var result = await _coursecategory.UpdateAsync(CourseDTO);
+                if (!result)
+                {
+                    ViewBag.Error = "An Error Occures While Updating Categories Details !"; 
+                    return View(model);
+                } 
+
+                return RedirectToAction("Categories");
+            } 
+            return View(model);
+        }
+        public async Task<IActionResult> Delete(int id)
+        {
+            var course = await _course.GetByIdAsync(id);
+            var CourseDTO = new Course
+            {
+                CourseId = course.CourseId
+            };
+            return View(CourseDTO);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteConfirmed(int courseId)
+        {
+            var course = await _course.GetByIdAsync(courseId);
+            course.IsDeleted = true;
+            var result = await _course.DeleteAsync(course);
+
+            return RedirectToAction("Index");
+        }
+        #endregion
     }
 }

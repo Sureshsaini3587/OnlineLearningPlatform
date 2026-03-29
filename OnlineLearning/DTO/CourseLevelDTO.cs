@@ -2,7 +2,7 @@
 
 namespace OnlineLearning.Models
 {
-    public class CourseLevel
+    public class CourseLevelDTO
     {
         public int LevelId { get; set; }
 
