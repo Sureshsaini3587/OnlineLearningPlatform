@@ -1,13 +1,17 @@
-﻿namespace OnlineLearning.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace OnlineLearning.Models
 {
     public class CourseCategories
     {
         public int CategoryId { get; set; }
+
+        [Required(ErrorMessage ="Category name required")]
         public string CategoryName { get; set; }
         public int? ParentCategoryId { get; set; }
+        public bool IsParent { get; set; }
         public bool IsActive { get; set; }
-        public bool IsDeleted { get; set; }
-
+        public bool IsDeleted { get; set; } 
         public int CreatedBy { get; set; }
         public DateTime CreatedOn { get; set; }
         public int UpdatedBy { get; set; }

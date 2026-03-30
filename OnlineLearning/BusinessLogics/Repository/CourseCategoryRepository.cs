@@ -69,6 +69,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                      entity.CategoryName,
                      entity.ParentCategoryId, 
                      entity.IsActive,
+                     entity.IsParent,
                      entity.CreatedBy
                  },
                  commandType: CommandType.StoredProcedure
@@ -87,6 +88,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                     entity.CategoryId,
                     entity.CategoryName,
                     entity.ParentCategoryId,  
+                    entity.IsParent,
                     entity.IsActive,
                     entity.UpdatedBy
                 },

@@ -1,10 +1,10 @@
-﻿@model IEnumerable<CourseCategoriesDTO>
+﻿@model IEnumerable<CourseVideoDTO>
 <div class="card">
     <div class="card-header">
         <div class="d-flex justify-content-between mb-3">
-            <h5>📚 Course Category Management</h5>
-            <a asp-action="CategoriesCreate" class="btn btn-primary">+ Add Category</a>
-        </div>   
+            <h5>📚 Course Video Management</h5>
+            <a asp-action="Create" class="btn btn-primary">+ Add Video</a>
+        </div>
     </div>
     <div class="card-block table-border-style">
         <div class="table-responsive">
@@ -12,10 +12,13 @@
                 <thead>
                     <tr>
                         <th>Sr.No.</th> 
-                        <th>Category Name</th>
-                        <th>Parent Category</th> 
+                        <th>Title</th>
+                        <th>Section</th> 
+                        <th>Duration</th> 
+                        <th>Demo</th> 
+                        <th>Order</th> 
                         <th>Status</th>
-                        <th width="180">Action</th> 
+                        <th width="180">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -27,8 +30,11 @@
                         <tr>
                             
                             <th scope="row">@srNo</th> 
-                            <td>@item.CategoryName</td>
-                            <td>@item.ParentCategoryName</td> 
+                            <td>@item.Title</td>
+                            <td>@item.SectionName</td>
+                            <td>@item.Duration</td>
+                            <td>@item.IsDemo</td>
+                            <td>@item.SortOrder</td> 
                             <td>
                                 @if (item.IsActive)
                                 {
@@ -39,31 +45,16 @@
                                     <span class="badge bg-danger">Inactive</span>
                                 }
                             </td>
-                            <td> 
-                                <a asp-action="CategoryEdit" title="Edit" asp-route-id="@item.CategoryId" class="btn   btn-outline-primary"><i class="icofont icofont-pencil-alt-5"></i></a>
-                                <a asp-action="CategoryDelete" title="Delete" asp-route-id="@item.CategoryId" class="btn   btn-outline-danger"><i class="icofont icofont-ui-delete"></i></a>
+                            <td>
+                                <a asp-action="Edit" title="Edit" asp-route-id="@item.VideoId" class="btn   btn-outline-primary"><i class="icofont icofont-pencil-alt-5"></i></a>
+                                <a asp-action="Delete" title="Delete" asp-route-id="@item.VideoId" class="btn   btn-outline-danger"><i class="icofont icofont-ui-delete"></i></a>
                             </td>
                         </tr>
                         srNo++;
-                    } 
+                    }
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-<div class="container mt-4">
-    
-
-    <table class="table table-hover table-bordered shadow">
-        <thead class="table-dark">
-            <tr>
-               
-            </tr>
-        </thead>
-
-        <tbody>
-           
-        </tbody>
-    </table>
-</div>
+ 

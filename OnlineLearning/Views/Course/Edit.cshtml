@@ -16,6 +16,11 @@
     <div class="col-sm-12">
         <div class="card">
             <div class="card-block">
+                <div class="d-flex justify-content-end  mb-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="history.back()">
+                        ← Back
+                    </button>
+                </div>
                 <h4 class="sub-title">Update Course Details</h4>
                 <form asp-action="Edit" method="post">
                     <input type="hidden" asp-for="CourseId" />
@@ -92,8 +97,12 @@
                         </div>
                     </div>
                     <div class="form-group row mt-4 d-flex justify-content-end">
-                        <button type="submit" class="btn btn-success me-2">Save</button>
-                        <button type="reset" class="btn btn-secondary">Reset</button>
+                        <div class="col-sm-1">
+                            <button type="submit" class="btn btn-success">Save</button>
+                        </div>
+                        <div class="col-sm-1">
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                        </div>
                     </div>
                 </form>
 

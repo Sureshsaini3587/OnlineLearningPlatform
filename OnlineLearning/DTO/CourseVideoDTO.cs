@@ -8,8 +8,7 @@ namespace OnlineLearning.Models
         public int VideoId { get; set; }
 
         public int SectionId { get; set; }
-        public Section Section { get; set; }
-
+        public string SectionName { get; set; } 
         public string Title { get; set; }
         public string VideoUrl { get; set; }
         public int Duration { get; set; } = 0;

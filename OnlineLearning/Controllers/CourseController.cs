@@ -136,7 +136,8 @@ namespace OnlineLearning.Controllers
             var course = await _course.GetByIdAsync(id);
             var CourseDTO = new Course
             {
-                CourseId = course.CourseId 
+                CourseId = course.CourseId ,
+                CourseTitle=course.CourseTitle 
             };
             return View(CourseDTO);
         }
@@ -169,6 +170,7 @@ namespace OnlineLearning.Controllers
         }
 
         #endregion
+
         #region Course Categories
 
         [HttpGet]
@@ -180,7 +182,8 @@ namespace OnlineLearning.Controllers
 
         [HttpGet]
         public async Task<IActionResult> CategoriesCreate()
-        { 
+        {
+           await LoadParentCategory();
             return View();
         }
 
@@ -188,7 +191,8 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> CategoriesCreate(CourseCategories model)
         {
             if (!ModelState.IsValid)
-            { 
+            {
+                await LoadParentCategory();
                 return View(model);
             }
             int userId = UserHelper.GetUserId(User);
@@ -196,6 +200,7 @@ namespace OnlineLearning.Controllers
             { 
                 CategoryName = model.CategoryName,
                 ParentCategoryId = model.ParentCategoryId,
+                IsParent = model.IsParent,
                 IsActive = model.IsActive,
                 CreatedBy=userId
             };
@@ -208,7 +213,8 @@ namespace OnlineLearning.Controllers
             }
 
             ViewBag.Error = "Something went wrong!";
-           
+
+            await LoadParentCategory();
             return View(model);
         }
         [HttpGet]
@@ -222,8 +228,11 @@ namespace OnlineLearning.Controllers
                 CategoryId = course.CategoryId,
                 CategoryName = course.CategoryName,
                 ParentCategoryId = course.ParentCategoryId,
+                IsParent = course.IsParent,
                 IsActive = course.IsActive                
             };
+
+            await LoadParentCategory();
             return View(CourseDTO);
         }
 
@@ -238,6 +247,7 @@ namespace OnlineLearning.Controllers
                     CategoryId = model.CategoryId,
                     CategoryName = model.CategoryName,
                     ParentCategoryId = model.ParentCategoryId,
+                    IsParent = model.IsParent,
                     IsActive = model.IsActive,
                     UpdatedBy = userId
                 };
@@ -249,27 +259,41 @@ namespace OnlineLearning.Controllers
                 } 
 
                 return RedirectToAction("Categories");
-            } 
+            }
+
+            await LoadParentCategory();
             return View(model);
         }
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> CategoryDelete(int id)
         {
-            var course = await _course.GetByIdAsync(id);
-            var CourseDTO = new Course
+            var course = await _coursecategory.GetByIdAsync(id);
+            var CourseDTO = new CourseCategories
             {
-                CourseId = course.CourseId
+                CategoryId = course.CategoryId,
+                CategoryName= course.CategoryName,
             };
             return View(CourseDTO);
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteConfirmed(int courseId)
+        public async Task<IActionResult> CategoryDeleteConfirmed(int CategoryId)
         {
-            var course = await _course.GetByIdAsync(courseId);
+            var course = await _coursecategory.GetByIdAsync(CategoryId);
             course.IsDeleted = true;
-            var result = await _course.DeleteAsync(course);
+            var result = await _coursecategory.DeleteAsync(course);
 
             return RedirectToAction("Index");
+        }
+        private async Task LoadParentCategory()
+        {
+            var Categorys = _coursecategory.GetAllAsync();
+            ViewBag.Categories = Categorys.Result
+                .Where(x=>x.IsParent)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.CategoryId.ToString(),
+                    Text = x.CategoryName
+                }).ToList(); 
         }
         #endregion
     }
