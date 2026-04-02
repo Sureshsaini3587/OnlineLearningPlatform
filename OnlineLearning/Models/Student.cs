@@ -12,6 +12,7 @@
         public string? Gender { get; set; }
         public string? Address { get; set; }
         public byte[]? ProfileImage { get; set; }
+        public IFormFile? ImageFile { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }

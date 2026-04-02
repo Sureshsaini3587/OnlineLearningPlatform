@@ -19,8 +19,8 @@ namespace OnlineLearning.Controllers
         #region Student
         public async Task<IActionResult> Index()
         {
-            var courses = await _student.GetAllWithDetails();
-            return View(courses);
+            var students = await _student.GetAllWithDetails();
+            return View(students);
         }
 
         public async Task<IActionResult> Create()
@@ -41,7 +41,7 @@ namespace OnlineLearning.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Student model,IFormFile ImageFile)
+        public async Task<IActionResult> Create(Student model)
         {
             if (!ModelState.IsValid)
             {
@@ -49,15 +49,15 @@ namespace OnlineLearning.Controllers
                 return View(model);
             }
             int userId = UserHelper.GetUserId(User);
-            if(ImageFile != null)
+            if(model.ImageFile != null)
             {
                 using (var ms = new MemoryStream())
                 {
-                    await ImageFile.CopyToAsync(ms);
+                    await model.ImageFile.CopyToAsync(ms);
                     model.ProfileImage=ms.ToArray();
                 }
             }
-            var CourseDTO = new StudentDTO
+            var studentDTO = new StudentDTO
             {
                 FullName = model.FullName,
                 DOB = model.DOB,
@@ -69,7 +69,7 @@ namespace OnlineLearning.Controllers
                 IsActive = model.IsActive,
                 CreatedBy = userId
             };
-            var result = await _student.AddAsync(CourseDTO);
+            var result = await _student.AddAsync(studentDTO);
 
             if (result)
             {
@@ -84,44 +84,50 @@ namespace OnlineLearning.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var course = await _student.GetByIdAsync(id);
-            if (course == null) return NotFound();
+            var student = await _student.GetByIdAsync(id);
+            if (student == null) return NotFound();
              
-            var CourseDTO = new Student
+            var studentDTO = new Student
             {
-                StudentId = course.StudentId,
-                UserID = course.UserID,
-                FullName = course.FullName,
-                DOB = course.DOB,
-                Email = course.Email,
-                Gender = course.Gender,
-                Address = course.Address,
-                Mobile = course.Mobile,
-                ProfileImage = course.ProfileImage,
-                IsActive = course.IsActive,
+                StudentId = student.StudentId,
+                UserID = student.UserID,
+                FullName = student.FullName,
+                DOB = student.DOB,
+                Email = student.Email,
+                Gender = student.Gender,
+                Address = student.Address,
+                Mobile = student.Mobile,
+                ProfileImage = student.ProfileImage,
+                IsActive = student.IsActive,
             };
             await LoadGender();
-            return View(CourseDTO);
+            return View(studentDTO);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(Student model,IFormFile ImageFile)
+        public async Task<IActionResult> Edit(Student model)
         {
             if (ModelState.IsValid)
             {
                 int userId = UserHelper.GetUserId(User);
-                if (ImageFile != null)
+                if (model.ImageFile != null)
                 {
                     using (var ms = new MemoryStream())
                     {
-                        await ImageFile.CopyToAsync(ms);
+                        await model.ImageFile.CopyToAsync(ms);
                         model.ProfileImage = ms.ToArray();
                     }
                 }
-                var CourseDTO = new StudentDTO
+                else
+                {
+                    var existingData = await _student.GetByIdAsync((int)model.UserID); 
+                    model.ProfileImage = existingData?.ProfileImage;
+                }
+
+                var studentDTO = new StudentDTO
                 {
                     StudentId = model.StudentId,
-                    UserID = model.UserID,
+                    UserID = model.UserID, 
                     FullName = model.FullName,
                     DOB = model.DOB,
                     Email = model.Email,
@@ -132,7 +138,7 @@ namespace OnlineLearning.Controllers
                     IsActive = model.IsActive,
                     CreatedBy = userId
                 };
-                var result = await _student.UpdateAsync(CourseDTO);
+                var result = await _student.UpdateAsync(studentDTO);
                 if (!result)
                 {
                     await LoadGender();
@@ -149,21 +155,21 @@ namespace OnlineLearning.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            var course = await _student.GetByIdAsync(id);
-            var CourseDTO = new Student
+            var student = await _student.GetByIdAsync(id);
+            var studentDTO = new Student
             {
-                FullName = course.FullName,
-                UserID = course.UserID
+                FullName = student.FullName,
+                UserID = student.UserID
             };
-            return View(CourseDTO);
+            return View(studentDTO);
         }
 
         [HttpPost]
         public async Task<IActionResult> DeleteConfirmed(int UserID)
         {
-            var course = await _student.GetByIdAsync(UserID);
-            course.IsDeleted = true;
-            var result = await _student.DeleteAsync(course);
+            var student = await _student.GetByIdAsync(UserID);
+            student.IsDeleted = true;
+            var result = await _student.DeleteAsync(student);
 
             return RedirectToAction("Index");
         } 
