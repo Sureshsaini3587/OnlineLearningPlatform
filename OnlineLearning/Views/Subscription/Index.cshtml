@@ -1,0 +1,57 @@
+﻿@using OnlineLearning.DTO
+@model IEnumerable<SubscriptionPlanDTO>
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between mb-3">
+            <h5>📚 Subscription Plan Management</h5>
+            <a asp-action="Create" class="btn btn-primary">+ Add Plan</a>
+        </div>
+    </div>
+    <div class="card-block table-border-style">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Sr.No.</th> 
+                        <th>Name</th>
+                        <th>Price</th> 
+                        <th>Duration</th> 
+                        <th>Status</th>
+                        <th width="180">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int srNo = 1;
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            
+                            <th scope="row">@srNo</th> 
+                            <td>@item.PlanName</td>
+                            <td>@item.Price</td>
+                            <td>@item.DurationInDays</td> 
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="Edit" title="Edit" asp-route-id="@item.PlanId" class="btn   btn-outline-primary"><i class="icofont icofont-pencil-alt-5"></i></a>
+                                <a asp-action="Delete" title="Delete" asp-route-id="@item.PlanId" class="btn   btn-outline-danger"><i class="icofont icofont-ui-delete"></i></a>
+                            </td>
+                        </tr>
+                        srNo++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+ 
