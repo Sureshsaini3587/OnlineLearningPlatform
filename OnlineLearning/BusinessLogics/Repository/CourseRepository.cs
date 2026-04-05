@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
 using OnlineLearning.BusinessLogics.IRepository;
+using OnlineLearning.DTO;
 using OnlineLearning.Models;
 using System.Data;
 
@@ -31,6 +32,28 @@ namespace OnlineLearning.BusinessLogics.Repository
             var data = await db.QueryAsync<CourseDTO>(
                   "sp_Course",
                   new { Action = "GET_ALL" },
+                  commandType: CommandType.StoredProcedure
+              ); 
+            return data.ToList();
+        }  
+         
+        public async Task<List<CommanDTO>> GetLanguage()
+        {  
+            using var db = Connection; 
+            var data = await db.QueryAsync<CommanDTO>(
+                  "sp_Course",
+                  new { Action = "GET_Lang" },
+                  commandType: CommandType.StoredProcedure
+              ); 
+            return data.ToList();
+        }  
+         
+        public async Task<List<CommanDTO>> GetInstructor()
+        {  
+            using var db = Connection; 
+            var data = await db.QueryAsync<CommanDTO>(
+                  "sp_Course",
+                  new { Action = "GET_Inst" },
                   commandType: CommandType.StoredProcedure
               ); 
             return data.ToList();

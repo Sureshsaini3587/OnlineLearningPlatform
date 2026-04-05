@@ -7,11 +7,12 @@ using System.Reflection;
 
 namespace OnlineLearning.Controllers
 {
-    public class CourseVideoController : Controller
+    public class CourseVideoController : BaseController
     {
         private readonly ICourseVideoRepository _video;
         private readonly ICourseSectionRepository _section;
-        public CourseVideoController(ICourseVideoRepository video, ICourseSectionRepository section)
+        public CourseVideoController(INotificationService notify,ICourseVideoRepository video, ICourseSectionRepository section) :
+            base(notify)
         {
             _video = video;
             _section = section; 
@@ -54,11 +55,11 @@ namespace OnlineLearning.Controllers
 
             if (result)
             {
-                ViewBag.Success = "Section saved successfully!";
+                _notify.Success("Course Video saved successfully!");
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Error = "Something went wrong!";
+            _notify.Error("Something went wrong!");
             await LoadDropdowns();
 
             return View(model);
@@ -105,12 +106,12 @@ namespace OnlineLearning.Controllers
                 var result = await _video.UpdateAsync(CourseDTO);
                 if (!result)
                 {
-                    ViewBag.Error = "An Error Occures While Updating Section Details !";
+                    _notify.Error("An Error Occures While Updating Video Details !");
                     await LoadDropdowns();
                     return View(model);
                 }
 
-
+                _notify.Success("Course Video Details update successfully");
                 return RedirectToAction("Index");
             }
             await LoadDropdowns();
@@ -131,10 +132,12 @@ namespace OnlineLearning.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteConfirmed(int VideoId)
         {
+            int userId = UserHelper.GetUserId(User);
             var course = await _video.GetByIdAsync(VideoId);
             course.IsDeleted = true;
+            course.UpdatedBy = userId;
             var result = await _video.DeleteAsync(course);
-
+            _notify.Success("Video Details Delete Successfully !");
             return RedirectToAction("Index");
         }
         private async Task LoadDropdowns()

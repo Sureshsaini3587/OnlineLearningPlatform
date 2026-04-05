@@ -7,11 +7,15 @@ namespace OnlineLearning.Models
     {
         public int SectionId { get; set; }
 
-        [Required(ErrorMessage ="Course is required")]
+        [Required(ErrorMessage = "Course is required")]
         public int CourseId { get; set; }
-        [Required(ErrorMessage ="Section Name required")]
-        public string SectionTitle { get; set; }  
-        public int SortOrder { get; set; } 
+
+        [Required(ErrorMessage = "Section name is required")]
+        [StringLength(200, ErrorMessage = "Section title can't exceed 200 characters")]
+        public string SectionTitle { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Sort order must be greater than 0")]
+        public int SortOrder { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; } 
         public int CreatedBy { get; set; }

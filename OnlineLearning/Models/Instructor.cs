@@ -1,29 +1,24 @@
-﻿
-
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace OnlineLearning.Models
 {
-    public class Student
+    public class Instructor
     {
-        public int? StudentId { get; set; }
-        public int? UserID { get; set; }
+        public int? InstructorId { get; set; }
 
         [Required(ErrorMessage = "Name is required")]
         public string FullName { get; set; }
-
-        [Required(ErrorMessage ="Email is required")]
+        [Required(ErrorMessage = "Email is required")]
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; }
 
-        [Required(ErrorMessage ="MobileNo is required")]
+        [Required(ErrorMessage = "MobileNo is required")]
         [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Mobile number must be 10 digits")]
         [DataType(DataType.PhoneNumber)]
-        public string Mobile { get; set; } 
-        public string? Role { get; set; } 
-        public DateTime? DOB { get; set; }
-        public string? Gender { get; set; }
-        public string? Address { get; set; }
+        public string? Mobile { get; set; } 
+        public string? Role { get; set; }  
+        public string? Bio { get; set; }
+        public int? ExperienceYears { get; set; }
         public byte[]? ProfileImage { get; set; }
         public IFormFile? ImageFile { get; set; }
         public bool IsActive { get; set; }

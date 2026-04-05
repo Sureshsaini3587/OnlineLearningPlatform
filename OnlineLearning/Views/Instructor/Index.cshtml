@@ -1,11 +1,11 @@
 ﻿@using OnlineLearning.DTO
-@model IEnumerable<StudentDTO>
+@model IEnumerable<InstructorDTO>
 
 <div class="card">
     <div class="card-header">
         <div class="d-flex justify-content-between mb-3">
-            <h5>📚 Student Management</h5>
-            <a asp-action="Create" class="btn btn-primary">+ Add Student</a>
+            <h5>📚 Instructor Management</h5>
+            <a asp-action="Create" class="btn btn-primary">+ Add Instructor</a>
         </div>
     </div>
     <div class="card-block table-border-style">
@@ -16,7 +16,7 @@
                         <th>Sr.No.</th> 
                         <th>Name</th>
                         <th>Email</th>
-                        <th>Address</th> 
+                        <th>Bio</th> 
                         <th>Mobile No</th> 
                         <th>Status</th>
                         <th width="180">Action</th>
@@ -33,7 +33,7 @@
                             <th scope="row">@srNo</th> 
                             <td>@item.FullName</td>
                             <td>@item.Email</td>
-                            <td>@item.Address</td> 
+                            <td>@item.Bio</td> 
                             <td>@item.Mobile</td> 
                             <td>
                                 @if (item.IsActive)
@@ -46,8 +46,8 @@
                                 }
                             </td>
                             <td>
-                                <a asp-action="Edit" title="Edit" asp-route-id="@item.UserID" class="btn   btn-outline-primary"><i class="icofont icofont-pencil-alt-5"></i></a>
-                                <a asp-action="Delete" title="Delete" asp-route-id="@item.UserID" class="btn   btn-outline-danger"><i class="icofont icofont-ui-delete"></i></a>
+                                <a asp-action="Edit" title="Edit" asp-route-id="@item.InstructorId" class="btn   btn-outline-primary"><i class="icofont icofont-pencil-alt-5"></i></a>
+                                <a asp-action="Delete" title="Delete" asp-route-id="@item.InstructorId" class="btn   btn-outline-danger"><i class="icofont icofont-ui-delete"></i></a>
                             </td>
                         </tr>
                         srNo++;

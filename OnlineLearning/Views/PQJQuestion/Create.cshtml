@@ -1,0 +1,147 @@
+﻿@model QuestionVM
+   
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-block">
+
+                <div class="d-flex justify-content-end mb-3">
+                    <a class="btn btn-sm btn-outline-primary"
+                       asp-controller="PQJQuestion" asp-action="Index">
+                        ← Back
+                    </a>
+                </div>
+
+                <h4 class="sub-title">Create Question</h4>
+
+                <form asp-action="Create" method="post">
+
+                    <div class="row">
+
+                        <!-- Question -->
+                        <div class="col-md-12 mb-3">
+                            <label>Question *</label>
+                            <textarea asp-for="Question.QuestionText" class="form-control"></textarea>
+                            <span asp-validation-for="Question.QuestionText" class="text-danger"></span>
+                        </div>
+
+                        <!-- Course -->
+                        <div class="col-md-4 mb-3">
+                            <label>Course *</label>
+                            <select asp-for="Question.CourseId"
+                                    asp-items="ViewBag.Course"
+                                    class="form-control">
+                                <option value="">-- Select Course --</option>
+                            </select>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="col-md-4 mb-3">
+                            <label>Category *</label>
+                            <select asp-for="Question.CategoryId"
+                                    asp-items="ViewBag.Category"
+                                    class="form-control">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                        </div>
+
+                        <!-- Question Type -->
+                        <div class="col-md-4 mb-3">
+                            <label>Question Type *</label>
+                            <select asp-for="Question.QuestionType"
+                                    class="form-control"
+                                    id="questionType">
+                                <option value="1">MCQ</option>
+                                <option value="2">True/False</option>
+                                <option value="3">Descriptive</option>
+                            </select>
+                        </div>
+
+                        <!-- Difficulty -->
+                        <div class="col-md-4 mb-3">
+                            <label>Difficulty</label>
+                            <select asp-for="Question.DifficultyLevel" class="form-control">
+                                <option value="1">Easy</option>
+                                <option value="2">Medium</option>
+                                <option value="3">Hard</option>
+                            </select>
+                        </div>
+
+                        <!-- Marks -->
+                        <div class="col-md-4 mb-3">
+                            <label>Marks</label>
+                            <input asp-for="Question.Marks" class="form-control" type="number" min="0" />
+                        </div>
+
+                    </div>
+
+                    <!-- MCQ OPTIONS -->
+                    <div id="mcqOptions">
+                        <label>Options *</label>
+
+                        <div id="optionsContainer">
+                            @for (int i = 0; i < 4; i++)
+                            {
+                                <div class="mb-2 d-flex align-items-center gap-2">
+                                    <input name="Options[@i].OptionText"
+                                           class="form-control"
+                                           placeholder="Option @(i + 1)" />
+
+                                    <input type="radio"
+                                           name="CorrectOption"
+                                           value="@i" /> Correct
+                                </div>
+                            }
+                        </div>
+
+                        <button type="button"
+                                class="btn btn-sm btn-primary mt-2"
+                                onclick="addOption()">+ Add Option</button>
+                    </div>
+
+                    <!-- Explanation -->
+                    <div class="mt-3">
+                        <label>Explanation</label>
+                        <textarea name="ExplanationText" class="form-control"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success mt-3">
+                        Save Question
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function addOption() {
+        let index = document.querySelectorAll('#optionsContainer .mb-2').length;
+
+        let html = `
+            <div class="mb-2 d-flex align-items-center gap-2">
+                <input name="Options[${index}].OptionText"
+                       class="form-control"
+                       placeholder="Option ${index + 1}" />
+
+                <input type="radio"
+                       name="CorrectOption"
+                       value="${index}" /> Correct
+            </div>`;
+
+        document.getElementById('optionsContainer')
+            .insertAdjacentHTML('beforeend', html);
+    }  
+    document.getElementById("questionType").addEventListener("change", function () {
+        let val = this.value;
+
+        if (val == "3") { // Descriptive
+            document.getElementById("mcqOptions").style.display = "none";
+        } else {
+            document.getElementById("mcqOptions").style.display = "block";
+        }
+    }); 
+</script>
+ 

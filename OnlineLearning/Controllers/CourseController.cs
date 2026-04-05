@@ -9,13 +9,15 @@ namespace OnlineLearning.Controllers
 {  
     [Authorize]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    public class CourseController : Controller
+    public class CourseController : BaseController
     {
         private readonly ICourseLevelRepository _courseLevel;
         private readonly ICourseRepository _course;
         private readonly ICourseCategoryRepository _coursecategory;
 
-        public CourseController(ICourseRepository cousre, ICourseCategoryRepository coursecategory, ICourseLevelRepository courseLevel)
+        public CourseController(INotificationService notify, ICourseRepository cousre, ICourseCategoryRepository coursecategory, ICourseLevelRepository courseLevel)
+         :
+            base(notify)
         {
             _course = cousre;
             _coursecategory = coursecategory;
@@ -62,11 +64,11 @@ namespace OnlineLearning.Controllers
 
             if (result)
             {
-                ViewBag.Success = "Course saved successfully!";
+                _notify.Success("Course saved successfully!");
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Error = "Something went wrong!";
+            _notify.Error("Something went wrong!");
            await LoadDropdowns();
 
             return View(model);
@@ -119,12 +121,12 @@ namespace OnlineLearning.Controllers
                 var result= await _course.UpdateAsync(CourseDTO);
                 if (!result)
                 {
-                    ViewBag.Error = "An Error Occures While Updating Course Details !";
+                    _notify.Error("An Error Occures While Updating Course Details !");
                     await LoadDropdowns();
                     return View(model);
                 }
 
-
+                _notify.Success("Course Update successfully!");
                 return RedirectToAction("Index");
             } 
             await LoadDropdowns();
@@ -145,27 +147,43 @@ namespace OnlineLearning.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteConfirmed(int courseId)
         {
+            int userId = UserHelper.GetUserId(User);
             var course = await _course.GetByIdAsync(courseId);
             course.IsDeleted = true;
-            var result = await _course.DeleteAsync(course); 
-
+            course.UpdatedBy = userId;
+            var result = await _course.DeleteAsync(course);
+            _notify.Success("Course delete successfully!");
             return RedirectToAction("Index");
         }
         private async Task LoadDropdowns()
         {
-            var Categorys =  _coursecategory.GetAllAsync();
-            ViewBag.Categories = Categorys.Result
+            var Categorys = await _coursecategory.GetAllAsync();
+            ViewBag.Categories = Categorys
                 .Select(x => new SelectListItem
                 {
                     Value = x.CategoryId.ToString(),
                     Text = x.CategoryName
                 }).ToList();
-            var Level= _courseLevel.GetAllAsync();
-            ViewBag.Levels =Level.Result 
+            var Level=await _courseLevel.GetAllAsync();
+            ViewBag.Levels =Level 
                 .Select(x => new SelectListItem
                 {
                     Value = x.LevelId.ToString(),
                     Text = x.LevelName
+                }).ToList();
+            var Lang = await _course.GetLanguage();
+            ViewBag.Language = Lang
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Name.ToString(),
+                    Text = x.Name
+                }).ToList();
+            var Inst = await _course.GetInstructor();
+            ViewBag.Instructor = Inst
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name
                 }).ToList();
         }
 
@@ -208,11 +226,11 @@ namespace OnlineLearning.Controllers
 
             if (result)
             {
-                ViewBag.Success = "Categories saved successfully!";
+                _notify.Success("Categories saved successfully!");
                 return RedirectToAction("Categories");
             }
 
-            ViewBag.Error = "Something went wrong!";
+            _notify.Error("Something went wrong!");
 
             await LoadParentCategory();
             return View(model);
@@ -229,7 +247,7 @@ namespace OnlineLearning.Controllers
                 CategoryName = course.CategoryName,
                 ParentCategoryId = course.ParentCategoryId,
                 IsParent = course.IsParent,
-                IsActive = course.IsActive                
+                IsActive = course.IsActive  
             };
 
             await LoadParentCategory();
@@ -254,10 +272,10 @@ namespace OnlineLearning.Controllers
                 var result = await _coursecategory.UpdateAsync(CourseDTO);
                 if (!result)
                 {
-                    ViewBag.Error = "An Error Occures While Updating Categories Details !"; 
+                    _notify.Error("An Error Occures While Updating Categories Details !"); 
                     return View(model);
-                } 
-
+                }
+                _notify.Success("Categories Upadate Successfully ! ");
                 return RedirectToAction("Categories");
             }
 
@@ -278,10 +296,12 @@ namespace OnlineLearning.Controllers
         [HttpPost]
         public async Task<IActionResult> CategoryDeleteConfirmed(int CategoryId)
         {
+            int userId = UserHelper.GetUserId(User);
             var course = await _coursecategory.GetByIdAsync(CategoryId);
             course.IsDeleted = true;
+            course.UpdatedBy = userId;
             var result = await _coursecategory.DeleteAsync(course);
-
+            _notify.Success("Course delete successfully!");
             return RedirectToAction("Index");
         }
         private async Task LoadParentCategory()
