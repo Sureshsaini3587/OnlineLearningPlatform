@@ -1,12 +1,25 @@
-﻿namespace OnlineLearning.Models
+﻿
+
+using System.ComponentModel.DataAnnotations;
+
+namespace OnlineLearning.Models
 {
     public class Student
     {
         public int? StudentId { get; set; }
-        public int? UserID { get; set; } 
-        public string? FullName { get; set; } 
-        public string? Email { get; set; } 
-        public string? Mobile { get; set; } 
+        public int? UserID { get; set; }
+
+        [Required(ErrorMessage = "Name is required")]
+        public string FullName { get; set; }
+
+        [Required(ErrorMessage ="Email is required")]
+        [DataType(DataType.EmailAddress)]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage ="MobileNo is required")]
+        [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Mobile number must be 10 digits")]
+        [DataType(DataType.PhoneNumber)]
+        public string Mobile { get; set; } 
         public string? Role { get; set; } 
         public DateTime? DOB { get; set; }
         public string? Gender { get; set; }

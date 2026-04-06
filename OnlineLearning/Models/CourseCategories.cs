@@ -6,8 +6,10 @@ namespace OnlineLearning.Models
     {
         public int CategoryId { get; set; }
 
-        [Required(ErrorMessage ="Category name required")]
+        [Required(ErrorMessage = "Category name is required")]
+        [StringLength(100, ErrorMessage = "Category name can't exceed 100 characters")]
         public string CategoryName { get; set; }
+
         public int? ParentCategoryId { get; set; }
         public bool IsParent { get; set; }
         public bool IsActive { get; set; }

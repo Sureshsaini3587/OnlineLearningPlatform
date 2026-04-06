@@ -1,19 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering; 
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Helpers;
-using OnlineLearning.Models;
-using System.Reflection;
+using OnlineLearning.Models; 
 
 namespace OnlineLearning.Controllers
 {
-    public class StudentController : Controller
+    public class StudentController : BaseController
     {
-        private readonly IStudentRepository _student; 
-        public StudentController(IStudentRepository student)
+       
+        private readonly IStudentRepository _student;
+        public StudentController(INotificationService notify,IStudentRepository student) :
+            base(notify)
         {
-            _student = student; 
+            _student = student;
         }
 
         #region Student
@@ -73,12 +74,12 @@ namespace OnlineLearning.Controllers
 
             if (result)
             {
-                ViewBag.Success = "Plan saved successfully!";
+                _notify.Success("Student saved successfully ! ");
                 return RedirectToAction("Index");
             }
 
             await LoadGender();
-            ViewBag.Error = "Something went wrong!";   
+            _notify.Error("Some Error Occured while saving details!");
             return View(model);
         }
 
@@ -136,18 +137,21 @@ namespace OnlineLearning.Controllers
                     Mobile = model.Mobile,
                     ProfileImage = model.ProfileImage,
                     IsActive = model.IsActive,
-                    CreatedBy = userId
+                    UpdatedBy = userId
                 };
                 var result = await _student.UpdateAsync(studentDTO);
                 if (!result)
                 {
                     await LoadGender();
-                    ViewBag.Error = "An Error Occures While Updating Section Details !"; 
+                    _notify.Error("An Error Occures While Updating Section Details !"); 
                     return View(model);
                 }
 
-
-                return RedirectToAction("Index");
+                if (result)
+                {
+                    _notify.Success("Student Profile updated successfully!"); 
+                    return RedirectToAction("Index");
+                } 
             }
             await LoadGender();
             return View(model);
@@ -167,10 +171,12 @@ namespace OnlineLearning.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteConfirmed(int UserID)
         {
+            int userId = UserHelper.GetUserId(User);
             var student = await _student.GetByIdAsync(UserID);
             student.IsDeleted = true;
+            student.UpdatedBy = userId;
             var result = await _student.DeleteAsync(student);
-
+            _notify.Success("Student Profile Delete successfully!");
             return RedirectToAction("Index");
         } 
 

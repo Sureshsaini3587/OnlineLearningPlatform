@@ -3,14 +3,16 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 
 namespace OnlineLearning.Controllers
 {
-    public class CourseSectionController : Controller
+    public class CourseSectionController : BaseController
     {
         private readonly ICourseRepository _course;
         private readonly ICourseSectionRepository _section;
-        public CourseSectionController(ICourseRepository cousre, ICourseSectionRepository section)
+        public CourseSectionController(INotificationService notify, ICourseRepository cousre, ICourseSectionRepository section) :
+            base(notify)
         {
             _course = cousre;
             _section = section; 
@@ -50,11 +52,11 @@ namespace OnlineLearning.Controllers
 
             if (result)
             {
-                ViewBag.Success = "Section saved successfully!";
+                _notify.Success("Section saved successfully!");
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Error = "Something went wrong!";
+            _notify.Error("Something went wrong!");
             await LoadDropdowns();
 
             return View(model);
@@ -95,12 +97,12 @@ namespace OnlineLearning.Controllers
                 var result = await _section.UpdateAsync(CourseDTO);
                 if (!result)
                 {
-                    ViewBag.Error = "An Error Occures While Updating Section Details !";
+                    _notify.Error("An Error Occures While Updating Section Details !");
                     await LoadDropdowns();
                     return View(model);
                 }
 
-
+                _notify.Success("Section Details Update Successfully !");
                 return RedirectToAction("Index");
             }
             await LoadDropdowns();
@@ -121,10 +123,12 @@ namespace OnlineLearning.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteConfirmed(int SectionId)
         {
+            int userId = UserHelper.GetUserId(User);
             var course = await _section.GetByIdAsync(SectionId);
             course.IsDeleted = true;
+            course.UpdatedBy = userId;
             var result = await _section.DeleteAsync(course);
-
+            _notify.Success("Section Delete Successfully !");
             return RedirectToAction("Index");
         }
         private async Task LoadDropdowns()

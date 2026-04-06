@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
+using OnlineLearning.Helpers;
 using OnlineLearning.Models;
 using System.Data;
 
@@ -72,6 +73,7 @@ namespace OnlineLearning.BusinessLogics.Repository
 
         public async Task<bool> AddAsync(StudentDTO entity)
         {
+            var Pswd = PasswordHelper.HashPassword("Std@123");
             using var db = Connection;
             var result = await db.ExecuteAsync(
                  "sp_Student",
@@ -87,7 +89,8 @@ namespace OnlineLearning.BusinessLogics.Repository
                      entity.Gender, 
                      entity.ProfileImage, 
                      entity.IsActive,
-                     entity.CreatedBy
+                     entity.CreatedBy,
+                     Pswd
                  },
                  commandType: CommandType.StoredProcedure
              ); 

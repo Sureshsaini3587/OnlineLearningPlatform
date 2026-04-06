@@ -1,25 +1,14 @@
 ﻿@model SubscriptionPlan
  
-@if (ViewBag.Success != null)
-{
-    <div class="alert alert-success mt-3">
-        @ViewBag.Success
-    </div>
-}
-@if (ViewBag.Error != null)
-{
-    <div class="alert alert-danger mt-3">
-        @ViewBag.Error
-    </div>
-}
+ 
 <div class="row">
     <div class="col-sm-12">
         <div class="card">
             <div class="card-block">
                 <div class="d-flex justify-content-end  mb-3">
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="history.back()">
+                    <a type="button" class="btn btn-sm btn-outline-primary" asp-controller="Subscription" asp-action="Index">
                         ← Back
-                    </button>
+                    </a>
                 </div>
                 <h4 class="sub-title">Plan Details</h4>
                 <form asp-action="Edit" method="post">
@@ -63,10 +52,7 @@
                     <div class="form-group row mt-4 d-flex justify-content-end">
                         <div class="col-sm-1">
                             <button type="submit" class="btn btn-success">Save</button>
-                        </div>
-                        <div class="col-sm-1">
-                            <button type="reset" class="btn btn-secondary">Reset</button>
-                        </div>
+                        </div> 
                     </div>
                 </form>
 

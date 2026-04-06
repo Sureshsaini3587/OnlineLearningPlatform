@@ -8,10 +8,11 @@ using static System.Collections.Specialized.BitVector32;
 
 namespace OnlineLearning.Controllers
 {
-    public class SubscriptionController : Controller
+    public class SubscriptionController : BaseController
     {
         private readonly ISubscriptionPlanRepository _plan; 
-        public SubscriptionController(ISubscriptionPlanRepository plan)
+        public SubscriptionController(INotificationService notify,ISubscriptionPlanRepository plan):
+            base(notify)
         {
             _plan = plan; 
         }
@@ -49,11 +50,11 @@ namespace OnlineLearning.Controllers
 
             if (result)
             {
-                ViewBag.Success = "Plan saved successfully!";
+                _notify.Success("Plan saved successfully!");
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Error = "Something went wrong!";   
+            _notify.Error("Something went wrong!");   
             return View(model);
         }
 
@@ -93,10 +94,10 @@ namespace OnlineLearning.Controllers
                 var result = await _plan.UpdateAsync(CourseDTO);
                 if (!result)
                 {
-                    ViewBag.Error = "An Error Occures While Updating Section Details !"; 
+                    _notify.Error("An Error Occures While Updating Plan Details !"); 
                     return View(model);
                 }
-
+                _notify.Success("Plan Details Update Successfully !");
 
                 return RedirectToAction("Index");
             } 
@@ -117,10 +118,12 @@ namespace OnlineLearning.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteConfirmed(int PlanId)
         {
+            int userId = UserHelper.GetUserId(User);
             var course = await _plan.GetByIdAsync(PlanId);
             course.IsDelete = true;
+            course.UpdatedBy = userId;
             var result = await _plan.DeleteAsync(course);
-
+            _notify.Success("Plan Delete Successfully !");
             return RedirectToAction("Index");
         } 
 
