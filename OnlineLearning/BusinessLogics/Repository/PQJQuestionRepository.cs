@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
 using OnlineLearning.BusinessLogics.IRepository;
+using OnlineLearning.DTO;
 using OnlineLearning.Models;
 using System.Data;
 using static Dapper.SqlMapper;
@@ -24,7 +25,26 @@ namespace OnlineLearning.BusinessLogics.Repository
                     _config.GetConnectionString("DbConnection"));
             }
         }
-
+        public async Task<IEnumerable<CommanDTO>> GetCourse()
+        {
+            using var db = Connection;
+            var data = await db.QueryAsync<CommanDTO>(
+                  "sp_PQJQuestion",
+                  new { Action = "GET_Course" },
+                  commandType: CommandType.StoredProcedure
+              );
+            return data.ToList();
+        }
+        public async Task<IEnumerable<CommanDTO>> GetCategory()
+        {
+            using var db = Connection;
+            var data = await db.QueryAsync<CommanDTO>(
+                  "sp_PQJQuestion",
+                  new { Action = "GET_Category" },
+                  commandType: CommandType.StoredProcedure
+              );
+            return data.ToList();
+        }
         public async Task<int> CreateAsync(PQJQuestion q, List<PQJOption> options, int correctOption)
         {
             using var db = Connection;
@@ -39,6 +59,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                     q.CourseId,
                     QuestionType = (int)q.QuestionType,
                     q.DifficultyLevel,
+                    q.Explanation,
                     q.Marks, 
                     q.CreatedBy
                 },
@@ -117,8 +138,6 @@ namespace OnlineLearning.BusinessLogics.Repository
         public async Task<bool> UpdateAsync(PQJQuestion q, List<PQJOption> options, int correctOption)
         {
             using var db = Connection;
-            using var tran = db.BeginTransaction();
-
             try
             { 
                 var result = await db.ExecuteAsync(
@@ -132,10 +151,10 @@ namespace OnlineLearning.BusinessLogics.Repository
                         q.CourseId,
                         QuestionType = (int)q.QuestionType,
                         q.DifficultyLevel,
+                        q.Explanation,
                         q.Marks, 
                         q.UpdatedBy
                     },
-                    transaction: tran,
                     commandType: CommandType.StoredProcedure
                 );
                  
@@ -146,7 +165,6 @@ namespace OnlineLearning.BusinessLogics.Repository
                         Action = "DELETEBYQUESTION",
                         QuestionId = q.QuestionId
                     },
-                    transaction: tran,
                     commandType: CommandType.StoredProcedure
                 );
                  
@@ -161,17 +179,14 @@ namespace OnlineLearning.BusinessLogics.Repository
                             OptionText = options[i].OptionText,
                             IsCorrect = (i == correctOption)
                         },
-                        transaction: tran,
                         commandType: CommandType.StoredProcedure
                     );
                 } 
-                tran.Commit();
 
                 return result > 0;
             }
             catch (Exception)
             { 
-                tran.Rollback();
                 throw;
             }
         }

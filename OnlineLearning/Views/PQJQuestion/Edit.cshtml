@@ -1,102 +1,131 @@
-﻿@model Course
-  
+﻿@model QuestionVM
+   
+
 <div class="row">
     <div class="col-sm-12">
         <div class="card">
             <div class="card-block">
-                <div class="d-flex justify-content-end  mb-3">
-                    <a type="button" class="btn btn-sm btn-outline-primary" asp-controller="Course" asp-action="Index">
+
+                <div class="d-flex justify-content-end mb-3">
+                    <a class="btn btn-sm btn-outline-primary"
+                           asp-controller="PQJQuestion" asp-action="Index">
                         ← Back
                     </a>
                 </div>
-                <h4 class="sub-title">Update Course Details</h4>
+
+                <h4 class="sub-title">Edit Question Details</h4>
+
                 <form asp-action="Edit" method="post">
-                    <input type="hidden" asp-for="CourseId" />
-                    <div class="form-group row">
-                        <label class="col-sm-2 col-form-label">Course Title *</label>
-                        <div class="col-sm-10">
-                            <input asp-for="CourseTitle" class="form-control" />
-                            <span asp-validation-for="CourseTitle" class="text-danger"></span>
+                    <input type="hidden" asp-for="Question.QuestionId" />
+                    <div class="row"> 
+                        <div class="col-md-12 mb-3">
+                            <label>Question *</label>
+                            <textarea asp-for="Question.QuestionText" class="form-control"></textarea>
+                            <span asp-validation-for="Question.QuestionText" class="text-danger"></span>
                         </div>
-                    </div>
-                    <div class="form-group row mt-2">
-                        <label class="col-sm-2 col-form-label">Price *</label>
-                        <div class="col-sm-10">
-                            <input asp-for="Price" class="form-control" type="number" step="0.01" min="0" />
-                            <span asp-validation-for="Price" class="text-danger"></span>
+                        <div class="col-md-4 mb-3">
+                            <label>Course *</label>
+                            <select asp-for="Question.CourseId"
+                                    asp-items="ViewBag.Course"
+                                    class="form-control">
+                                <option value="">-- Select Course --</option>
+                            </select>
                         </div>
-                    </div>
-                    <div class="form-group row mt-2">
-                        <label class="col-sm-2 col-form-label">Category *</label>
-                        <div class="col-sm-10">
-                            <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control">
+                        <div class="col-md-4 mb-3">
+                            <label>Category *</label>
+                            <select asp-for="Question.CategoryId"
+                                    asp-items="ViewBag.Category"
+                                    class="form-control">
                                 <option value="">-- Select Category --</option>
                             </select>
-                            <span asp-validation-for="CategoryId" class="text-danger"></span>
                         </div>
-                    </div>
-                    <div class="form-group row mt-2">
-                        <label class="col-sm-2 col-form-label">Level *</label>
-                        <div class="col-sm-10">
-                            <select asp-for="Level" asp-items="ViewBag.Levels" class="form-control">
-                                <option value="">-- Select Level --</option>
+                        <div class="col-md-4 mb-3">
+                            <label>Question Type *</label>
+                            <select asp-for="Question.QuestionType"
+                                    class="form-control"
+                                    id="questionType">
+                                <option value="1">MCQ</option>
+                                <option value="2">True/False</option>
+                                <option value="3">Descriptive</option>
                             </select>
-                            <span asp-validation-for="Level" class="text-danger"></span>
                         </div>
-                    </div>
-                    <div class="form-group row mt-2">
-                        <label class="col-sm-2 col-form-label">Language *</label>
-                        <div class="col-sm-10">
-                            <select asp-for="Language" asp-items="ViewBag.Language" class="form-control">
-                                <option value="">-- Select Language --</option>
+                        <div class="col-md-4 mb-3">
+                            <label>Difficulty</label>
+                            <select asp-for="Question.DifficultyLevel" class="form-control">
+                                <option value="1">Easy</option>
+                                <option value="2">Medium</option>
+                                <option value="3">Hard</option>
                             </select>
-                            <span asp-validation-for="Language" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label>Marks</label>
+                            <input asp-for="Question.Marks" class="form-control" type="number" min="0" />
                         </div>
                     </div>
-                    <div class="form-group row mt-2">
-                        <label class="col-sm-2 col-form-label">Instructor  *</label>
-                        <div class="col-sm-10">
-                            <select asp-for="InstructorId" asp-items="ViewBag.Instructor" class="form-control">
-                                <option value="">-- Select Instructor --</option>
-                            </select>
-                            <span asp-validation-for="InstructorId" class="text-danger"></span>
+                    <div id="mcqOptions">
+                        <label>Options *</label>
+                        <div id="optionsContainer">
+                            @for (int i = 0; i < 4; i++)
+                            {
+                                <div class="mb-2 d-flex align-items-center gap-2">
+                                    <input asp-for="Options[@i].OptionText"  
+                                           class="form-control"
+                                           placeholder="Option @(i + 1)" />
+
+                                    <input type="radio" asp-for="CorrectOption" 
+                                           value="@i" /> Correct
+                                </div>
+                            }
                         </div>
+
+                        <button type="button"
+                                class="btn btn-sm btn-primary mt-2"
+                                onclick="addOption()">
+                            + Add Option
+                        </button>
                     </div>
-                    <div class="form-group row mt-2">
-                        <label class="col-sm-2 col-form-label">Thumbnail URL</label>
-                        <div class="col-sm-10">
-                            <input asp-for="Thumbnail" class="form-control" />
-                            <span asp-validation-for="Thumbnail" class="text-danger"></span>
-                        </div>
+                     
+                    <div class="mt-3">
+                        <label>Explanation</label>
+                        <textarea asp-for="Question.Explanation" class="form-control"></textarea>
                     </div>
-                    <div class="form-group row mt-2">
-                        <label class="col-sm-2 col-form-label">Description *</label>
-                        <div class="col-sm-10">
-                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-                            <span asp-validation-for="Description" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="form-group row mt-3">
-                        <div class="col-sm-10 offset-sm-2">
-                            <div class="form-check">
-                                <input asp-for="IsPublished" class="form-check-input" />
-                                <label class="form-check-label">Published</label>
-                            </div>
-                            <div class="form-check">
-                                <input asp-for="IsActive" class="form-check-input"  />
-                                <label class="form-check-label">Active</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group row mt-4 d-flex justify-content-end">
-                        <div class="col-sm-1">
-                            <button type="submit" class="btn btn-success">Save</button>
-                        </div>
-                    </div>
+
+                    <button type="submit" class="btn btn-success mt-3">
+                        Save Question
+                    </button>
+
                 </form>
 
             </div>
         </div>
     </div>
 </div>
+<script>
+    function addOption() {
+        let index = document.querySelectorAll('#optionsContainer .mb-2').length;
+
+        let html = `
+            <div class="mb-2 d-flex align-items-center gap-2">
+                <input name="Options[${index}].OptionText"
+                       class="form-control"
+                       placeholder="Option ${index + 1}" />
+
+                <input type="radio"
+                       name="CorrectOption"
+                       value="${index}" /> Correct
+            </div>`;
+
+        document.getElementById('optionsContainer')
+            .insertAdjacentHTML('beforeend', html);
+    }
+    document.getElementById("questionType").addEventListener("change", function () {
+        let val = this.value;
+
+        if (val == "3") { // Descriptive
+            document.getElementById("mcqOptions").style.display = "none";
+        } else {
+            document.getElementById("mcqOptions").style.display = "block";
+        }
+    });
+</script>
  

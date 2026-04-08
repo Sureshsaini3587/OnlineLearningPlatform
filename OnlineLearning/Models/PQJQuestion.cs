@@ -11,19 +11,18 @@ namespace OnlineLearning.Models
     }
     public class PQJQuestion
     {
-        public int QuestionId { get; set; }
+        public int? QuestionId { get; set; }
 
         [Required(ErrorMessage = "Question text is required")]
         [StringLength(2000)]
         public string QuestionText { get; set; }
-
-        [StringLength(500)]
-        public string? ImageUrl { get; set; }
+         
 
         [Required(ErrorMessage = "Category is required")]
         public int CategoryId { get; set; }
 
-        public int? CourseId { get; set; }
+        [Required(ErrorMessage = "Course is required")]
+        public int CourseId { get; set; }
 
         [Required(ErrorMessage = "Question type is required")]
         public QuestionType QuestionType { get; set; }
@@ -46,29 +45,22 @@ namespace OnlineLearning.Models
         public int? UpdatedBy { get; set; }
 
         public DateTime? UpdatedOn { get; set; }
-
-        //   Navigation Properties
-        public virtual CourseCategories Category { get; set; }
-        public virtual Course? Course { get; set; }
-
+         
         public virtual List<PQJOption> Options { get; set; } = new List<PQJOption>();
 
-        public virtual PQJExplanation? Explanation { get; set; }
+        public string? Explanation { get; set; }
          
     }
     public class PQJOption
     {
-        public int OptionId { get; set; }
-
-        [Required]
-        public int QuestionId { get; set; }
+        public int? OptionId { get; set; }
+         
+        public int? QuestionId { get; set; }
 
         [Required(ErrorMessage = "Option text is required")]
         [StringLength(500)]
         public string OptionText { get; set; } 
-        public bool IsCorrect { get; set; } 
-        // Navigation
-        public virtual PQJQuestion Question { get; set; }
+        public bool IsCorrect { get; set; }   
     }
     public class PQJExplanation
     {
@@ -79,9 +71,7 @@ namespace OnlineLearning.Models
 
         [StringLength(2000)]
         public string ExplanationText { get; set; } 
-
-        // Navigation
-        public virtual PQJQuestion Question { get; set; }
+         
     }
     public class PQJAttemptAnswer
     {
