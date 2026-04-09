@@ -1,0 +1,60 @@
+﻿@using OnlineLearning.DTO
+@model List<PlanCourseVM>
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between mb-3">
+            <h5>📚 Course Plan Mapping List</h5>
+            <a asp-action="Create" class="btn btn-primary">+ Add New</a>
+        </div>
+    </div>
+    <div class="card-block table-border-style">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Sr.No.</th>
+                        <th>Plan</th>
+                        <th>Courses</th> 
+                        <th width="180">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int srNo = 1;
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @srNo
+                            </td>
+                            <td>
+                                @item.Plans.First().Text
+                            </td>
+
+                            <td>
+                                @foreach (var course in item.Courses)
+                                {
+                                    <span class="badge bg-primary me-1">
+                                        @course.Text
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <a asp-action="Edit"
+                                       asp-route-planId="@item.PlanId"
+                                       class="btn btn-warning btn-sm">
+                                    <i class="icofont icofont-pencil-alt-5"></i> 
+                                </a>
+                            </td>
+                        </tr>
+                        
+                        srNo++;
+                    } 
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> 

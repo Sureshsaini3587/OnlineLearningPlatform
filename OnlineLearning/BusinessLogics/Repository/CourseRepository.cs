@@ -143,6 +143,59 @@ namespace OnlineLearning.BusinessLogics.Repository
             );
 
             return result > 0;
-        } 
+        }
+
+        public async Task<int> AddCourseToPlanAsync(PlanCourseDto dto)
+        {
+            using var db = Connection;
+            var result = await db.QueryFirstAsync<int>(
+                "sp_PlanCourses",
+                new
+                {
+                    Action = "CREATE",
+                    dto.PlanId,
+                    dto.CourseId,
+                    CreatedBy = 1
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
+        }
+        public async Task<IEnumerable<CourseDTO>> GetCoursesByPlanAsync(int planId)
+        {
+            using var db = Connection;
+            return await db.QueryAsync<CourseDTO>(
+                "sp_PlanCourses",
+                new
+                {
+                    Action = "GET_BY_PLAN",
+                    PlanId = planId
+                },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+        public async Task<List<PlanCourseListDto>> GetAllCoursePlan()
+        {
+            using var db = Connection;
+
+            var result = await db.QueryAsync<PlanCourseListDto>(
+                "sp_PlanCourses",
+                new { Action = "GET_ALL" },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+        public async Task DeleteByPlanIdAsync(int planId)
+        {
+            using var db = Connection;
+
+            await db.ExecuteAsync(
+               "sp_PlanCourses",
+                new { Action = "DELETE", PlanId = planId },
+                commandType: CommandType.StoredProcedure 
+            );
+        }
     }
 }

@@ -8,5 +8,9 @@ namespace OnlineLearning.BusinessLogics.IRepository
        Task<List<CourseDTO>> GetAllWithDetails();
        Task<List<CommanDTO>> GetLanguage();
        Task<List<CommanDTO>> GetInstructor();
+       Task<int> AddCourseToPlanAsync(PlanCourseDto dto);
+       Task<IEnumerable<CourseDTO>> GetCoursesByPlanAsync(int planId);
+        Task<List<PlanCourseListDto>> GetAllCoursePlan();
+        Task DeleteByPlanIdAsync(int planId);
     }
 }
