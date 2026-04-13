@@ -1,0 +1,97 @@
+﻿ 
+@{
+    ViewData["Title"] = "Courses";
+    Layout = "~/Views/Shared/Web/_Layout.cshtml";
+} 
+
+<section class="inner-hero">
+    <div class="container">
+        <div class="inner-hero-content text-center">
+            <span class="section-kicker">Frequently asked questions</span>
+            <h1>Answers to common questions about courses and access</h1>
+            <p>
+                Everything you need to know about demo videos, subscriptions, student access, and practice flow.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section-space">
+    <div class="container">
+        <div class="faq-search-box mb-4">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search a question..." />
+        </div>
+
+        <div class="faq-shell">
+            <div class="accordion" id="faqAccordion">
+
+                <div class="accordion-item faq-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            Are demo videos free for everyone?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes. Demo videos can be watched publicly without subscription.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item faq-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            When do I get access to full course videos?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Full course videos are available only after login and active subscription.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item faq-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            What is PQJ practice?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            PQJ is the practice question-answer module where students can test understanding and review explanations.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item faq-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            Can I change my subscription plan later?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes. You can upgrade or renew your plan according to available subscription options.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item faq-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                            Do I need an account to watch demos?
+                        </button>
+                    </h2>
+                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            No. Demo classes can be made public. Account and subscription are required for premium content.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>

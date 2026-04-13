@@ -1,0 +1,554 @@
+﻿@{
+    ViewData["Title"] = "Home";
+    Layout = "~/Views/Shared/Web/_Layout.cshtml";
+}
+
+<section class="hero-section">
+    <div class="hero-blur blur-one"></div>
+    <div class="hero-blur blur-two"></div>
+    <div class="hero-grid-lines"></div>
+
+    <div class="container position-relative">
+        <div class="row align-items-center min-vh-100 pt-5">
+            <div class="col-lg-6 pe-lg-5" data-aos="fade-right">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    New era of digital learning
+                </div>
+
+                <h1 class="hero-heading">
+                    Build skills through
+                    <span>cinematic learning</span>
+                    and smart practice.
+                </h1>
+
+                <p class="hero-subtext">
+                    Watch demo classes for free, unlock complete premium courses with subscription,
+                    and boost confidence with interactive PQJ exercises and instant results.
+                </p>
+
+                <div class="hero-actions">
+                    <a asp-controller="Courses" asp-action="Index" class="btn btn-hero-primary">
+                        Explore Courses
+                        <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                    <a asp-controller="Demo" asp-action="Index" class="btn btn-hero-secondary">
+                        <i class="bi bi-play-circle"></i>
+                        Watch Demo
+                    </a>
+                </div>
+
+                <div class="hero-mini-stats">
+                    <div class="mini-stat">
+                        <strong>50K+</strong>
+                        <span>Learners</span>
+                    </div>
+                    <div class="mini-stat">
+                        <strong>120+</strong>
+                        <span>Courses</span>
+                    </div>
+                    <div class="mini-stat">
+                        <strong>92%</strong>
+                        <span>Success Rate</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mt-5 mt-lg-0" data-aos="fade-left">
+                <div class="hero-visual-wrap">
+                    <div class="hero-floating-chip chip-top">
+                        <i class="bi bi-play-btn-fill"></i>
+                        Free Demo Access
+                    </div>
+
+                    <div class="hero-floating-chip chip-right">
+                        <i class="bi bi-stars"></i>
+                        PQJ Performance 94%
+                    </div>
+
+                    <div class="hero-panel-main">
+                        <div class="hero-panel-top">
+                            <div class="browser-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <div class="live-badge">Live Learning UI</div>
+                        </div>
+
+                        <div class="hero-dashboard">
+                            <div class="hero-sidebar-card">
+                                <div class="sidebar-title">Your Journey</div>
+                                <div class="progress-ring">
+                                    <div class="ring-center">78%</div>
+                                </div>
+                                <ul class="sidebar-list">
+                                    <li><span></span> UI Design Basics</li>
+                                    <li><span></span> Demo Class Access</li>
+                                    <li><span></span> PQJ Practice</li>
+                                </ul>
+                            </div>
+
+                            <div class="hero-content-card">
+                                <div class="content-top">
+                                    <div>
+                                        <small>Featured Course</small>
+                                        <h5>Master Web UI for Modern Platforms</h5>
+                                    </div>
+                                    <div class="course-tag">Premium</div>
+                                </div>
+
+                                <div class="video-preview-card">
+                                    <div class="play-button-glow">
+                                        <i class="bi bi-play-fill"></i>
+                                    </div>
+                                    <div class="video-overlay-text">
+                                        Demo lesson available
+                                    </div>
+                                </div>
+
+                                <div class="lesson-row">
+                                    <div class="lesson-item active">
+                                        <div class="lesson-icon"><i class="bi bi-camera-video-fill"></i></div>
+                                        <div>
+                                            <h6>Lesson 01</h6>
+                                            <p>Modern Hero Design</p>
+                                        </div>
+                                    </div>
+                                    <div class="lesson-item locked">
+                                        <div class="lesson-icon"><i class="bi bi-lock-fill"></i></div>
+                                        <div>
+                                            <h6>Lesson 02</h6>
+                                            <p>Premium Components</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="hero-bottom-strip">
+                                    <div>
+                                        <span>Students enrolled</span>
+                                        <strong>18,240</strong>
+                                    </div>
+                                    <div>
+                                        <span>Practice score</span>
+                                        <strong>88 / 100</strong>
+                                    </div>
+                                    <div>
+                                        <span>Plan</span>
+                                        <strong>Quarterly Pro</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hero-floating-card">
+                        <div class="floating-card-icon">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                        </div>
+                        <div>
+                            <h6>Subscription Unlock</h6>
+                            <p>Access full videos, premium material and all PQJ practice sets.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-brand-row" data-aos="fade-up">
+            <span>Trusted by ambitious students preparing for real growth</span>
+            <div class="brand-pills">
+                <span>Interactive Learning</span>
+                <span>Premium Courses</span>
+                <span>Smart Practice</span>
+                <span>Anytime Access</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-strip-section">
+    <div class="container">
+        <div class="stats-strip">
+            <div class="stats-strip-item" data-aos="fade-up">
+                <strong>120+</strong>
+                <span>Professionally crafted courses</span>
+            </div>
+            <div class="stats-strip-item" data-aos="fade-up" data-aos-delay="60">
+                <strong>3000+</strong>
+                <span>PQJ practice questions</span>
+            </div>
+            <div class="stats-strip-item" data-aos="fade-up" data-aos-delay="120">
+                <strong>50K+</strong>
+                <span>Students joined the platform</span>
+            </div>
+            <div class="stats-strip-item" data-aos="fade-up" data-aos-delay="180">
+                <strong>24/7</strong>
+                <span>Flexible learning access</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-space feature-section">
+    <div class="container">
+        <div class="section-head text-center" data-aos="fade-up">
+            <span class="section-kicker">Why choose us</span>
+            <h2>Built for focused learning, not clutter</h2>
+            <p>
+                A cleaner, faster and more engaging experience for students who want structure,
+                quality content and measurable improvement.
+            </p>
+        </div>
+
+        <div class="row g-4 mt-1">
+            <div class="col-md-6 col-lg-3" data-aos="zoom-in">
+                <div class="feature-box">
+                    <div class="feature-icon icon-a"><i class="bi bi-play-circle-fill"></i></div>
+                    <h5>Free Demo Classes</h5>
+                    <p>Let users preview the teaching style before they subscribe.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="80">
+                <div class="feature-box">
+                    <div class="feature-icon icon-b"><i class="bi bi-collection-play-fill"></i></div>
+                    <h5>Structured Courses</h5>
+                    <p>Well-organized chapters, lessons and progress tracking.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="140">
+                <div class="feature-box">
+                    <div class="feature-icon icon-c"><i class="bi bi-patch-check-fill"></i></div>
+                    <h5>Flexible Plans</h5>
+                    <p>Subscription-based access with clear value and upgrade flow.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3" data-aos="zoom-in" data-aos-delay="200">
+                <div class="feature-box">
+                    <div class="feature-icon icon-d"><i class="bi bi-ui-checks-grid"></i></div>
+                    <h5>PQJ Practice</h5>
+                    <p>Practice, review answers and strengthen retention faster.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-space categories-section">
+    <div class="container">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-4">
+            <div class="section-head mb-0" data-aos="fade-right">
+                <span class="section-kicker">Popular categories</span>
+                <h2>Choose your direction, then go deep</h2>
+            </div>
+            <a asp-controller="Courses" asp-action="Index" class="section-link" data-aos="fade-left">
+                Browse all categories <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-xl-3" data-aos="fade-up">
+                <div class="category-card">
+                    <div class="category-icon cat-a"><i class="bi bi-code-slash"></i></div>
+                    <h5>Web Development</h5>
+                    <p>Frontend, backend, MVC, APIs, and scalable app structure.</p>
+                    <span>24 Courses</span>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="70">
+                <div class="category-card">
+                    <div class="category-icon cat-b"><i class="bi bi-palette-fill"></i></div>
+                    <h5>UI / UX Design</h5>
+                    <p>Premium layouts, interaction design, dashboards, and flows.</p>
+                    <span>16 Courses</span>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="140">
+                <div class="category-card">
+                    <div class="category-icon cat-c"><i class="bi bi-bar-chart-line-fill"></i></div>
+                    <h5>Digital Growth</h5>
+                    <p>Marketing, conversion design, landing pages, and strategy.</p>
+                    <span>11 Courses</span>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="210">
+                <div class="category-card">
+                    <div class="category-icon cat-d"><i class="bi bi-cpu-fill"></i></div>
+                    <h5>Tech Foundations</h5>
+                    <p>Core logic, architecture, patterns, and technical confidence.</p>
+                    <span>18 Courses</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-space course-showcase">
+    <div class="container">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-4">
+            <div class="section-head mb-0" data-aos="fade-right">
+                <span class="section-kicker">Trending now</span>
+                <h2>Explore standout learning tracks</h2>
+            </div>
+            <a asp-controller="Courses" asp-action="Index" class="section-link" data-aos="fade-left">
+                View all courses <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @for (int i = 1; i <= 6; i++)
+            {
+                <div class="col-md-6 col-xl-4" data-aos="fade-up">
+                    <div class="course-show-card">
+                        <div class="course-thumb">
+                            <span class="course-chip">Best Seller</span>
+                            <img src="https://picsum.photos/600/420?random=@i" alt="Course Image" />
+                        </div>
+
+                        <div class="course-body">
+                            <div class="course-meta">
+                                <span><i class="bi bi-camera-video"></i> 24 lessons</span>
+                                <span><i class="bi bi-clock-history"></i> 16 hrs</span>
+                            </div>
+                            <h5>Advanced Learning Experience Design</h5>
+                            <p>
+                                Premium course structure with demo access, locked lessons and practice workflow.
+                            </p>
+                            <div class="course-footer-row">
+                                <div class="course-price">₹999</div>
+                                <a asp-controller="Courses" asp-action="Details" asp-route-id="@i" class="btn btn-course-view">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section-space demo-spotlight-section">
+    <div class="container">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6" data-aos="fade-right">
+                <div class="demo-spotlight-media">
+                    <div class="play-button-glow"><i class="bi bi-play-fill"></i></div>
+                    <span class="preview-pill">Free Demo Lesson</span>
+                </div>
+            </div>
+
+            <div class="col-lg-6" data-aos="fade-left">
+                <div class="section-head mb-0">
+                    <span class="section-kicker">Watch before you subscribe</span>
+                    <h2>Demo content that shows the real quality</h2>
+                    <p>
+                        Let students see your teaching clarity, design quality, and lesson structure before
+                        unlocking the complete premium library.
+                    </p>
+                </div>
+
+                <div class="demo-points-list mt-4">
+                    <div class="demo-point">
+                        <i class="bi bi-check2-circle"></i>
+                        <span>Preview actual lesson quality</span>
+                    </div>
+                    <div class="demo-point">
+                        <i class="bi bi-check2-circle"></i>
+                        <span>Build trust before payment</span>
+                    </div>
+                    <div class="demo-point">
+                        <i class="bi bi-check2-circle"></i>
+                        <span>Increase subscription confidence</span>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a asp-controller="Demo" asp-action="Index" class="btn btn-plan">Explore Demo Classes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-space how-it-works-section">
+    <div class="container">
+        <div class="section-head text-center" data-aos="fade-up">
+            <span class="section-kicker">How it works</span>
+            <h2>Simple flow, better conversion, smoother learning</h2>
+        </div>
+
+        <div class="row g-4 justify-content-center mt-2">
+            <div class="col-md-6 col-lg-4" data-aos="fade-up">
+                <div class="step-card">
+                    <div class="step-no">01</div>
+                    <h5>Browse courses</h5>
+                    <p>Discover structured programs across categories and learning goals.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="80">
+                <div class="step-card">
+                    <div class="step-no">02</div>
+                    <h5>Watch free demos</h5>
+                    <p>Preview selected content and understand the platform experience.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="160">
+                <div class="step-card">
+                    <div class="step-no">03</div>
+                    <h5>Unlock and practice</h5>
+                    <p>Subscribe to access complete lessons and improve with PQJ sets.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-space testimonials-section">
+    <div class="container">
+        <div class="section-head text-center" data-aos="fade-up">
+            <span class="section-kicker">Student voices</span>
+            <h2>What learners say after using the platform</h2>
+            <p>
+                Clean design, better structure, and practice-led learning make the experience more effective.
+            </p>
+        </div>
+
+        <div class="row g-4 mt-2">
+            <div class="col-md-6 col-xl-4" data-aos="fade-up">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p>
+                        “The UI feels premium and the course flow is very clear. Demo classes helped me decide fast.”
+                    </p>
+                    <div class="testimonial-user">
+                        <div class="testimonial-avatar">R</div>
+                        <div>
+                            <strong>Rahul S.</strong>
+                            <span>Frontend Learner</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4" data-aos="fade-up" data-aos-delay="80">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p>
+                        “PQJ practice was the best part. It made revision easier and I could measure my improvement.”
+                    </p>
+                    <div class="testimonial-user">
+                        <div class="testimonial-avatar">A</div>
+                        <div>
+                            <strong>Anjali M.</strong>
+                            <span>UI / UX Student</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4" data-aos="fade-up" data-aos-delay="160">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p>
+                        “Dashboard, progress, and premium lesson flow all feel polished. It does not look like a basic course site.”
+                    </p>
+                    <div class="testimonial-user">
+                        <div class="testimonial-avatar">V</div>
+                        <div>
+                            <strong>Vikas K.</strong>
+                            <span>Web Development Learner</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-space pricing-section">
+    <div class="container">
+        <div class="section-head text-center" data-aos="fade-up">
+            <span class="section-kicker">Simple pricing</span>
+            <h2>Choose a plan that matches your pace</h2>
+            <p>
+                Start with demo classes for free and upgrade when you are ready for full content access.
+            </p>
+        </div>
+
+        <div class="row g-4 justify-content-center mt-2">
+            <div class="col-md-6 col-lg-4" data-aos="fade-up">
+                <div class="pricing-card">
+                    <span class="plan-label">Starter</span>
+                    <h3>Monthly</h3>
+                    <div class="price">₹299</div>
+                    <ul class="plan-list">
+                        <li><i class="bi bi-check2"></i> Full course access</li>
+                        <li><i class="bi bi-check2"></i> Demo classes</li>
+                        <li><i class="bi bi-check2"></i> PQJ practice</li>
+                        <li><i class="bi bi-check2"></i> Student dashboard</li>
+                    </ul>
+                    <a asp-controller="Plans" asp-action="Index" class="btn btn-plan">Choose Monthly</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="80">
+                <div class="pricing-card featured">
+                    <div class="featured-ribbon">Most Popular</div>
+                    <span class="plan-label">Pro Value</span>
+                    <h3>Quarterly</h3>
+                    <div class="price">₹799</div>
+                    <ul class="plan-list">
+                        <li><i class="bi bi-check2"></i> Better savings</li>
+                        <li><i class="bi bi-check2"></i> Full course library</li>
+                        <li><i class="bi bi-check2"></i> Unlimited PQJ access</li>
+                        <li><i class="bi bi-check2"></i> Priority new content</li>
+                    </ul>
+                    <a asp-controller="Plans" asp-action="Index" class="btn btn-plan">Choose Quarterly</a>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="160">
+                <div class="pricing-card">
+                    <span class="plan-label">Ultimate</span>
+                    <h3>Yearly</h3>
+                    <div class="price">₹1999</div>
+                    <ul class="plan-list">
+                        <li><i class="bi bi-check2"></i> Best long-term value</li>
+                        <li><i class="bi bi-check2"></i> Premium content access</li>
+                        <li><i class="bi bi-check2"></i> Complete practice library</li>
+                        <li><i class="bi bi-check2"></i> Early feature unlocks</li>
+                    </ul>
+                    <a asp-controller="Plans" asp-action="Index" class="btn btn-plan">Choose Yearly</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-space final-cta-section">
+    <div class="container">
+        <div class="final-cta-card" data-aos="zoom-in">
+            <div class="final-cta-content">
+                <span class="section-kicker">Ready to begin?</span>
+                <h2>Start with a demo today and unlock premium learning when you’re ready</h2>
+                <p>
+                    Experience the platform first, then move into complete lessons, structured dashboards,
+                    and high-retention PQJ practice.
+                </p>
+            </div>
+
+            <div class="final-cta-actions">
+                <a asp-controller="Demo" asp-action="Index" class="btn btn-footer-secondary">Watch Demo</a>
+                <a asp-controller="Account" asp-action="Register" class="btn btn-footer-primary">Create Account</a>
+            </div>
+        </div>
+    </div>
+</section>

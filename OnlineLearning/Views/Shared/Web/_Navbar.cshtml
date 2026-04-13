@@ -1,0 +1,154 @@
+﻿@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    string IsActive(string controller, string action = "Index")
+    {
+        return currentController.Equals(controller, StringComparison.OrdinalIgnoreCase)
+            && currentAction.Equals(action, StringComparison.OrdinalIgnoreCase)
+            ? "active" : "";
+    }
+
+    string IsControllerActive(params string[] controllers)
+    {
+        return controllers.Any(x => currentController.Equals(x, StringComparison.OrdinalIgnoreCase))
+            ? "active" : "";
+    }
+
+    bool IsLearnDropdownActive =
+        currentController.Equals("Courses", StringComparison.OrdinalIgnoreCase) ||
+        currentController.Equals("Demo", StringComparison.OrdinalIgnoreCase) ||
+        currentController.Equals("Plans", StringComparison.OrdinalIgnoreCase);
+
+    bool IsMoreDropdownActive =
+        currentController.Equals("Faq", StringComparison.OrdinalIgnoreCase) ||
+        currentController.Equals("ContactUS", StringComparison.OrdinalIgnoreCase);
+}
+
+<nav class="navbar navbar-expand-lg fixed-top app-navbar" id="appNavbar">
+    <div class="container">
+        <a class="navbar-brand brand-mark" asp-controller="Home" asp-action="Index">
+            <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+            <span>Manika Learning Academy </span>
+        </a>
+
+        <button class="navbar-toggler border-0 shadow-none text-white" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-list fs-2"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav mx-auto align-items-lg-center gap-lg-2">
+
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("WebHome", "Index")"
+                           asp-controller="WebHome"
+                           asp-action="Index">
+                        Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @IsActive("WebHome", "About")"
+                           asp-controller="WebHome"
+                           asp-action="About">
+                        About
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle @(IsLearnDropdownActive ? "active" : "")"
+                           href="#"
+                           id="learnDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                        Learn
+                    </a>
+
+                    <ul class="dropdown-menu app-dropdown" aria-labelledby="learnDropdown">
+                        <li>
+                            <a class="dropdown-item @IsActive("WebHome", "Courses")"
+                                   asp-controller="WebHome"
+                                   asp-action="Courses">
+                                <i class="bi bi-collection-play me-2"></i>All Courses
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item @IsActive("WebHome", "Demos")"
+                                   asp-controller="WebHome"
+                                   asp-action="Demos">
+                                <i class="bi bi-play-circle me-2"></i>Demo Classes
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item @IsActive("WebHome", "Plans")"
+                                   asp-controller="WebHome"
+                                   asp-action="Plans">
+                                <i class="bi bi-gem me-2"></i>Subscription Plans
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                 <li class="nav-item">
+                    <a class="nav-link @IsActive("WebHome", "PQJ")"
+                           asp-controller="WebHome"
+                           asp-action="PQJ">
+                        PQJ
+                    </a>
+                </li> 
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle @(IsMoreDropdownActive ? "active" : "")"
+                           href="#"
+                           id="moreDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                        More
+                    </a>
+
+                    <ul class="dropdown-menu app-dropdown" aria-labelledby="moreDropdown">
+                        <li>
+                            <a class="dropdown-item @IsActive("WebHome", "Faq")"
+                                   asp-controller="WebHome"
+                                   asp-action="Faq">
+                                <i class="bi bi-patch-question me-2"></i>FAQ
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item @IsActive("WebHome", "ContactUS")"
+                                   asp-controller="WebHome"
+                                   asp-action="ContactUS">
+                                <i class="bi bi-envelope me-2"></i>Contact
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-2 nav-actions">
+                @if (User?.Identity?.IsAuthenticated ?? false)
+                {
+                    <a asp-controller="Student" asp-action="Dashboard" class="btn btn-nav-outline">
+                        Dashboard
+                    </a>
+
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-nav-solid">Logout</button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-nav-outline">
+                        Login
+                    </a>
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-nav-solid">
+                        Get Started
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,110 @@
+﻿<footer class="site-footer">
+    <div class="container">
+        <div class="footer-top-cta">
+            <div class="footer-cta-content">
+                <span class="footer-cta-badge">Start learning smarter</span>
+                <h2>Unlock premium lessons, demos, and PQJ practice in one place</h2>
+                <p>
+                    Explore free demo classes first, then upgrade to access complete courses,
+                    student dashboard features, and topic-wise practice.
+                </p>
+            </div>
+
+            <div class="footer-cta-actions">
+                <a asp-controller="WebHome" asp-action="Courses" class="btn btn-footer-primary">
+                    Explore Courses
+                </a>
+                <a asp-controller="WebHome" asp-action="Plans" class="btn btn-footer-secondary">
+                    View Plans
+                </a>
+            </div>
+        </div>
+
+        <div class="footer-main-grid">
+            <div class="footer-brand-col">
+                <a class="footer-brand" asp-controller="WebHome" asp-action="Index">
+                    <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+                    <span>Manika Learning Academy</span>
+                </a>
+
+                <p class="footer-text mt-3">
+                    A modern learning platform designed for premium course delivery, demo-first discovery,
+                    structured subscriptions, and focused PQJ practice.
+                </p>
+
+                <div class="footer-socials">
+                    <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    @{
+                        var youtube = "https://www.youtube.com/@manikalearningacademy";
+                    }
+                    <a href="@youtube" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                        <i class="bi bi-youtube"></i>
+                    </a>
+
+                    <a href="https://www.whatsapp.com/channel/0029Vb7XLuMLNSa6IBMp4N0G" target="_blank" rel="noopener noreferrer" aria-label="Whatsapp">
+                        <i class="bi bi-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <h6 class="footer-title">Quick Links</h6>
+                <ul class="footer-links">
+                    <li><a asp-controller="WebHome" asp-action="Index">Home</a></li>
+                    <li><a asp-controller="WebHome" asp-action="About">About Us</a></li>
+                    <li><a asp-controller="WebHome" asp-action="Courses">Courses</a></li>
+                    <li><a asp-controller="WebHome" asp-action="Demos">Demo Classes</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h6 class="footer-title">Support</h6>
+                <ul class="footer-links">
+                    <li><a asp-controller="WebHome" asp-action="Plans">Plans</a></li>
+                    <li><a asp-controller="WebHome" asp-action="Faq">FAQ</a></li>
+                    <li><a asp-controller="WebHome" asp-action="ContactUS">Contact Us</a></li>
+                    <li><a asp-controller="Account" asp-action="Login">Student Login</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h6 class="footer-title">Contact</h6>
+                <div class="footer-contact-list">
+                    <div class="footer-contact-item">
+                        <i class="bi bi-envelope-fill"></i>
+                        <span>ManikaLearningAcademy@gmail.com</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="bi bi-telephone-fill"></i>
+                        <span>+91 98765 43210</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>Jaiput, Rajasthan, India</span>
+                    </div>
+                </div>
+
+                <div class="footer-subscribe-box">
+                    <label class="footer-subscribe-label">Stay updated</label>
+                    <div class="footer-subscribe">
+                        <input type="text" class="form-control" placeholder="Enter your email" />
+                        <button type="button" class="btn btn-footer-subscribe">
+                            Join
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 Manika Learning Academy. All rights reserved.</span>
+
+            <div class="footer-bottom-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms & Conditions</a>
+                <a href="#">Support</a>
+            </div>
+        </div>
+    </div>
+</footer>

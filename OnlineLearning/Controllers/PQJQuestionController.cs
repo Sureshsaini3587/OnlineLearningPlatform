@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.Helpers;
@@ -7,6 +8,8 @@ using OnlineLearning.Models;
 
 namespace OnlineLearning.Controllers
 {
+    [Authorize]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class PQJQuestionController : BaseController
     {
         private readonly IPQJQuestionRepository _service;  

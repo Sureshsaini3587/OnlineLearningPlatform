@@ -1,0 +1,49 @@
+﻿@{
+    ViewData["Title"] = "Demo Classes";
+    Layout = "~/Views/Shared/Web/_Layout.cshtml";
+}
+
+<section class="inner-hero">
+    <div class="container">
+        <div class="inner-hero-content text-center">
+            <span class="section-kicker">Demo classes</span>
+            <h1>Watch free preview lessons before unlocking full access</h1>
+            <p>
+                Explore demo content from featured courses and experience the teaching style before subscribing.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section-space">
+    <div class="container">
+        <div class="row g-4">
+            @for (int i = 1; i <= 6; i++)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="demo-card">
+                        <div class="demo-thumb">
+                            <img src="https://picsum.photos/700/420?random=@(500 + i)" alt="Demo Video" />
+                            <div class="demo-play-btn">
+                                <i class="bi bi-play-fill"></i>
+                            </div>
+                            <span class="course-chip">Free Demo</span>
+                        </div>
+
+                        <div class="demo-body">
+                            <div class="course-meta">
+                                <span><i class="bi bi-camera-video"></i> 12 min</span>
+                                <span><i class="bi bi-collection-play"></i> UI Course</span>
+                            </div>
+                            <h5>Demo Lesson @i: Introduction to Premium Learning UI</h5>
+                            <p>
+                                Preview the lesson structure and understand how the course experience works.
+                            </p>
+                            <a href="#" class="btn btn-course-view">Watch Demo</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

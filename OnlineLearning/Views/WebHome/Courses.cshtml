@@ -1,0 +1,72 @@
+﻿ 
+@{
+    ViewData["Title"] = "Courses";
+    Layout = "~/Views/Shared/Web/_Layout.cshtml";
+} 
+
+<section class="inner-hero">
+    <div class="container">
+        <div class="inner-hero-content text-center">
+            <span class="section-kicker">Explore courses</span>
+            <h1>Discover premium learning tracks</h1>
+            <p>
+                Browse structured courses, preview demo classes, and unlock complete video content with subscription.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section-space">
+    <div class="container">
+        <div class="course-filter-bar">
+            <div class="filter-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="Search courses..." />
+            </div>
+
+            <select class="form-select filter-select">
+                <option>All Categories</option>
+                <option>Web Development</option>
+                <option>UI/UX Design</option>
+                <option>Marketing</option>
+            </select>
+
+            <select class="form-select filter-select">
+                <option>Sort By</option>
+                <option>Newest</option>
+                <option>Popular</option>
+                <option>Price Low to High</option>
+            </select>
+        </div>
+
+        <div class="row g-4 mt-2">
+            @for (int i = 1; i <= 9; i++)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="course-show-card">
+                        <div class="course-thumb">
+                            <span class="course-chip">Demo Available</span>
+                            <img src="https://picsum.photos/600/420?random=@(20 + i)" alt="Course Image" />
+                        </div>
+
+                        <div class="course-body">
+                            <div class="course-meta">
+                                <span><i class="bi bi-camera-video"></i> 18 lessons</span>
+                                <span><i class="bi bi-bar-chart"></i> Intermediate</span>
+                            </div>
+                            <h5>Modern ASP.NET Core Learning Track</h5>
+                            <p>
+                                Learn through demo-first video structure, guided lessons, and smart practice exercises.
+                            </p>
+
+                            <div class="course-footer-row">
+                                <div class="course-price">₹899</div>
+                                <a href="/Courses/Details/@i" class="btn btn-course-view">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
