@@ -48,24 +48,22 @@ namespace OnlineLearning.Controllers
             if (user != null && valid)
             {
                 var claims = new List<Claim>()
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name, user.FullName),
-                new Claim(ClaimTypes.Email, model.Email),
-                new Claim(ClaimTypes.Role, "Admin")
-            };
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Name, user.FullName),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role,user.Role)
+                };
 
-                var identity = new ClaimsIdentity(
-                    claims,
-                    CookieAuthenticationDefaults.AuthenticationScheme);
-
-                var principal = new ClaimsPrincipal(identity);
-
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    principal);
-                ViewBag.Message = "Logged in successfull.";
-                return RedirectToAction("Index", "Home");
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme); 
+                var principal = new ClaimsPrincipal(identity); 
+                await HttpContext.SignInAsync( CookieAuthenticationDefaults.AuthenticationScheme,  principal);
+                if (user.Role == "Admin")
+                    return RedirectToAction("Index", "Home"); 
+                else if (user.Role == "Student")
+                    return RedirectToAction("Dashboard", "Student"); 
+                else if (user.Role == "Teacher")
+                    return RedirectToAction("Dashboard", "Instructor"); 
             }
 
             ViewBag.Message = "Invalid Login";
@@ -76,7 +74,7 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync();
-
+            HttpContext.Session.Clear();
             return RedirectToAction("Login", "Account");
         }
     }

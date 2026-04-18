@@ -10,5 +10,11 @@ namespace OnlineLearning.Helpers
 
             return userId != null ? Convert.ToInt32(userId) : 0;
         }
+        public static string  GetUserName(ClaimsPrincipal user)
+        {
+            var userId = user.FindFirst(ClaimTypes.Name)?.Value;
+
+            return userId != null ?  (userId) : "";
+        }
     }
 }

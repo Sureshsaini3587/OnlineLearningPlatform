@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering; 
 using OnlineLearning.BusinessLogics.IRepository;
@@ -20,13 +21,44 @@ namespace OnlineLearning.Controllers
             _student = student;
         }
 
+        [Authorize(Roles = "Student")]
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Student")]
+        public IActionResult Watch()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Student")]
+        public IActionResult MyCourses()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Student")]
+        public IActionResult Subscription()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Student")]
+        public IActionResult Profile()
+        {
+            return View();
+        } 
         #region Student
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var students = await _student.GetAllWithDetails();
             return View(students);
         }
-
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             await LoadGender();
@@ -45,6 +77,7 @@ namespace OnlineLearning.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Student model)
         {
             if (!ModelState.IsValid)
@@ -85,7 +118,7 @@ namespace OnlineLearning.Controllers
             _notify.Error("Some Error Occured while saving details!");
             return View(model);
         }
-
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id)
         {
             var student = await _student.GetByIdAsync(id);
@@ -109,6 +142,7 @@ namespace OnlineLearning.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(Student model)
         {
             if (ModelState.IsValid)
@@ -159,7 +193,7 @@ namespace OnlineLearning.Controllers
             await LoadGender();
             return View(model);
         }
-
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var student = await _student.GetByIdAsync(id);
@@ -172,6 +206,7 @@ namespace OnlineLearning.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int UserID)
         {
             int userId = UserHelper.GetUserId(User);
