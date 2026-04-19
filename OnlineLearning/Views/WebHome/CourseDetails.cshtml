@@ -1,7 +1,8 @@
 ﻿@{
     ViewData["Title"] = "Course Details";
+    Layout = "~/Views/Shared/Web/_Layout.cshtml";
 }
-
+@model CourseDetailsVM
 <section class="inner-hero inner-hero-sm">
     <div class="container">
         <div class="inner-hero-content">
@@ -18,16 +19,19 @@
     <div class="container">
         <div class="row g-4 align-items-start">
             <div class="col-lg-8">
-                <div class="details-main-card">
-                    <div class="details-video-preview">
-                        <div class="play-button-glow"><i class="bi bi-play-fill"></i></div>
-                        <span class="preview-pill">Preview Available</span>
+                <div class="details-main-card"> 
+                    <div class="details-video-preview"
+                         style="background-image:url('@(Model.Thumbnail ?? "/default.jpg")')"> 
+                        @if (Model.HasDemo)
+                        {
+                            <span class="preview-pill">Preview Available</span>
+                        }
                     </div>
-
                     <div class="details-info-grid">
-                        <div class="details-info-chip"><i class="bi bi-star-fill"></i> 4.8 Rating</div>
-                        <div class="details-info-chip"><i class="bi bi-people-fill"></i> 18,240 Students</div>
-                        <div class="details-info-chip"><i class="bi bi-clock-history"></i> 16 Hours</div>
+                        <div class="details-info-chip"><i class="bi bi-star-fill"></i> 4.8 Rating</div> 
+                        <div class="details-info-chip"> <i class="bi bi-camera-video"></i> @Model.TotalLectures Lessons   </div> 
+                        <div class="details-info-chip">   <i class="bi bi-bar-chart"></i> @Model.LevelName </div> 
+                        <div class="details-info-chip">   <i class="bx bx-category"></i> @Model.CategoryName   </div> 
                         <div class="details-info-chip"><i class="bi bi-patch-check-fill"></i> Certificate</div>
                     </div>
 
@@ -43,52 +47,51 @@
 
                     <div class="details-section-block">
                         <h3>Course content</h3>
+                        <div class="lesson-list-card"> 
+                            @foreach (var section in Model.Sections)
+                            {
+                                foreach (var video in section.Videos)
+                                {
+                                    <div class="lesson-row-item @(video.IsDemo ? "free" : "locked")">
+            
+                                        <div class="lesson-left">
 
-                        <div class="lesson-list-card">
-                            <div class="lesson-row-item free">
-                                <div class="lesson-left">
-                                    <span class="lesson-badge free-badge">Free Demo</span>
-                                    <div>
-                                        <h6>01. Introduction to Platform UI</h6>
-                                        <p>Watchable for all visitors</p>
-                                    </div>
-                                </div>
-                                <button class="btn btn-lesson-action">Play</button>
-                            </div>
+                                            @if (video.IsDemo)
+                                            {
+                                                <span class="lesson-badge free-badge">Free Demo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="lesson-badge lock-badge">Locked</span>
+                                            }
 
-                            <div class="lesson-row-item free">
-                                <div class="lesson-left">
-                                    <span class="lesson-badge free-badge">Free Demo</span>
-                                    <div>
-                                        <h6>02. Design Fundamentals Demo</h6>
-                                        <p>Watchable for all visitors</p>
-                                    </div>
-                                </div>
-                                <button class="btn btn-lesson-action">Play</button>
-                            </div>
+                                            <div>
+                                                <h6>@video.Title</h6>
+                                                <p>
+                                                    @(video.IsDemo ? "Watchable for all" : "Requires subscription")
+                                                </p>
+                                            </div>
+                                        </div>
 
-                            <div class="lesson-row-item locked">
-                                <div class="lesson-left">
-                                    <span class="lesson-badge lock-badge">Locked</span>
-                                    <div>
-                                        <h6>03. Premium Dashboard Design</h6>
-                                        <p>Requires active subscription</p>
-                                    </div>
-                                </div>
-                                <button class="btn btn-lesson-locked"><i class="bi bi-lock-fill"></i></button>
-                            </div>
+                                        @if (video.IsDemo)
+                                        {
+                                            <button class="btn btn-lesson-action"
+                                                    onclick="playVideo('@video.VideoUrl', @video.IsDemo.ToString().ToLower())">
+                                                Play
+                                            </button> 
+                                        }
+                                        else
+                                        {
 
-                            <div class="lesson-row-item locked">
-                                <div class="lesson-left">
-                                    <span class="lesson-badge lock-badge">Locked</span>
-                                    <div>
-                                        <h6>04. Complete PQJ Workflow</h6>
-                                        <p>Requires active subscription</p>
+                                            <button class="btn btn-lesson-locked" onclick="showSubscribe()">
+                                                <i class="bi bi-lock-fill"></i>
+                                            </button> 
+                                        }
+
                                     </div>
-                                </div>
-                                <button class="btn btn-lesson-locked"><i class="bi bi-lock-fill"></i></button>
-                            </div>
-                        </div>
+                                }
+                            } 
+                        </div> 
                     </div>
 
                     <div class="details-section-block">
@@ -108,8 +111,9 @@
 
             <div class="col-lg-4">
                 <div class="details-side-card">
-                    <div class="side-price-block">
-                        <h2>₹899</h2>
+                    <div class="side-price-block"> 
+                        <h2>₹@Model.Price</h2>
+                        <h4>@Model.CourseTitle</h4>
                         <span>Included in subscription</span>
                     </div>
 
@@ -127,3 +131,38 @@
         </div>
     </div>
 </section>
+<div class="modal fade" id="videoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-body p-0">
+                <iframe id="videoFrame"
+                        width="100%" height="400"
+                        src=""
+                        frameborder="0"
+                        allowfullscreen>
+                </iframe>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    function playVideo(url, isDemo) { 
+        const isSubscribed = @User.Identity.IsAuthenticated.ToString().ToLower();
+
+        if (!isDemo && !isSubscribed) {
+            alert("Please subscribe to watch this video");
+            return;
+        } 
+        let embedUrl = url.replace("watch?v=", "embed/");
+
+        document.getElementById("videoFrame").src = embedUrl;
+
+        var modal = new bootstrap.Modal(document.getElementById('videoModal'));
+        modal.show();
+    } 
+    document.getElementById('videoModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById("videoFrame").src = "";
+    });
+</script>

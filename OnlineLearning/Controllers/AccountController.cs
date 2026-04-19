@@ -25,6 +25,11 @@ namespace OnlineLearning.Controllers
         {
             return View();
         }
+        
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
 
 
         [HttpPost]
@@ -72,9 +77,8 @@ namespace OnlineLearning.Controllers
         }
 
         public async Task<IActionResult> Logout()
-        {
+        { 
             await HttpContext.SignOutAsync();
-            HttpContext.Session.Clear();
             return RedirectToAction("Login", "Account");
         }
     }

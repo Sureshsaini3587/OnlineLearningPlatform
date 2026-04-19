@@ -4,8 +4,7 @@ using NToastNotify;
 using OnlineLearning.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container. 
+ 
 builder.Services.AddControllersWithViews();  
 builder.Services.AddControllersWithViews().AddNToastNotifyToastr(new ToastrOptions()
 {
@@ -18,24 +17,30 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 {
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";  
 });
-builder.Services.RegisterRepositories(); 
+builder.Services.RegisterRepositories();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 var app = builder.Build();
 app.UseNToastNotify(); 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();
-
-
-app.UseAuthentication();
+app.UseRouting(); 
+app.UseSession();   
+app.UseAuthentication();   
 app.UseAuthorization();
 
 app.MapControllerRoute(

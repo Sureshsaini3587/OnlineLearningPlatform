@@ -2,6 +2,7 @@
     ViewData["Title"] = "Home";
     Layout = "~/Views/Shared/Web/_Layout.cshtml";
 }
+@model HomeVM
 
 <section class="hero-section">
     <div class="hero-blur blur-one"></div>
@@ -28,11 +29,11 @@
                 </p>
 
                 <div class="hero-actions">
-                    <a asp-controller="Courses" asp-action="Index" class="btn btn-hero-primary">
+                    <a asp-controller="WebHome" asp-action="Courses" class="btn btn-hero-primary">
                         Explore Courses
                         <i class="bi bi-arrow-up-right"></i>
                     </a>
-                    <a asp-controller="Demo" asp-action="Index" class="btn btn-hero-secondary">
+                    <a asp-controller="WebHome" asp-action="Demos" class="btn btn-hero-secondary">
                         <i class="bi bi-play-circle"></i>
                         Watch Demo
                     </a>
@@ -242,44 +243,46 @@
                 <span class="section-kicker">Popular categories</span>
                 <h2>Choose your direction, then go deep</h2>
             </div>
-            <a asp-controller="Courses" asp-action="Index" class="section-link" data-aos="fade-left">
+            <a asp-controller="WebHome" asp-action="Courses" class="section-link" data-aos="fade-left">
                 Browse all categories <i class="bi bi-arrow-right"></i>
             </a>
         </div>
-
+        @{
+            string GetIcon(string name)
+            {
+                return name switch
+                {
+                    "Web Development" => "bi bi-code-slash",
+                    "Design" => "bi bi-palette-fill",
+                    "Business" => "bi bi-bar-chart-line-fill",
+                    "Programming" => "bi bi-cpu-fill",
+                    _ => "bi bi-folder-fill"
+                };
+            }
+        }
         <div class="row g-4">
-            <div class="col-md-6 col-xl-3" data-aos="fade-up">
-                <div class="category-card">
-                    <div class="category-icon cat-a"><i class="bi bi-code-slash"></i></div>
-                    <h5>Web Development</h5>
-                    <p>Frontend, backend, MVC, APIs, and scalable app structure.</p>
-                    <span>24 Courses</span>
+            @{
+                int index = 0;
+            }
+            @foreach (var cat in Model.Categories)
+            {
+                var colorClass = $"cat-{(char)('a' + (index % 4))}";
+                index++;
+                <div class="col-md-6 col-xl-3" data-aos="fade-up">
+                    <div class="category-card">
+                        <div class="category-icon @colorClass">
+                            <i class="@GetIcon(cat.CategoryName)"></i>
+                        </div> 
+                        <h5>@cat.CategoryName</h5>
+                        <p>@cat.Description</p> 
+                        <span>@cat.CourseCount  Courses</span> 
+                        <a asp-controller="WebHome"
+                               asp-action="Courses" 
+                               class="stretched-link">
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="70">
-                <div class="category-card">
-                    <div class="category-icon cat-b"><i class="bi bi-palette-fill"></i></div>
-                    <h5>UI / UX Design</h5>
-                    <p>Premium layouts, interaction design, dashboards, and flows.</p>
-                    <span>16 Courses</span>
-                </div>
-            </div>
-            <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="140">
-                <div class="category-card">
-                    <div class="category-icon cat-c"><i class="bi bi-bar-chart-line-fill"></i></div>
-                    <h5>Digital Growth</h5>
-                    <p>Marketing, conversion design, landing pages, and strategy.</p>
-                    <span>11 Courses</span>
-                </div>
-            </div>
-            <div class="col-md-6 col-xl-3" data-aos="fade-up" data-aos-delay="210">
-                <div class="category-card">
-                    <div class="category-icon cat-d"><i class="bi bi-cpu-fill"></i></div>
-                    <h5>Tech Foundations</h5>
-                    <p>Core logic, architecture, patterns, and technical confidence.</p>
-                    <span>18 Courses</span>
-                </div>
-            </div>
+            } 
         </div>
     </div>
 </section>
@@ -291,39 +294,58 @@
                 <span class="section-kicker">Trending now</span>
                 <h2>Explore standout learning tracks</h2>
             </div>
-            <a asp-controller="Courses" asp-action="Index" class="section-link" data-aos="fade-left">
+            <a asp-controller="WebHome" asp-action="Courses" class="section-link" data-aos="fade-left">
                 View all courses <i class="bi bi-arrow-right"></i>
             </a>
         </div>
-
         <div class="row g-4">
-            @for (int i = 1; i <= 6; i++)
+            @{
+                int Courseindex = 0;
+            }
+            @foreach (var course in Model.Courses)
             {
-                <div class="col-md-6 col-xl-4" data-aos="fade-up">
+                Courseindex++;
+                <div class="col-md-6 col-xl-4" data-aos="fade-up" >
                     <div class="course-show-card">
+
                         <div class="course-thumb">
-                            <span class="course-chip">Best Seller</span>
-                            <img src="https://picsum.photos/600/420?random=@i" alt="Course Image" />
+                            <span class="course-chip">Best Seller</span> 
+                            <img src="@(string.IsNullOrEmpty(course.Thumbnail) ? 
+                                $"https://picsum.photos/600/420?random={Courseindex}" : course.Thumbnail)"
+                                 alt="Course Image" />
                         </div>
 
                         <div class="course-body">
                             <div class="course-meta">
-                                <span><i class="bi bi-camera-video"></i> 24 lessons</span>
-                                <span><i class="bi bi-clock-history"></i> 16 hrs</span>
+                                <span>
+                                    <i class="bi bi-camera-video"></i> @course.TotalLectures lessons
+                                </span>
+
+                                <span>
+                                    <i class="bi bi-clock-history"></i> @course.Duration hrs
+                                </span>
                             </div>
-                            <h5>Advanced Learning Experience Design</h5>
-                            <p>
-                                Premium course structure with demo access, locked lessons and practice workflow.
-                            </p>
+
+                            <h5>@course.CourseTitle</h5>
+
+                            <p>@course.Description</p>
+
                             <div class="course-footer-row">
-                                <div class="course-price">₹999</div>
-                                <a asp-controller="Courses" asp-action="Details" asp-route-id="@i" class="btn btn-course-view">View Details</a>
+                                <div class="course-price">₹@course.Price</div>
+
+                                <a asp-controller="WebHome"
+                                       asp-action="CourseDetails"
+                                       asp-route-id="@course.CourseId"
+                                       class="btn btn-course-view">
+                                    View Details
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             }
         </div>
+       
     </div>
 </section>
 
@@ -484,51 +506,35 @@
         </div>
 
         <div class="row g-4 justify-content-center mt-2">
-            <div class="col-md-6 col-lg-4" data-aos="fade-up">
-                <div class="pricing-card">
-                    <span class="plan-label">Starter</span>
-                    <h3>Monthly</h3>
-                    <div class="price">₹299</div>
-                    <ul class="plan-list">
-                        <li><i class="bi bi-check2"></i> Full course access</li>
-                        <li><i class="bi bi-check2"></i> Demo classes</li>
-                        <li><i class="bi bi-check2"></i> PQJ practice</li>
-                        <li><i class="bi bi-check2"></i> Student dashboard</li>
-                    </ul>
-                    <a asp-controller="Plans" asp-action="Index" class="btn btn-plan">Choose Monthly</a>
+            @{
+                int planindex = 0;
+            }
+            @foreach (var plan in Model.Plans)
+            {
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="@planindex">
+                    <div class="pricing-card">
+                        <span class="plan-label">@(plan.PlanName?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())</span>
+                        <h3>@plan.PlanName</h3>
+                        <div class="price">₹@plan.Price</div>
+                        @{
+                            var features = plan.Description?.Split(',');  
+                        } 
+                        <ul class="plan-list">
+                            @if (features != null)
+                            {
+                                foreach (var item in features)
+                                {
+                                    <li>
+                                        <i class="bi bi-check2"></i> @item.Trim()
+                                    </li>
+                                }
+                            } 
+                        </ul>
+                        <a asp-controller="WebHome" asp-action="Plans" class="btn btn-plan">@plan.PlanName</a>
+                    </div>
                 </div>
-            </div>
-
-            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="80">
-                <div class="pricing-card featured">
-                    <div class="featured-ribbon">Most Popular</div>
-                    <span class="plan-label">Pro Value</span>
-                    <h3>Quarterly</h3>
-                    <div class="price">₹799</div>
-                    <ul class="plan-list">
-                        <li><i class="bi bi-check2"></i> Better savings</li>
-                        <li><i class="bi bi-check2"></i> Full course library</li>
-                        <li><i class="bi bi-check2"></i> Unlimited PQJ access</li>
-                        <li><i class="bi bi-check2"></i> Priority new content</li>
-                    </ul>
-                    <a asp-controller="Plans" asp-action="Index" class="btn btn-plan">Choose Quarterly</a>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="160">
-                <div class="pricing-card">
-                    <span class="plan-label">Ultimate</span>
-                    <h3>Yearly</h3>
-                    <div class="price">₹1999</div>
-                    <ul class="plan-list">
-                        <li><i class="bi bi-check2"></i> Best long-term value</li>
-                        <li><i class="bi bi-check2"></i> Premium content access</li>
-                        <li><i class="bi bi-check2"></i> Complete practice library</li>
-                        <li><i class="bi bi-check2"></i> Early feature unlocks</li>
-                    </ul>
-                    <a asp-controller="Plans" asp-action="Index" class="btn btn-plan">Choose Yearly</a>
-                </div>
-            </div>
+                planindex += 80;
+            } 
         </div>
     </div>
 </section>

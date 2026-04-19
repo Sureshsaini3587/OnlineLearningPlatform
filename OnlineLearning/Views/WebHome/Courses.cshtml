@@ -1,4 +1,4 @@
-﻿ 
+﻿@model HomeVM
 @{
     ViewData["Title"] = "Courses";
     Layout = "~/Views/Shared/Web/_Layout.cshtml";
@@ -17,56 +17,108 @@
 </section>
 
 <section class="section-space">
-    <div class="container">
-        <div class="course-filter-bar">
-            <div class="filter-search">
-                <i class="bi bi-search"></i>
-                <input type="text" placeholder="Search courses..." />
-            </div>
+    <div class="container"> 
+            <div class="course-filter-bar"> 
+                <div class="filter-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" placeholder="Search courses..."  />
+                </div>
 
-            <select class="form-select filter-select">
-                <option>All Categories</option>
-                <option>Web Development</option>
-                <option>UI/UX Design</option>
-                <option>Marketing</option>
-            </select>
-
-            <select class="form-select filter-select">
-                <option>Sort By</option>
-                <option>Newest</option>
-                <option>Popular</option>
-                <option>Price Low to High</option>
-            </select>
+                <select name="categoryId" class="form-select filter-select">
+                    <option value="">All Categories</option>
+                    @foreach (var cat in Model.Categories
+                                    .GroupBy(c => c.CategoryId)
+                                    .Select(g => g.First()))
+                    {
+                        <option value="@cat.CategoryId"
+                                selected="@(Context.Request.Query["categoryId"] == cat.CategoryId.ToString())">
+                            @cat.CategoryName
+                        </option>
+                    }
+                </select>  
+            </div> 
+        <div id="courseContainer">
+            @await Html.PartialAsync("_CourseList", Model.Courses)
         </div>
-
-        <div class="row g-4 mt-2">
-            @for (int i = 1; i <= 9; i++)
+       @*  <div class="row g-4 mt-2">
+            @foreach (var course in Model.Courses)
             {
                 <div class="col-md-6 col-xl-4">
                     <div class="course-show-card">
                         <div class="course-thumb">
-                            <span class="course-chip">Demo Available</span>
-                            <img src="https://picsum.photos/600/420?random=@(20 + i)" alt="Course Image" />
+                            @if (course.IsDemo)
+                            {
+                                <span class="course-chip">Demo Available</span>
+                            }
+                            else
+                            {
+                                <span class="course-chip premium">Premium</span>
+                            }
+
+                            <img src="@(course.Thumbnail ?? $"https://picsum.photos/600/420?random={course.CourseId}")"
+                                 alt="Course Image" />
                         </div>
 
                         <div class="course-body">
-                            <div class="course-meta">
-                                <span><i class="bi bi-camera-video"></i> 18 lessons</span>
-                                <span><i class="bi bi-bar-chart"></i> Intermediate</span>
-                            </div>
-                            <h5>Modern ASP.NET Core Learning Track</h5>
-                            <p>
-                                Learn through demo-first video structure, guided lessons, and smart practice exercises.
-                            </p>
 
+                            <div class="course-meta">
+                                <span>
+                                    <i class="bi bi-camera-video"></i>
+                                    @course.TotalLectures lessons
+                                </span> 
+                                <span>
+                                    <i class="bi bi-bar-chart"></i>
+                                    @course.LevelName
+                                </span>
+                                <span>
+                                    <i class="bx bx-category"></i>
+                                    @course.CategoryName
+                                 </span>
+                            </div> 
+                            <h5>@course.CourseTitle</h5> 
+                            <p>@course.Description</p> 
                             <div class="course-footer-row">
-                                <div class="course-price">₹899</div>
-                                <a href="/Courses/Details/@i" class="btn btn-course-view">View Details</a>
+                                <div class="course-price">₹@course.Price</div> 
+                                <a asp-controller="WebHome"
+                                       asp-action="CourseDetails"
+                                       asp-route-id="@course.CourseId"
+                                       class="btn btn-course-view">
+                                    View Details
+                                </a>
                             </div>
+
                         </div>
                     </div>
                 </div>
             }
-        </div>
+        </div>  *@
     </div>
 </section>
+<script>
+    const searchInput = document.querySelector('input[name="search"]');
+    const categorySelect = document.querySelector('select[name="categoryId"]');
+
+    let timeout = null;
+
+    function loadCourses() {
+        const search = searchInput.value;
+        const categoryId = categorySelect.value;
+
+        fetch(`/WebHome/Courses?search=${search}&categoryId=${categoryId}`, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        .then(res => res.text())
+        .then(data => {
+            document.getElementById("courseContainer").innerHTML = data;
+        });
+    }
+     
+    searchInput.addEventListener("keyup", () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(loadCourses, 400);
+    });
+
+    categorySelect.addEventListener("change", loadCourses);
+</script>

@@ -17,7 +17,10 @@ namespace OnlineLearning.Models
         public bool IsPublished { get; set; }
         public bool IsActive { get; set; } 
         public string  CategoryName { get; set; }  
+        public string? TotalLectures { get; set; }  
+        public string? Duration { get; set; }  
         public string  LevelName { get; set; }  
+        public bool IsDemo { get; set; }
         public bool IsDeleted { get; set; }
         public int CreatedBy { get; set; }
         public DateTime CreatedOn { get; set; }

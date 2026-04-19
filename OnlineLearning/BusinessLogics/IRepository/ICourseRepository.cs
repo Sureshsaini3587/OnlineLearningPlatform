@@ -5,7 +5,8 @@ namespace OnlineLearning.BusinessLogics.IRepository
 {
     public interface ICourseRepository: ICommonRepository<CourseDTO>
     {
-       Task<List<CourseDTO>> GetAllWithDetails();
+        Task<CourseDetailsVM> GetCourseDetailsById(int id);
+        Task<List<CourseDTO>> GetAllWithDetails();
        Task<List<CommanDTO>> GetLanguage();
        Task<List<CommanDTO>> GetInstructor();
        Task<int> AddCourseToPlanAsync(PlanCourseDto dto);

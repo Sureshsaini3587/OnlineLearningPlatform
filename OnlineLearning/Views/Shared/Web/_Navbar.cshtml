@@ -130,9 +130,19 @@
             <div class="d-flex align-items-center gap-2 nav-actions">
                 @if (User?.Identity?.IsAuthenticated ?? false)
                 {
-                    <a asp-controller="Student" asp-action="Dashboard" class="btn btn-nav-outline">
-                        Dashboard
-                    </a>
+                    if (User.IsInRole("Student"))
+                    {
+                        <a asp-controller="Student" asp-action="Dashboard" class="btn btn-nav-outline">
+                           Go To Student Dashboard
+                        </a>
+                    }
+                    else if (User.IsInRole("Admin"))
+                    {
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-nav-outline">
+                           Go To Admin Panel
+                        </a>
+                    }
+
 
                     <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                         @Html.AntiForgeryToken()

@@ -1,12 +1,57 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OnlineLearning.BusinessLogics.IRepository;
+using OnlineLearning.BusinessLogics.Repository;
+using OnlineLearning.DTO;
+using OnlineLearning.Models;
 
 namespace OnlineLearning.Controllers
 {
     public class WebHomeController : Controller
     {
-        public IActionResult Index()
+        private readonly ICourseRepository _course;
+        private readonly ICourseCategoryRepository _courseCategory;
+        private readonly ISubscriptionPlanRepository _plan;
+
+        public WebHomeController(ICourseRepository course, ICourseCategoryRepository courseCategory, ISubscriptionPlanRepository plan)
         {
-            return View();
+            _course = course;
+            _courseCategory = courseCategory;
+            _plan = plan;
+        }
+        public async Task<IActionResult> Index()
+        {
+            var categories = await _courseCategory.GetAllWithDetails();
+            var courses = await _course.GetAllWithDetails();
+            var Plan = await _plan.GetAllWithDetails();
+            var model = new HomeVM
+            {
+                Categories = categories.Select(c => new CourseCategoriesDTO
+                {
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.CategoryName,
+                    CourseCount = courses.Count(x => x.CategoryId == c.CategoryId)
+                }).Take(4).ToList(),
+                Courses = courses.Select(c => new CourseDTO
+                {
+                    CourseId = c.CourseId,
+                    CourseTitle = c.CourseTitle,
+                    Thumbnail = c.Thumbnail,
+                    Price = c.Price,
+                    TotalLectures = c.TotalLectures,
+                    LevelName = c.LevelName,
+                    CategoryId = c.CategoryId
+                }).Take(6).ToList(),
+                Plans = Plan.Select(c => new SubscriptionPlanDTO
+                {
+                    PlanId = c.PlanId,
+                    PlanName = c.PlanName,
+                    Description = c.Description,
+                    Price = c.Price,
+                    DurationInDays = c.DurationInDays
+                }).Take(3).ToList()
+            };
+
+            return View(model);
         }
         public IActionResult About()
         {
@@ -16,19 +61,86 @@ namespace OnlineLearning.Controllers
         {
             return View();
         }
-        public IActionResult Courses()
+        public async Task<IActionResult> Coursesll()
         {
-            return View();
+            var categories = await _courseCategory.GetAllWithDetails();
+            var courses = await _course.GetAllWithDetails();
+            var model = new HomeVM
+            {
+                Categories = categories.Select(c => new CourseCategoriesDTO
+                {
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.CategoryName 
+                }).ToList(),
+                Courses = courses.Select(c => new CourseDTO
+                {
+                    CourseId = c.CourseId,
+                    CourseTitle = c.CourseTitle, 
+                    CategoryName = c.CategoryName,
+                    Thumbnail = c.Thumbnail,
+                    Price = c.Price,
+                    TotalLectures = c.TotalLectures,
+                    LevelName = c.LevelName,
+                    IsDemo = c.IsDemo,
+                    CategoryId = c.CategoryId
+                }).ToList()                
+            };
+
+            return View(model);
         }
-        public IActionResult CourseDetails()
+        public async Task<IActionResult> Courses(string search, int? categoryId)
         {
-            return View();
+            var courses = await _course.GetAllWithDetails();
+            var categories = await _courseCategory.GetAllWithDetails();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                courses = courses.Where(c =>
+                    c.CourseTitle.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    c.Description.Contains(search, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                courses = courses.Where(c => c.CategoryId == categoryId).ToList();
+            }
+             
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_CourseList", courses);
+            }
+
+            var model = new HomeVM
+            {
+                Courses = courses,
+                Categories = categories.Select(c => new CourseCategoriesDTO
+                {
+                    CategoryId = c.CategoryId,
+                    CategoryName = c.CategoryName
+                }).ToList()
+            };
+
+            return View(model);
+        } 
+         
+        public async Task<IActionResult> CourseDetails(int id)
+        {
+            var course = await _course.GetCourseDetailsById(id);
+
+            if (course == null)
+                return NotFound();
+
+            return View(course);
         }
         public IActionResult Demos()
         {
             return View();
         }
         public IActionResult Faq()
+        {
+            return View();
+        }
+        public IActionResult Plans()
         {
             return View();
         }

@@ -81,6 +81,51 @@ namespace OnlineLearning.BusinessLogics.Repository
             );  
         }
 
+        public async Task<CourseDetailsVM> GetCourseDetailsById(int id)
+        {
+            using var db = Connection;
+
+            var courseDict = new Dictionary<int, CourseDetailsVM>();
+
+            var result = await db.QueryAsync<CourseDetailsVM, SectionVM, VideoVM, CourseDetailsVM>(
+                "sp_Course",
+                (course, section, video) =>
+                {
+                    if (!courseDict.TryGetValue(course.CourseId, out var courseEntry))
+                    {
+                        courseEntry = course;
+                        courseEntry.Sections = new List<SectionVM>();
+                        courseDict.Add(courseEntry.CourseId, courseEntry);
+                    }
+
+                    if (section != null)
+                    {
+                        var existingSection = courseEntry.Sections
+                            .FirstOrDefault(s => s.SectionTitle == section.SectionTitle);
+
+                        if (existingSection == null)
+                        {
+                            existingSection = section;
+                            existingSection.Videos = new List<VideoVM>();
+                            courseEntry.Sections.Add(existingSection);
+                        }
+
+                        if (video != null)
+                        {
+                            existingSection.Videos.Add(video);
+                        }
+                    }
+
+                    return courseEntry;
+                },
+                new { Action = "GET_DETAILS_BY_ID", CourseId = id },
+                splitOn: "SectionId,VideoId",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return courseDict.Values.FirstOrDefault();
+        }
+
         public async Task<bool> AddAsync(CourseDTO entity)
         {
             using var db = Connection;

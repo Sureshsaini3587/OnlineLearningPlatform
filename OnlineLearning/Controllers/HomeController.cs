@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace OnlineLearning.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class HomeController : Controller
     {
