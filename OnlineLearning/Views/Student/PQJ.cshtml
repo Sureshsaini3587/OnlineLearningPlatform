@@ -1,0 +1,105 @@
+﻿@{
+    Layout = "~/Views/Shared/Web/_StudentLayout.cshtml";
+    ViewData["Title"] = "PQJ Practice";
+}
+
+<div class="pqj-page-wrap">
+    <div class="pqj-top-card">
+        <div>
+            <span class="section-kicker">Practice module</span>
+            <h1>PQJ Smart Practice</h1>
+            <p>Choose topic, difficulty, and start testing your knowledge instantly.</p>
+        </div>
+        <button class="btn btn-plan">Start Practice</button>
+    </div>
+
+    <div class="row g-4 mt-1">
+        <div class="col-lg-4">
+            <div class="student-panel-card">
+                <div class="panel-head">
+                    <h4>Set Preferences</h4>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Course</label>
+                    <select class="form-select auth-input">
+                        <option>Web Platform UI</option>
+                        <option>ASP.NET Core</option>
+                        <option>Frontend Design</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Topic</label>
+                    <select class="form-select auth-input">
+                        <option>Hero Section</option>
+                        <option>Dashboard</option>
+                        <option>Course Flow</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Difficulty</label>
+                    <select class="form-select auth-input">
+                        <option>Easy</option>
+                        <option>Medium</option>
+                        <option>Hard</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-plan w-100">Generate Questions</button>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="student-panel-card">
+                <div class="pqj-question-top">
+                    <span>Question 1 of 10</span>
+                    <strong>Time Left: 09:24</strong>
+                </div>
+
+                <div class="pqj-question-card">
+                    <h3>Which feature should be accessible publicly according to the platform flow?</h3>
+
+                    <div class="pqj-options">
+                        <label class="pqj-option">
+                            <input type="radio" name="q1" />
+                            <span>Full premium lessons</span>
+                        </label>
+
+                        <label class="pqj-option active">
+                            <input type="radio" name="q1" checked />
+                            <span>Demo video section</span>
+                        </label>
+
+                        <label class="pqj-option">
+                            <input type="radio" name="q1" />
+                            <span>Locked dashboard analytics</span>
+                        </label>
+
+                        <label class="pqj-option">
+                            <input type="radio" name="q1" />
+                            <span>Subscription-only quiz reports</span>
+                        </label>
+                    </div>
+
+                    <div class="pqj-nav-actions">
+                        <button class="btn btn-outline-dark rounded-pill px-4 py-3">Previous</button>
+                        <button class="btn btn-plan">Next Question</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="student-panel-card mt-4">
+                <div class="panel-head">
+                    <h4>Explanation Preview</h4>
+                </div>
+
+                <div class="pqj-explanation">
+                    Demo videos should remain public so visitors can preview the learning quality
+                    before purchasing a subscription plan.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

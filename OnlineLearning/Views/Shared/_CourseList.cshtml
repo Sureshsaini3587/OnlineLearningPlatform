@@ -1,5 +1,7 @@
 ﻿@model List<CourseDTO>
+@using OnlineLearning.Views.Services
 
+@inject ProtectorService protector
 <div class="row g-4 mt-2">
     @foreach (var course in Model)
     {
@@ -32,7 +34,7 @@
 
                     <div class="course-footer-row">
                         <div class="course-price">₹@course.Price</div>
-                        <a href="/WebHome/CourseDetails/@course.CourseId" class="btn btn-course-view">
+                        <a href="/WebHome/CourseDetails/@protector.Encrypt(course.CourseId)" class="btn btn-course-view">
                             View Details
                         </a>
                     </div>

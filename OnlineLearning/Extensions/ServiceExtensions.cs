@@ -1,6 +1,7 @@
 ﻿using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.BusinessLogics.Repository;
 using OnlineLearning.BusinessLogics.Services;
+using OnlineLearning.Views.Services;
 
 namespace OnlineLearning.Extensions
 {
@@ -19,6 +20,8 @@ namespace OnlineLearning.Extensions
             services.AddScoped<IStudentRepository, StudentRepository>();
             services.AddScoped<IInstructorRepository, InstructorRepository>();
             services.AddScoped<IPQJQuestionRepository, PQJQuestionRepository>();
+            services.AddDataProtection();
+            services.AddScoped<ProtectorService>();
         }
     }
 }

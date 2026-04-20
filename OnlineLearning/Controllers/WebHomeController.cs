@@ -3,6 +3,7 @@ using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.BusinessLogics.Repository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
+using OnlineLearning.Views.Services;
 
 namespace OnlineLearning.Controllers
 {
@@ -11,9 +12,11 @@ namespace OnlineLearning.Controllers
         private readonly ICourseRepository _course;
         private readonly ICourseCategoryRepository _courseCategory;
         private readonly ISubscriptionPlanRepository _plan;
+        private readonly ProtectorService _protect;
 
-        public WebHomeController(ICourseRepository course, ICourseCategoryRepository courseCategory, ISubscriptionPlanRepository plan)
+        public WebHomeController(ProtectorService protect,ICourseRepository course, ICourseCategoryRepository courseCategory, ISubscriptionPlanRepository plan)
         {
+            _protect = protect;
             _course = course;
             _courseCategory = courseCategory;
             _plan = plan;
@@ -61,33 +64,7 @@ namespace OnlineLearning.Controllers
         {
             return View();
         }
-        public async Task<IActionResult> Coursesll()
-        {
-            var categories = await _courseCategory.GetAllWithDetails();
-            var courses = await _course.GetAllWithDetails();
-            var model = new HomeVM
-            {
-                Categories = categories.Select(c => new CourseCategoriesDTO
-                {
-                    CategoryId = c.CategoryId,
-                    CategoryName = c.CategoryName 
-                }).ToList(),
-                Courses = courses.Select(c => new CourseDTO
-                {
-                    CourseId = c.CourseId,
-                    CourseTitle = c.CourseTitle, 
-                    CategoryName = c.CategoryName,
-                    Thumbnail = c.Thumbnail,
-                    Price = c.Price,
-                    TotalLectures = c.TotalLectures,
-                    LevelName = c.LevelName,
-                    IsDemo = c.IsDemo,
-                    CategoryId = c.CategoryId
-                }).ToList()                
-            };
-
-            return View(model);
-        }
+        
         public async Task<IActionResult> Courses(string search, int? categoryId)
         {
             var courses = await _course.GetAllWithDetails();
@@ -123,20 +100,33 @@ namespace OnlineLearning.Controllers
             return View(model);
         } 
          
-        public async Task<IActionResult> CourseDetails(int id)
+        public async Task<IActionResult> CourseDetails(string id)
         {
-            var course = await _course.GetCourseDetailsById(id);
+            try
+            {
+                int did = _protect.Decrypt(id);
+                var course = await _course.GetCourseDetailsById(did);
 
-            if (course == null)
+                if (course == null)
+                    return NotFound();
+
+                return View(course);
+            }
+            catch(Exception ex)
+            {
                 return NotFound();
-
-            return View(course);
+            }
+            
         }
         public IActionResult Demos()
         {
             return View();
         }
         public IActionResult Faq()
+        {
+            return View();
+        }
+        public IActionResult PQJ()
         {
             return View();
         }

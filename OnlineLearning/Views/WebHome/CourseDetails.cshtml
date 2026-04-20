@@ -148,6 +148,21 @@
     </div>
 </div>
 <script>
+     function getEmbedUrl(url) {
+        let videoId = "";
+
+        if (url.includes("watch?v=")) {
+            videoId = url.split("watch?v=")[1].split("&")[0];
+        }
+        else if (url.includes("youtu.be/")) {
+            videoId = url.split("youtu.be/")[1].split("?")[0];
+        }
+        else if (url.includes("shorts/")) {
+            videoId = url.split("shorts/")[1].split("?")[0];
+        }
+
+        return "https://www.youtube.com/embed/" + videoId;
+    }
     function playVideo(url, isDemo) { 
         const isSubscribed = @User.Identity.IsAuthenticated.ToString().ToLower();
 
@@ -155,8 +170,7 @@
             alert("Please subscribe to watch this video");
             return;
         } 
-        let embedUrl = url.replace("watch?v=", "embed/");
-
+       let embedUrl = getEmbedUrl(url); 
         document.getElementById("videoFrame").src = embedUrl;
 
         var modal = new bootstrap.Modal(document.getElementById('videoModal'));
