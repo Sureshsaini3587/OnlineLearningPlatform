@@ -1,97 +1,144 @@
 ﻿@{
     Layout = "~/Views/Shared/Web/_Layout.cshtml";
     ViewData["Title"] = "PQJ Practice";
-} 
+}
 
+@model PQJPlayerVM
 <section class="inner-hero">
     <div class="container">
-        <div class="inner-hero-content text-center">
+        <div class="inner-hero-content text-center"> 
             <span class="section-kicker">PQJ Practice</span>
             <h1>Practice Smarter with PQJs</h1>
             <p>
                 Boost your exam preparation with real exam-level questions, instant solutions, and performance tracking.
-            </p>
+            </p> 
             <a asp-controller="Account"
-                   asp-action="Login" 
+                   asp-action="Login"
                    class="btn btn-course-view">
                 Start Practicing
-            </a> 
+            </a>  
         </div>
     </div>
-</section> 
- 
-<section class="section-space">
+</section>
+<section>
     <div class="container">
         <div class="row g-4 mt-1">
-            <div class="col-md-6 col-lg-4" data-aos="zoom-in">
+            <div class="col-md-6 col-lg-4">
                 <div class="feature-box">
-                    <div class="feature-icon icon-a"> <i class="bi bi-lightning-charge"></i></div>
+                    <div class="feature-icon icon-a">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
                     <h5>Instant Practice</h5>
                     <p>Solve questions topic-wise anytime.</p>
                 </div>
-            </div>
-            <div class="col-md-6 col-lg-4" data-aos="zoom-in" data-aos-delay="80">
+            </div> 
+            <div class="col-md-6 col-lg-4">
                 <div class="feature-box">
-                    <div class="feature-icon icon-b"><i class="bi bi-clock-history"></i></div>
+                    <div class="feature-icon icon-b">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
                     <h5>Real Exam Timer</h5>
                     <p>Practice under time pressure like real exams.</p>
                 </div>
-            </div>
-
-            <div class="col-md-6 col-lg-4" data-aos="zoom-in" data-aos-delay="140">
+            </div> 
+            <div class="col-md-6 col-lg-4">
                 <div class="feature-box">
-                    <div class="feature-icon icon-c"><i class="bi bi-bar-chart"></i></div>
+                    <div class="feature-icon icon-c">
+                        <i class="bi bi-bar-chart"></i>
+                    </div>
                     <h5>Performance Analytics</h5>
                     <p>Track your accuracy and weak areas.</p>
                 </div>
             </div>
-         </div> 
-    </div>
-</section>
-
-<!-- CATEGORY SECTION -->
-<section class="section-space bg-light">
-    <div class="container">
-        <h2 class="text-center mb-4">Practice by Category</h2>
-
-        <div class="row g-4">
-
-            <div class="col-md-3">
-                <div class="category-card">
-                    <h5>Reasoning</h5>
-                    <a href="/PQJ/Category/1" class="btn btn-outline-primary btn-sm">Start</a>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="category-card">
-                    <h5>Maths</h5>
-                    <a href="/PQJ/Category/2" class="btn btn-outline-primary btn-sm">Start</a>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="category-card">
-                    <h5>English</h5>
-                    <a href="/PQJ/Category/3" class="btn btn-outline-primary btn-sm">Start</a>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="category-card">
-                    <h5>General Knowledge</h5>
-                    <a href="/PQJ/Category/4" class="btn btn-outline-primary btn-sm">Start</a>
-                </div>
-            </div>
 
         </div>
     </div>
 </section>
+<section class="p-5">
+    <div class="pqj-page-wrap">
+        <div class="row g-4 mt-1">
+            <div class="col-lg-4">
+                <div class="student-panel-card">
+                    <div class="panel-head">
+                        <h4>Set Preferences</h4>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Course</label>
+                        <select id="courseId" name="courseId" class="form-select auth-input">
+                            <option value="">Select Course</option>
+                            @foreach (var c in Model.Courses)
+                            {
+                                <option value="@c.CourseId">@c.CourseTitle</option>
+                            }
+                        </select>
+                    </div>
 
-<!-- CTA -->
-<section class="pqj-cta text-center">
-    <div class="container">
-        <h2>Ready to test your knowledge?</h2>
-        <a href="/Account/Register" class="btn btn-success btn-lg">Join & Start Practice</a>
+                    <div class="mb-3">
+                        <label class="form-label">Topic</label>
+                        <select id="topicId" name="topicId" class="form-select auth-input">
+                            <option value="">Select Topic</option>
+                        </select>
+                    </div> 
+
+                    <div class="mb-4">
+                        <label class="form-label">Difficulty</label>
+                        <select class="form-select auth-input">
+                            <option value="1">Easy</option>
+                            <option value="2">Medium</option>
+                            <option value="3">Hard</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-plan w-100" onclick="loadQuestion(1)">Generate Questions</button>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div id="pqjPlayerContainer">
+                    @await Html.PartialAsync("_PQJPlayer", Model)
+                </div> 
+            </div>
+        </div>
     </div>
 </section>
+<script>
+    document.getElementById("courseId").addEventListener("change", function () {
+
+        let courseId = this.value;
+         
+        let topicDropdown = document.getElementById("topicId");
+        topicDropdown.innerHTML = `<option value="">Loading...</option>`;
+
+        if (!courseId) {
+            topicDropdown.innerHTML = `<option value="">Select Topic</option>`;
+            return;
+        }
+
+        fetch(`/WebHome/GetTopicsByCourse?courseId=${courseId}`)
+            .then(res => res.json())
+            .then(data => { 
+                topicDropdown.innerHTML = `<option value="">Select Topic</option>`; 
+                data.forEach(t => {
+                    topicDropdown.innerHTML += `<option value="${t.sectionId}">${t.sectionTitle}</option>`;
+                }); 
+            })
+            .catch(() => {
+                topicDropdown.innerHTML = `<option>Error loading topics</option>`;
+            });
+    }); 
+    function loadQuestion(index) { 
+        let courseId = document.getElementById("courseId")?.value;
+        let topicId = document.getElementById("topicId")?.value;
+        let difficulty = document.querySelector("[name='difficulty']")?.value;
+
+        fetch(`/WebHome/LoadQuestion?index=${index}&courseId=${courseId}&topicId=${topicId}&difficulty=${difficulty}`, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("pqjPlayerContainer").innerHTML = html;
+        });
+    }
+</script>

@@ -25,6 +25,47 @@ namespace OnlineLearning.BusinessLogics.Repository
                     _config.GetConnectionString("DbConnection"));
             }
         }
+        public async Task<List<QuestionVM>> GetFilteredQuestions(int? courseId, int? topicId, int difficulty)
+        {
+            using var db = Connection;
+
+            var dict = new Dictionary<int, QuestionVM>();
+
+            var result = await db.QueryAsync<PQJQuestion, PQJOption, PQJQuestion>(
+                "sp_PQJQuestion",
+                (q, opt) =>
+                {
+                    if (!dict.TryGetValue(q.QuestionId ?? 0, out var existing))
+                    {
+                        existing = new QuestionVM
+                        {
+                            Question = q
+                        };
+
+                        existing.Question.Options = new List<PQJOption>();
+
+                        dict.Add(q.QuestionId ?? 0, existing);
+                    }
+
+                    if (opt != null)
+                    {
+                        existing.Question.Options.Add(opt);
+                    }
+
+                    return existing.Question;
+                },
+                new
+                {
+                    Action = "GET_FILTERED",
+                    CourseId = courseId,
+                    CategoryId = topicId,
+                    DifficultyLevel = difficulty
+                },
+                splitOn: "OptionId"
+            );
+
+            return dict.Values.ToList();
+        }
         public async Task<IEnumerable<CommanDTO>> GetCourse()
         {
             using var db = Connection;

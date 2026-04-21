@@ -50,6 +50,12 @@ namespace OnlineLearning.Controllers
         {
             return View();
         } 
+
+        [Authorize(Roles = "Student")]
+        public IActionResult PQJ()
+        {
+            return View();
+        } 
         #region Student
 
         [Authorize(Roles = "Admin")]

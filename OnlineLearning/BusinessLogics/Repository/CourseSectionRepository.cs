@@ -35,6 +35,17 @@ namespace OnlineLearning.BusinessLogics.Repository
               ); 
             return data.ToList();
         }  
+         
+        public async Task<List<CourseSectionDTO>> GetByCourseId(int courseId)
+        {  
+            using var db = Connection; 
+            var data = await db.QueryAsync<CourseSectionDTO>(
+                  "sp_CourseSection",
+                  new { Action = "GET_ALL_BYCourse", CourseId = courseId },
+                  commandType: CommandType.StoredProcedure
+              ); 
+            return data.ToList();
+        }  
         public async Task<List<CourseSectionDTO>> GetAllWithDetails()
         {
             using var db = Connection;

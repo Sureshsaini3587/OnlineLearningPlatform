@@ -25,27 +25,27 @@
             </a>
 
             <div class="student-nav">
-                <a href="/Student/Dashboard" class="student-nav-link active">
+                    <a asp-controller="Student" asp-action="Dashboard"   class="student-nav-link active">
                     <i class="bi bi-grid-1x2-fill"></i> Dashboard
                 </a>
-                <a href="/Student/MyCourses" class="student-nav-link">
+                    <a asp-controller="Student" asp-action="MyCourses"  class="student-nav-link">
                     <i class="bi bi-collection-play-fill"></i> Available Courses
                 </a>
-                <a href="/Student/Watch" class="student-nav-link">
-                    <i class="bi bi-play-btn-fill"></i> Watch Videos
-                </a>
-                <a href="/Student/Subscription" class="student-nav-link">
-                    <i class="bi bi-gem"></i> Subscription
-                </a>
-                <a href="/PQJ" class="student-nav-link">
-                    <i class="bi bi-ui-checks-grid"></i> PQJ Practice
-                </a>
-                <a href="/Student/Profile" class="student-nav-link">
-                    <i class="bi bi-person-circle"></i> Profile
-                </a>
-                    <a asp-controller="Account" asp-action="Logout" class="student-nav-link">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </a>
+                    <a asp-controller="Student" asp-action="Watch"   class="student-nav-link">
+                        <i class="bi bi-play-btn-fill"></i> Watch Videos
+                    </a>
+                    <a asp-controller="Student" asp-action="Subscription"  class="student-nav-link">
+                       <i class="bi bi-gem"></i> Subscription
+                    </a>
+                     <a asp-controller ="Student" asp-action="PQJ"   class="student-nav-link">
+                        <i class="bi bi-ui-checks-grid"></i> PQJ Practice
+                    </a>
+                        <a asp-controller="Student" asp-action="Profile"  class="student-nav-link">
+                        <i class="bi bi-person-circle"></i> Profile
+                    </a>
+                        <a asp-controller="Account" asp-action="Logout" class="student-nav-link">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
             </div>
         </aside>
 

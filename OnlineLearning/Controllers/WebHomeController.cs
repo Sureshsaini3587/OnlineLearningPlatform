@@ -12,10 +12,14 @@ namespace OnlineLearning.Controllers
         private readonly ICourseRepository _course;
         private readonly ICourseCategoryRepository _courseCategory;
         private readonly ISubscriptionPlanRepository _plan;
+        private readonly ICourseSectionRepository _section;
+        private readonly IPQJQuestionRepository  _pqj;
         private readonly ProtectorService _protect;
 
-        public WebHomeController(ProtectorService protect,ICourseRepository course, ICourseCategoryRepository courseCategory, ISubscriptionPlanRepository plan)
+        public WebHomeController(ProtectorService protect, IPQJQuestionRepository pqj,ICourseSectionRepository section, ICourseRepository course, ICourseCategoryRepository courseCategory, ISubscriptionPlanRepository plan)
         {
+            _pqj = pqj;
+            _section = section;
             _protect = protect;
             _course = course;
             _courseCategory = courseCategory;
@@ -126,10 +130,44 @@ namespace OnlineLearning.Controllers
         {
             return View();
         }
-        public IActionResult PQJ()
+        public async Task<IActionResult> PQJ()
         {
-            return View();
+            var courses = await _course.GetAllWithDetails();
+            var model = new PQJPlayerVM
+            {
+                Courses = courses 
+            }; 
+            return View(model);
         }
+        public async Task<IActionResult> GetTopicsByCourse(int courseId)
+        {
+            var topics = await _section.GetByCourseId(courseId);
+
+            return Json(topics.Select(t => new {
+                t.SectionId,
+                t.SectionTitle
+            }));
+        }
+        public async Task<IActionResult> LoadQuestion(int index, int? courseId, int? topicId, int difficulty)
+        {
+            var questions = await _pqj.GetFilteredQuestions(courseId, topicId, difficulty);
+
+            if (!questions.Any())
+                return Content("<p>No questions found</p>");
+
+            var question = questions[index - 1];
+
+            var model = new PQJPlayerVM
+            {
+                Question = question,
+                CurrentIndex = index,
+                TotalQuestions = questions.Count,
+                TimeLeft = "09:24" // later dynamic
+            };
+
+            return PartialView("_PQJPlayer", model);
+        }
+         
         public IActionResult Plans()
         {
             return View();
