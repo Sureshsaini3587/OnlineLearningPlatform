@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.BusinessLogics.Repository;
 using OnlineLearning.DTO;
@@ -15,9 +16,10 @@ namespace OnlineLearning.Controllers
         private readonly ICourseSectionRepository _section;
         private readonly IPQJQuestionRepository  _pqj;
         private readonly ProtectorService _protect;
-
-        public WebHomeController(ProtectorService protect, IPQJQuestionRepository pqj,ICourseSectionRepository section, ICourseRepository course, ICourseCategoryRepository courseCategory, ISubscriptionPlanRepository plan)
+        private readonly IMemoryCache _cache;
+        public WebHomeController(IMemoryCache cache,ProtectorService protect, IPQJQuestionRepository pqj,ICourseSectionRepository section, ICourseRepository course, ICourseCategoryRepository courseCategory, ISubscriptionPlanRepository plan)
         {
+            _cache = cache;
             _pqj = pqj;
             _section = section;
             _protect = protect;
@@ -141,19 +143,32 @@ namespace OnlineLearning.Controllers
         }
         public async Task<IActionResult> GetTopicsByCourse(int courseId)
         {
-            var topics = await _section.GetByCourseId(courseId);
-
+            var topics = await _section.GetByCourseId(courseId); 
             return Json(topics.Select(t => new {
                 t.SectionId,
                 t.SectionTitle
             }));
         }
-        public async Task<IActionResult> LoadQuestion(int index, int? courseId, int? topicId, int difficulty)
+       
+        public async Task<IActionResult> LoadQuestion(int index, int courseId, int topicId, int difficulty)
         {
-            var questions = await _pqj.GetFilteredQuestions(courseId, topicId, difficulty);
+            string cacheKey = $"PQJ_{courseId}_{topicId}_{difficulty}";
+             
+            if (!_cache.TryGetValue(cacheKey, out List<QuestionVM> questions))
+            {
+                questions = await _pqj.GetFilteredQuestions(courseId, topicId, difficulty);
 
-            if (!questions.Any())
-                return Content("<p>No questions found</p>");
+                if (!questions.Any())
+                    return Content("<p>No questions found</p>");
+                 
+                _cache.Set(cacheKey, questions, TimeSpan.FromMinutes(10));
+                 
+                var attemptId = await _pqj.StartTrial(Convert.ToInt32(courseId));
+                HttpContext.Items["AttemptId"] = attemptId;  
+            }
+             
+            if (index <= 0 || index > questions.Count)
+                return Content("<p>Invalid index</p>");
 
             var question = questions[index - 1];
 
@@ -162,12 +177,25 @@ namespace OnlineLearning.Controllers
                 Question = question,
                 CurrentIndex = index,
                 TotalQuestions = questions.Count,
-                TimeLeft = "09:24" // later dynamic
+                TimeLeft = "09:24"
             };
 
             return PartialView("_PQJPlayer", model);
+        } 
+
+        [HttpPost]
+        public async Task<IActionResult> SaveAnswer([FromBody] SaveAnswerDTO dto)
+        {
+            var attemptId = HttpContext.Session.GetInt32("ATTEMPT");
+
+            if (attemptId == null)
+                return BadRequest();
+
+            dto.AttemptId = attemptId.Value; 
+            await _pqj.SaveAnswer(dto);
+
+            return Ok();
         }
-         
         public IActionResult Plans()
         {
             return View();

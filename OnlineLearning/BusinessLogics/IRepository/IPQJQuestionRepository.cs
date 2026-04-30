@@ -12,7 +12,9 @@ namespace OnlineLearning.BusinessLogics.IRepository
         Task<int> CreateAsync(PQJQuestion q, List<PQJOption> options, int correctOption);
         Task<bool> UpdateAsync(PQJQuestion q, List<PQJOption> options, int correctOption);
          Task<IEnumerable<CommanDTO>> GetCourse();
-        Task<IEnumerable<CommanDTO>> GetCategory(); 
-        
+        Task<IEnumerable<CommanDTO>> GetCategory();
+        Task<int> StartTrial(int courseId);
+        Task SaveAnswer(SaveAnswerDTO dto);
+
     }
 }

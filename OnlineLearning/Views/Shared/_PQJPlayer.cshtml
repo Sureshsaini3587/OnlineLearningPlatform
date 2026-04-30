@@ -2,61 +2,69 @@
 
 <div class="student-panel-card">
     <div class="pqj-question-top">
-        <span>Question @Model.CurrentIndex of @Model.TotalQuestions</span>
-        <strong>Time Left: @Model.TimeLeft</strong>
+        <span>Question @Model?.CurrentIndex of @Model?.TotalQuestions</span>
+        <strong>Time Left: <span id="timer">@Model?.TimeLeft</span></strong>
     </div>
 
-    <div class="pqj-question-card"> 
-        @if (Model?.Question?.Question != null)
-        {
-            <h3>@Model.Question.Question.QuestionText</h3>
-        }
-        else
-        {
-            <h3>No Question Found</h3>
-        }
-        <div class="pqj-options">
-            @if (Model?.Question?.Options != null)
-            {
-                foreach (var opt in Model.Question.Options)
-                {
-                    <label class="pqj-option @(Model.SelectedOptionId == opt.OptionId ? "active" : "")">
-                        <input type="radio"
-                               name="q_@Model.Question.Question.QuestionId"
-                               value="@opt.OptionId"
-                        @(Model.SelectedOptionId == opt.OptionId ? "checked" : "") />
-                        <span>@opt.OptionText</span>
-                    </label>
-                }
-            }
-        </div>
-
-        <div class="pqj-nav-actions">
-            <button class="btn btn-outline-dark rounded-pill px-4 py-3"
-                    onclick="loadQuestion(@(Model.CurrentIndex - 1))"
-                @(Model.CurrentIndex == 1 ? "disabled" : "")>
-                Previous
-            </button>
-
-            <button class="btn btn-plan"
-                    onclick="loadQuestion(@(Model.CurrentIndex + 1))">
-                Next Question
-            </button>
-        </div>
-    </div>
-</div>
- @if (Model?.Question?.Options != null)
- {
-   @if (!string.IsNullOrEmpty(Model.Question.Question.Explanation))
+    @if (Model?.Question?.Question != null)
     {
-        <div class="student-panel-card mt-4">
-            <div class="panel-head">
-                <h4>Explanation Preview</h4>
+        var q = Model.Question.Question;
+
+        <div class="pqj-question-card">
+
+            <h3>@q.QuestionText</h3>
+
+            <div class="pqj-options">
+                @if (q.Options != null && q.Options.Any())
+                {
+                    foreach (var opt in q.Options)
+                    {
+                        <label class="pqj-option @(Model.SelectedOptionId == opt.OptionId ? "active" : "")">
+                            <input type="radio"
+                                   name="q_@q.QuestionId"
+                                   value="@opt.OptionId"
+                            @(Model.SelectedOptionId == opt.OptionId ? "checked" : "") />
+                            <span>@opt.OptionText</span>
+                        </label>
+                    }
+                }
+                else
+                {
+                    <p>No options available</p>
+                }
             </div>
-    
-            <div class="pqj-explanation">
-                @Model.Question.Question.Explanation
+
+            <div class="pqj-nav-actions">
+                <button class="btn btn-outline-dark rounded-pill px-4 py-3"
+                        onclick="loadQuestion(@(Model.CurrentIndex - 1))"
+                    @(Model.CurrentIndex == 1 ? "disabled" : "")>
+                    Previous
+                </button>
+
+                <button class="btn btn-plan"
+                        onclick="loadQuestion(@(Model.CurrentIndex + 1))">
+                    Next Question
+                </button>
             </div>
         </div>
+
+        <script>
+                document.addEventListener('change', function (e) {
+                    if (e.target.matches('input[type="radio"]')) {
+                        fetch('/PQJ/SaveAnswer', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                questionId: @q.QuestionId,
+                                selectedOptionId: e.target.value
+                            })
+                        });
+                    }
+                });
+        </script>
     }
-}
+    else
+    {
+        <p>No question loaded.</p>
+    }
+</div>

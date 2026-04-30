@@ -11,9 +11,10 @@ namespace OnlineLearning.BusinessLogics.Repository
     public class PQJQuestionRepository : IPQJQuestionRepository
     {
         private readonly IConfiguration _config;
-
-        public PQJQuestionRepository(IConfiguration config)
+        private readonly IHttpContextAccessor _httpContextAccessor; 
+        public PQJQuestionRepository(IConfiguration config,IHttpContextAccessor httpContextAccessor)
         {
+            _httpContextAccessor = httpContextAccessor;
             _config = config;
         }
 
@@ -25,6 +26,37 @@ namespace OnlineLearning.BusinessLogics.Repository
                     _config.GetConnectionString("DbConnection"));
             }
         }
+        public async Task<int> StartTrial(int courseId)
+        {
+            var guestToken = Guid.NewGuid().ToString(); 
+            _httpContextAccessor.HttpContext.Response.Cookies.Append("GuestToken", guestToken); 
+            using var db = Connection;
+
+            var attemptId = await db.ExecuteScalarAsync<int>(
+                @"INSERT INTO PQJ_Attempts (CourseId, GuestToken, IsGuest, AttemptDate, IsActive)
+                   VALUES (@CourseId, @GuestToken, 1, GETDATE(), 1);
+                   SELECT SCOPE_IDENTITY();",
+                new { CourseId = courseId, GuestToken = guestToken });
+
+            return attemptId;
+        }
+        public async Task SaveAnswer(SaveAnswerDTO dto)
+        {
+            using var db = Connection;
+
+            await db.ExecuteAsync(
+                @"IF EXISTS (SELECT 1 FROM PQJ_AttemptAnswers 
+                     WHERE AttemptId=@AttemptId AND QuestionId=@QuestionId)
+                  UPDATE PQJ_AttemptAnswers 
+                  SET SelectedOptionId=@SelectedOptionId
+                  WHERE AttemptId=@AttemptId AND QuestionId=@QuestionId
+                  ELSE
+                  INSERT INTO PQJ_AttemptAnswers 
+                  (AttemptId, QuestionId, SelectedOptionId)
+                  VALUES (@AttemptId, @QuestionId, @SelectedOptionId)",
+                dto);
+        }
+
         public async Task<List<QuestionVM>> GetFilteredQuestions(int? courseId, int? topicId, int difficulty)
         {
             using var db = Connection;
