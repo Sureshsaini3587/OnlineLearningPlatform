@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
-using OnlineLearning.BusinessLogics.Repository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
 using OnlineLearning.Views.Services;
@@ -112,7 +111,7 @@ namespace OnlineLearning.Controllers
             {
                 int did = _protect.Decrypt(id);
                 var course = await _course.GetCourseDetailsById(did);
-
+                
                 if (course == null)
                     return NotFound();
 
@@ -149,52 +148,89 @@ namespace OnlineLearning.Controllers
                 t.SectionTitle
             }));
         }
-       
-        public async Task<IActionResult> LoadQuestion(int index, int courseId, int topicId, int difficulty)
+
+        [HttpGet]
+        public async Task<IActionResult> CoursePlans(int  courseId)
         {
-            string cacheKey = $"PQJ_{courseId}_{topicId}_{difficulty}";
-             
-            if (!_cache.TryGetValue(cacheKey, out List<QuestionVM> questions))
+            var plans = await _course.GetPlansByCourse(courseId);
+
+            return View(plans);
+        }
+      
+        [HttpGet]
+        public async Task<IActionResult> LoadQuestion(int index,  int courseId,  int topicId, int difficulty)
+        {
+            string cacheKey = $"PQJ_{courseId}_{topicId}_{difficulty}"; 
+            if (!_cache.TryGetValue(  cacheKey, out List<QuestionVM> questions))
             {
-                questions = await _pqj.GetFilteredQuestions(courseId, topicId, difficulty);
+                questions =
+                    await _pqj.GetFilteredQuestions(  courseId, topicId, difficulty,"Trial");
 
                 if (!questions.Any())
-                    return Content("<p>No questions found</p>");
-                 
-                _cache.Set(cacheKey, questions, TimeSpan.FromMinutes(10));
-                 
-                var attemptId = await _pqj.StartTrial(Convert.ToInt32(courseId));
-                HttpContext.Items["AttemptId"] = attemptId;  
+                {
+                    return Content(
+                        "<div class='alert alert-warning'>No questions found</div>");
+                }
+
+                _cache.Set(  cacheKey,   questions,  TimeSpan.FromMinutes(30));
             }
              
-            if (index <= 0 || index > questions.Count)
-                return Content("<p>Invalid index</p>");
+            if (index <= 0 ||
+                index > questions.Count)
+            {
+                return Content(@"
+                         <div class='text-center p-5'>
+                             <h3>No More Questions</h3>
+                             <p>You have reached the end of this PQJ set.</p>
+                       
+                             <button class='btn btn-plan mt-3'
+                                     onclick='location.reload()'>
+                                 Restart
+                             </button>
+                         </div>");
+            }
 
-            var question = questions[index - 1];
+            var question =
+                questions[index - 1]; 
+
+            int attemptId = await _pqj.GetOrCreateAttempt(courseId);
 
             var model = new PQJPlayerVM
             {
+                AttemptId = attemptId,
                 Question = question,
                 CurrentIndex = index,
-                TotalQuestions = questions.Count,
-                TimeLeft = "09:24"
+                TotalQuestions = questions.Count
             };
 
-            return PartialView("_PQJPlayer", model);
-        } 
+            return PartialView(
+                "_PQJPlayer",
+                model);
+        }
+
 
         [HttpPost]
-        public async Task<IActionResult> SaveAnswer([FromBody] SaveAnswerDTO dto)
+        [Route("PQJ/SaveAnswer")]
+        public async Task<IActionResult> SaveAnswer( [FromBody] SaveAnswerDTO dto)
         {
-            var attemptId = HttpContext.Session.GetInt32("ATTEMPT");
-
-            if (attemptId == null)
+            if (dto.AttemptId == null)
                 return BadRequest();
 
-            dto.AttemptId = attemptId.Value; 
-            await _pqj.SaveAnswer(dto);
+            if (dto.QuestionId == null)
+                return BadRequest();
 
-            return Ok();
+            if (dto.SelectedOptionId == null)
+                return BadRequest();
+
+            var result = await _pqj.SaveAnswer(dto);
+
+            return Json(new
+            {
+                success = true,
+                isCorrect = result.IsCorrect, 
+                correctOptionId = result.CorrectOptionId, 
+                selectedOptionId =  dto.SelectedOptionId
+            });
         }
         public IActionResult Plans()
         {

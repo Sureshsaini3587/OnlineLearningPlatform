@@ -3,6 +3,7 @@
     public class CourseDetailsVM
     {
         public int CourseId { get; set; }
+        public string Id { get; set; }
         public string CourseTitle { get; set; }
         public string Description { get; set; }
         public decimal Price { get; set; }

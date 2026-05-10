@@ -1,0 +1,100 @@
+﻿@{
+    ViewData["Title"] = "Course Details";
+    Layout = "~/Views/Shared/Web/_Layout.cshtml";
+}
+
+@using OnlineLearning.DTO
+@using OnlineLearning.Views.Services
+@model List<PlanCourseListDto>
+@inject ProtectorService protector
+
+<section class="inner-hero">
+    <div class="container">
+        <div class="inner-hero-content">
+            <span class="section-kicker">Subscription Plans</span>
+            <h2>
+                Unlock @Model.FirstOrDefault()?.CourseTitle
+            </h2>
+            <p>
+                Choose a subscription plan to access this premium course,
+                PQJ practice, and all lessons.
+            </p>
+        </div>
+    </div>
+</section> 
+<section class="section-space pricing-section">
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+            @foreach (var plan in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="pricing-card">
+                        <span class="plan-label"> </span>
+                        <h3>@plan.PlanName</h3>
+                        <div class="price">₹ @plan.Price</div>
+                        <ul class="plan-list">
+                            <li><i class="bi bi-check2"></i> Full course access</li>
+                            <li><i class="bi bi-check2"></i> Demo videos</li>
+                            <li><i class="bi bi-check2"></i> PQJ practice</li>
+                            <li><i class="bi bi-check2"></i> Dashboard tracking</li>
+                        </ul>
+                        <a href="javascript:void(0)"
+                               class="btn btn-plan w-100 btn-choose-plan"
+                               data-plan="@plan.PlanId"
+                               data-course="@plan.CourseId">
+                            Choose
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="plans-note-card mt-5">
+            <h4>What happens after subscription?</h4>
+            <p>
+                Once subscribed, students can access locked full-course videos, track lesson progress,
+                and use the PQJ module for practice and revision.
+            </p>
+        </div>
+    </div>
+</section>
+<script>
+    function startPayment(planId, courseId) { 
+        fetch('/Payment/CreateOrder', { 
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            }, 
+            body: JSON.stringify({
+                planId: parseInt(planId),
+                courseId: parseInt(courseId)
+            }) 
+        })
+        .then(async res => { 
+            let data = await res.json(); 
+            if (!res.ok) { 
+                alert(data.message); 
+                return;
+            } 
+            showQRPayment(data); 
+        });
+    }
+    function showQRPayment(data) { 
+        document.getElementById("paymentBox").innerHTML = ` 
+            <div class="text-center"> 
+                <h3 class="mb-3">
+                    Scan & Pay
+                </h3> 
+                <img src="${data.qrCode}"
+                     class="img-fluid mb-4"
+                     style="max-width:250px;" /> 
+                <h4>
+                    ₹${data.amount}
+                </h4> 
+                <p class="text-muted">
+                    Waiting for payment confirmation...
+                </p> 
+            </div>
+        `;
+    }
+</script>

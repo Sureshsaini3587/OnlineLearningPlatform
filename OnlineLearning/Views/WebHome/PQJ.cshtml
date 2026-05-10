@@ -82,7 +82,7 @@
 
                     <div class="mb-4">
                         <label class="form-label">Difficulty</label>
-                        <select class="form-select auth-input">
+                        <select class="form-select auth-input" name="difficulty">
                             <option value="1">Easy</option>
                             <option value="2">Medium</option>
                             <option value="3">Hard</option>
@@ -140,5 +140,56 @@
         .then(html => {
             document.getElementById("pqjPlayerContainer").innerHTML = html;
         });
-    }
+    }  
+     document.addEventListener('change', function (e) {
+        if (e.target.matches('input[type="radio"]')) {
+            fetch('/PQJ/SaveAnswer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    attemptId:
+                        e.target.dataset.attempt,
+                    questionId:
+                        e.target.dataset.question,
+                    selectedOptionId:
+                        e.target.value
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                let selected =
+                    e.target.closest('.pqj-option');
+                document
+                    .querySelectorAll(
+                        `input[name="${e.target.name}"]`)
+                    .forEach(r => {
+                        r.disabled = true;
+                    });
+                if (data.isCorrect)
+                {
+                    selected.classList.add('correct-option');
+                }
+                else
+                {
+                    selected.classList.add(
+                        'wrong-option');
+                    document
+                        .querySelectorAll(
+                            `input[name="${e.target.name}"]`)
+                        .forEach(r => {
+
+                            if (r.value ==
+                                data.correctOptionId)
+                            {
+                                r.closest('.pqj-option')
+                                 .classList.add(
+                                    'correct-option');
+                            }
+                        });
+                }
+            });
+        }
+    });
 </script>

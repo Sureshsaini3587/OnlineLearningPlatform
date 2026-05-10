@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.Models;
 using System.Data;
@@ -11,9 +12,11 @@ namespace OnlineLearning.BusinessLogics.Repository
 
         private readonly IConfiguration _config;
 
-        public CourseSectionRepository(IConfiguration config)
+        private readonly IMemoryCache _cache;
+        public CourseSectionRepository(IConfiguration config, IMemoryCache cache)
         {
             _config = config;
+            _cache = cache;
         }
 
         private IDbConnection Connection
@@ -37,14 +40,33 @@ namespace OnlineLearning.BusinessLogics.Repository
         }  
          
         public async Task<List<CourseSectionDTO>> GetByCourseId(int courseId)
-        {  
+        {
+            string cacheKey = $"COURSE_SECTIONS_{courseId}"; 
+            if (_cache.TryGetValue(  cacheKey, out List<CourseSectionDTO> sections))
+            {
+                return sections;
+            }
             using var db = Connection; 
             var data = await db.QueryAsync<CourseSectionDTO>(
                   "sp_CourseSection",
                   new { Action = "GET_ALL_BYCourse", CourseId = courseId },
                   commandType: CommandType.StoredProcedure
-              ); 
-            return data.ToList();
+              );
+            sections = data.ToList();  
+            _cache.Set(  cacheKey,  sections,
+                new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow =
+                        TimeSpan.FromMinutes(30),
+
+                    SlidingExpiration =
+                        TimeSpan.FromMinutes(10),
+
+                    Priority =
+                        CacheItemPriority.Normal
+                });
+
+            return sections;
         }  
         public async Task<List<CourseSectionDTO>> GetAllWithDetails()
         {
@@ -71,6 +93,8 @@ namespace OnlineLearning.BusinessLogics.Repository
 
         public async Task<bool> AddAsync(CourseSectionDTO entity)
         {
+            string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
+            _cache.Remove(cacheKey);
             using var db = Connection;
             var result = await db.ExecuteAsync(
                  "sp_CourseSection",
@@ -92,6 +116,8 @@ namespace OnlineLearning.BusinessLogics.Repository
             try
             {
 
+                string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
+                _cache.Remove(cacheKey);
                 using var db = Connection;
 
                 var result = await db.ExecuteAsync(
@@ -118,6 +144,8 @@ namespace OnlineLearning.BusinessLogics.Repository
         }
         public async Task<bool> DeleteAsync(CourseSectionDTO entity)
         {
+            string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
+            _cache.Remove(cacheKey);
             using var db = Connection;
 
             var result = await db.ExecuteAsync(

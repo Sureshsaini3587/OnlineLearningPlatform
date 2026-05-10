@@ -28,11 +28,12 @@ namespace OnlineLearning.Models
         public QuestionType QuestionType { get; set; }
 
         [Range(1, 3, ErrorMessage = "Invalid difficulty level")]
-        public int DifficultyLevel { get; set; } // 1-Easy, 2-Medium, 3-Hard
+        public int DifficultyLevel { get; set; } 
 
         [Range(0, 1000)]
         public int Marks { get; set; } = 1; 
 
+        public bool IsTrial { get; set; } = false;
         public bool IsActive { get; set; } = true;
 
         public bool IsDeleted { get; set; } = false;

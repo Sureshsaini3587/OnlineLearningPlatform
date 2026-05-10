@@ -25,26 +25,25 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Course *</label>
-                            <select asp-for="Question.CourseId"
+                            <select id="courseId" name="Question.CourseId" 
                                     asp-items="ViewBag.Course"
                                     class="form-control">
                                 <option value="">-- Select Course --</option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label>Category *</label>
-                            <select asp-for="Question.CategoryId"
-                                    asp-items="ViewBag.Category"
+                            <label>Section *</label>
+                            <select asp-for="Question.CategoryId" id="section"
                                     class="form-control">
-                                <option value="">-- Select Category --</option>
+                                <option value="">-- Select Section --</option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Question Type *</label>
-                            <select asp-for="Question.QuestionType"
+                            <select asp-for="Question.QuestionType" 
                                     class="form-control"
                                     id="questionType">
-                                <option value="1">MCQ</option>
+                                @* <option value="1">MCQ</option> *@
                                 <option value="2">True/False</option>
                                 <option value="3">Descriptive</option>
                             </select>
@@ -61,6 +60,13 @@
                             <label>Marks</label>
                             <input asp-for="Question.Marks" class="form-control" type="number" min="0" />
                         </div>
+                        <div class="col-md-4 mb-3">
+                            <label>Is Trial</label>
+                            <select asp-for="Question.IsTrial" class="form-control">
+                                <option value="true">True</option>
+                                <option value="false">False</option> 
+                            </select>
+                        </div> 
                     </div>
                     <div id="mcqOptions">
                         <label>Options *</label>
@@ -100,7 +106,63 @@
         </div>
     </div>
 </div>
-<script>
+<script> 
+    document.addEventListener("DOMContentLoaded", function () { 
+        let courseDropdown = document.getElementById("courseId");
+        let sectionDropdown = document.getElementById("section"); 
+         
+        let selectedCourseId = '@Model.Question.CourseId';
+        let selectedSectionId = '@Model.Question.CategoryId';
+        console.log(selectedCourseId);
+         if (selectedCourseId) { 
+                setTimeout(() => { 
+                    [...courseDropdown.options].forEach(o => {
+                        console.log(o.value);
+                        if (o.value == selectedCourseId) {
+                    
+                            o.selected = true;
+                        }
+                    }); 
+                }, 100);
+             loadSections( selectedCourseId,  selectedSectionId  );
+
+         }
+        function loadSections(courseId, selectedSection = null) { 
+            sectionDropdown.innerHTML =
+                `<option value="">Loading...</option>`; 
+            if (!courseId) { 
+                sectionDropdown.innerHTML =
+                    `<option value="">Select Section</option>`; 
+                return;
+            } 
+            fetch(`/WebHome/GetTopicsByCourse?courseId=${courseId}`)
+                .then(res => res.json())
+                .then(data => { 
+                    sectionDropdown.innerHTML =
+                        `<option value="">Select Section</option>`; 
+                    data.forEach(t => { 
+                        let selected =
+                            selectedSection == t.sectionId
+                                ? "selected"
+                                : "";
+
+                        sectionDropdown.innerHTML += `
+                            <option value="${t.sectionId}" ${selected}>
+                                ${t.sectionTitle}
+                            </option>`;
+                    });
+
+                })
+                .catch(() => { 
+                    sectionDropdown.innerHTML =
+                        `<option value="">Error loading sections</option>`;
+                });
+        } 
+        courseDropdown.addEventListener("change", function () { 
+            loadSections(this.value);
+        });  
+    });
+     
     function addOption() {
         let index = document.querySelectorAll('#optionsContainer .mb-2').length;
 
@@ -121,7 +183,7 @@
     document.getElementById("questionType").addEventListener("change", function () {
         let val = this.value;
 
-        if (val == "3") { // Descriptive
+        if (val == "3") {  
             document.getElementById("mcqOptions").style.display = "none";
         } else {
             document.getElementById("mcqOptions").style.display = "block";

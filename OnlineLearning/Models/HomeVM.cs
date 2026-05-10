@@ -15,6 +15,7 @@ namespace OnlineLearning.Models
     {
         public List<CourseDTO> Courses { get; set; }
         public QuestionVM Question { get; set; } 
+        public int? AttemptId { get; set; }
         public int CurrentIndex { get; set; }
         public int TotalQuestions { get; set; } 
         public int? SelectedOptionId { get; set; } 

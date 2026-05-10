@@ -1,9 +1,13 @@
-﻿using Dapper;
+﻿using Azure;
+using Azure.Core;
+using Dapper;
 using Microsoft.Data.SqlClient;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 using System.Data;
+using System.Security.Claims;
 using static Dapper.SqlMapper;
 
 namespace OnlineLearning.BusinessLogics.Repository
@@ -26,38 +30,189 @@ namespace OnlineLearning.BusinessLogics.Repository
                     _config.GetConnectionString("DbConnection"));
             }
         }
-        public async Task<int> StartTrial(int courseId)
+        private string GetGuestToken()
         {
-            var guestToken = Guid.NewGuid().ToString(); 
-            _httpContextAccessor.HttpContext.Response.Cookies.Append("GuestToken", guestToken); 
-            using var db = Connection;
+            string token =
+               _httpContextAccessor.HttpContext.Request.Cookies["PQJ_GUEST"];
 
-            var attemptId = await db.ExecuteScalarAsync<int>(
-                @"INSERT INTO PQJ_Attempts (CourseId, GuestToken, IsGuest, AttemptDate, IsActive)
-                   VALUES (@CourseId, @GuestToken, 1, GETDATE(), 1);
-                   SELECT SCOPE_IDENTITY();",
-                new { CourseId = courseId, GuestToken = guestToken });
+            if (string.IsNullOrEmpty(token))
+            {
+                token = Guid.NewGuid().ToString();
+
+                _httpContextAccessor.HttpContext.Response.Cookies.Append(
+                    "PQJ_GUEST",
+                    token,
+                    new CookieOptions
+                    {
+                        Expires =
+                            DateTime.Now.AddDays(7),
+
+                        HttpOnly = true,
+
+                        Secure = true,
+                        SameSite = SameSiteMode.Lax
+                    });
+            }
+
+            return token;
+        }
+        public async Task<int> GetOrCreateAttempt( int courseId)
+        {
+            bool isLoggedIn =
+                _httpContextAccessor.HttpContext.User.Identity.IsAuthenticated;
+
+            int? studentId = null;
+
+            string guestToken = null;
+
+            if (isLoggedIn)
+            {
+                studentId =
+                    Convert.ToInt32(
+                        _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            }
+            else
+            {
+                guestToken = GetGuestToken();
+            }
+             
+            int attemptId =
+                await GetExistingAttempt(  courseId, studentId, guestToken);
+             
+            if (attemptId == 0)
+            {
+                attemptId =
+                    await CreateAttempt( courseId, studentId, guestToken);
+            }
 
             return attemptId;
         }
-        public async Task SaveAnswer(SaveAnswerDTO dto)
+        public async Task<int> GetExistingAttempt(  int courseId, int? studentId, string guestToken)
         {
             using var db = Connection;
 
-            await db.ExecuteAsync(
-                @"IF EXISTS (SELECT 1 FROM PQJ_AttemptAnswers 
-                     WHERE AttemptId=@AttemptId AND QuestionId=@QuestionId)
-                  UPDATE PQJ_AttemptAnswers 
-                  SET SelectedOptionId=@SelectedOptionId
-                  WHERE AttemptId=@AttemptId AND QuestionId=@QuestionId
-                  ELSE
-                  INSERT INTO PQJ_AttemptAnswers 
-                  (AttemptId, QuestionId, SelectedOptionId)
-                  VALUES (@AttemptId, @QuestionId, @SelectedOptionId)",
-                dto);
-        }
+            if (studentId.HasValue)
+            {
+                return await db.ExecuteScalarAsync<int>(
+                    @"
+                     SELECT TOP 1 AttemptId
+                     FROM PQJ_Attempts
+                     WHERE StudentId=@StudentId
+                     AND CourseId=@CourseId
+                     AND IsCompleted=0
+                     ",
+                    new
+                    {
+                        StudentId = studentId,
+                        CourseId = courseId
+                    });
+            }
 
-        public async Task<List<QuestionVM>> GetFilteredQuestions(int? courseId, int? topicId, int difficulty)
+            return await db.ExecuteScalarAsync<int>(
+                @"
+                   SELECT TOP 1 AttemptId
+                   FROM PQJ_Attempts
+                   WHERE GuestToken=@GuestToken
+                   AND CourseId=@CourseId
+                   AND IsCompleted=0
+                ",
+                new
+                {
+                    GuestToken = guestToken,
+                    CourseId = courseId
+                });
+        }
+        public async Task<int> CreateAttempt( int courseId,   int? studentId,  string guestToken)
+        {
+            using var db = Connection;
+
+            return await db.ExecuteScalarAsync<int>(
+                @"
+                  INSERT INTO PQJ_Attempts
+                  (
+                      StudentId,
+                      CourseId,
+                      GuestToken,
+                      AttemptDate,
+                      IsCompleted,
+                      IsActive,
+                      IsDeleted
+                  )
+                  VALUES
+                  (
+                      @StudentId,
+                      @CourseId,
+                      @GuestToken,
+                      GETDATE(),
+                      0,
+                      1,
+                      0
+                  )
+                 
+                  SELECT CAST(SCOPE_IDENTITY() AS INT)
+                  ",
+                new
+                {
+                    StudentId = studentId,
+                    CourseId = courseId,
+                    GuestToken = guestToken
+                });
+        }
+        public async Task<SaveAnswerResultDTO> SaveAnswer( SaveAnswerDTO dto)
+        {
+            using var db = Connection;
+             
+            int correctOptionId =
+                await db.ExecuteScalarAsync<int>(
+                    @"  SELECT TOP 1 OptionId   FROM PQJ_Options   WHERE QuestionId=@QuestionId   AND IsCorrect=1  ",
+                    new
+                    {
+                        dto.QuestionId
+                    });
+
+            bool isCorrect =  correctOptionId ==  dto.SelectedOptionId;
+             
+            await db.ExecuteAsync(
+                @"
+                  IF EXISTS  (  SELECT 1  FROM PQJ_AttemptAnswers  WHERE AttemptId=@AttemptId  AND QuestionId=@QuestionId ) 
+                  UPDATE PQJ_AttemptAnswers
+                     SET SelectedOptionId=@SelectedOptionId,   IsCorrect=@IsCorrect,   UpdatedOn=GETDATE()
+                        WHERE AttemptId=@AttemptId  AND QuestionId=@QuestionId 
+                  ELSE 
+                     INSERT INTO PQJ_AttemptAnswers
+                     (
+                         AttemptId,
+                         QuestionId,
+                         SelectedOptionId,
+                         IsCorrect,
+                         CreatedOn
+                     )
+                     VALUES
+                     (
+                         @AttemptId,
+                         @QuestionId,
+                         @SelectedOptionId,
+                         @IsCorrect,
+                         GETDATE()
+                     )
+                ",
+                new
+                {
+                    dto.AttemptId,
+                    dto.QuestionId,
+                    dto.SelectedOptionId,
+                    IsCorrect = isCorrect
+                });
+
+            return new SaveAnswerResultDTO
+            {
+                IsCorrect = isCorrect,
+
+                CorrectOptionId = correctOptionId
+            };
+        }
+        
+        public async Task<List<QuestionVM>> GetFilteredQuestions(int? courseId, int? topicId, int difficulty,string Mode)
         {
             using var db = Connection;
 
@@ -91,12 +246,71 @@ namespace OnlineLearning.BusinessLogics.Repository
                     Action = "GET_FILTERED",
                     CourseId = courseId,
                     CategoryId = topicId,
-                    DifficultyLevel = difficulty
+                    DifficultyLevel = difficulty,
+                    Mode = Mode
                 },
                 splitOn: "OptionId"
             );
 
             return dict.Values.ToList();
+        }
+        public async Task CompleteAttempt(int attemptId)
+        {
+            using var db = Connection;
+             
+            var result = await db.QueryFirstOrDefaultAsync<dynamic>(
+                @"
+                   SELECT
+                       COUNT(*) AS TotalQuestions, 
+                       SUM(
+                           CASE
+                               WHEN o.IsCorrect = 1 THEN 1
+                               ELSE 0
+                           END
+                       ) AS CorrectAnswers 
+                   FROM PQJ_AttemptAnswers a 
+                   INNER JOIN PQJ_Options o
+                       ON a.SelectedOptionId = o.OptionId 
+                   WHERE a.AttemptId = @AttemptId
+                   ",
+                new { AttemptId = attemptId });
+
+            int totalQuestions =
+                result?.TotalQuestions ?? 0;
+
+            int correctAnswers =
+                result?.CorrectAnswers ?? 0;
+
+            int wrongAnswers =  totalQuestions - correctAnswers;
+
+            decimal score = 0;
+
+            if (totalQuestions > 0)
+            {
+                score =  ((decimal)correctAnswers  / totalQuestions) * 100;
+            }
+             
+            await db.ExecuteAsync(
+                @"
+                      UPDATE PQJ_Attempts
+                      SET
+                          IsCompleted = 1,
+                          UpdatedOn = GETDATE(),
+                          TotalQuestions = @TotalQuestions,
+                          CorrectAnswers = @CorrectAnswers,
+                          WrongAnswers = @WrongAnswers,
+                          Score = @Score
+                   
+                      WHERE AttemptId = @AttemptId
+                    ",
+                new
+                {
+                    AttemptId = attemptId,
+                    TotalQuestions = totalQuestions,
+                    CorrectAnswers = correctAnswers,
+                    WrongAnswers = wrongAnswers,
+                    Score = score
+                });
         }
         public async Task<IEnumerable<CommanDTO>> GetCourse()
         {
@@ -131,6 +345,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                     q.CategoryId,
                     q.CourseId,
                     QuestionType = (int)q.QuestionType,
+                    q.IsTrial,
                     q.DifficultyLevel,
                     q.Explanation,
                     q.Marks, 
@@ -223,6 +438,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                         q.CategoryId,
                         q.CourseId,
                         QuestionType = (int)q.QuestionType,
+                        q.IsTrial,
                         q.DifficultyLevel,
                         q.Explanation,
                         q.Marks, 

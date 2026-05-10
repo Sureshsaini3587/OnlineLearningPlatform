@@ -2396,6 +2396,14 @@ a {
 .pqj-option {
     display: block;
     cursor: pointer;
+
+    align-items: center;
+    gap: 5px;
+/*    padding: 8px;*/
+/*    margin-bottom: 10px;*/
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    transition: all .25s ease;
 }
 
     .pqj-option input {
@@ -2417,7 +2425,21 @@ a {
         background: #eef6f3;
         border-color: rgba(46, 197, 167, 0.30);
     }
+ 
 
+    /* CORRECT */
+
+    .pqj-option.correct-option {
+        background: #dcfce7 !important;
+        border-color: #22c55e !important;
+    }
+
+    /* WRONG */
+
+    .pqj-option.wrong-option {
+        background: #fee2e2 !important;
+        border-color: #ef4444 !important;
+    }
 .pqj-nav-actions {
     display: flex;
     justify-content: space-between;

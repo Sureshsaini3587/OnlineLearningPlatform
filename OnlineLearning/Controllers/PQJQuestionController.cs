@@ -141,15 +141,7 @@ namespace OnlineLearning.Controllers
                 {
                     Value = x.Id.ToString(),
                     Text = x.Name
-                }).ToList();
-            var Category = await _service.GetCategory();
-            ViewBag.Category = Category
-                .Select(x => new SelectListItem
-                {
-                    Value = x.Id.ToString(),
-                    Text = x.Name
-                }).ToList();
-             
+                }).ToList();  
         }
     }
 }

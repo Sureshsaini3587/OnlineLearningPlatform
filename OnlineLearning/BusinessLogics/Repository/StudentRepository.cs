@@ -1,21 +1,26 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
 using System.Data;
+using System.Security.Claims;
 
 namespace OnlineLearning.BusinessLogics.Repository
 {
     public class StudentRepository : IStudentRepository 
-    {
-
+    { 
+        private readonly IMemoryCache _cache;
         private readonly IConfiguration _config;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public StudentRepository(IConfiguration config)
+        public StudentRepository(IConfiguration config, IMemoryCache cache, IHttpContextAccessor httpContextAccessor)
         {
             _config = config;
+            _cache = cache;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         private IDbConnection Connection
@@ -26,7 +31,62 @@ namespace OnlineLearning.BusinessLogics.Repository
                     _config.GetConnectionString("DbConnection"));
             }
         }
-         
+        public async Task<List<CourseDTO>> GetCourse()
+        {
+            
+            int studentId = Convert.ToInt32( _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
+            string cacheKey =  $"Courses_{studentId}"; 
+            if (_cache.TryGetValue(cacheKey, out List<CourseDTO> courses))
+            {
+                return courses;
+            }
+            using var db = Connection;
+
+            var data = await db.QueryAsync<CourseDTO>(
+                "sp_Student",
+                new { Action = "GET_Course", StudentId = studentId },
+                commandType: CommandType.StoredProcedure
+            );
+
+            courses = data.ToList();
+            _cache.Set(cacheKey, courses,
+                new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow =
+                        TimeSpan.FromMinutes(30),
+                    SlidingExpiration =
+                        TimeSpan.FromMinutes(10),
+                    Priority =
+                        CacheItemPriority.High
+                });
+
+            return courses;
+        }
+        public async Task<StudentDashboardVM> GetDashboard(int userId)
+        {
+            using var db = Connection;
+
+            var multi = await db.QueryMultipleAsync("sp_Student",
+                new { Action = "GET_Dashboard" , UserId = userId },
+                commandType: CommandType.StoredProcedure);
+
+            var vm = new StudentDashboardVM();
+
+            var summary = await multi.ReadFirstAsync();
+
+            vm.UserName = summary.UserName;
+            vm.PlanName = summary.PlanName;
+            vm.DaysLeft = summary.DaysLeft;
+            vm.TotalCourses = summary.TotalCourses;
+            vm.InProgressCourses = summary.InProgressCourses;
+            vm.HoursWatched = summary.HoursWatched;
+            vm.PQJScore = summary.PQJScore; 
+            vm.ContinueCourse = await multi.ReadFirstOrDefaultAsync<ContinueCourseVM>();
+            vm.RecentCourses = (await multi.ReadAsync<CourseDTO>()).ToList();
+
+            return vm;
+        }
         public async Task<List<StudentDTO>> GetAllAsync()
         {  
             using var db = Connection; 

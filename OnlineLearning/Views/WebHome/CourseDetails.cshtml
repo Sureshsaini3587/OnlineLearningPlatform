@@ -123,18 +123,18 @@
                         <li><i class="bi bi-check2"></i> PQJ practice sets</li>
                         <li><i class="bi bi-check2"></i> Progress tracking</li>
                     </ul>
-
-                    <a href="/Plans" class="btn btn-plan w-100 mb-3">Unlock Full Course</a>
+                    <a href="/WebHome/CoursePlans?courseId=@Model.CourseId"  class="btn btn-plan w-100 mb-3">                   
+                       🔓 Unlock Full Course                   
+                   </a>  
                     <a href="/Demo" class="btn btn-outline-dark w-100 rounded-pill py-3">Watch Demo First</a>
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
 </section>
 <div class="modal fade" id="videoModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-
+        <div class="modal-content"> 
             <div class="modal-body p-0">
                 <iframe id="videoFrame"
                         width="100%" height="400"
@@ -142,41 +142,108 @@
                         frameborder="0"
                         allowfullscreen>
                 </iframe>
-            </div>
-
+            </div> 
         </div>
     </div>
-</div>
-<script>
+</div> 
+<script > 
+     
+     function startPayment(planId, courseId) {
+         showLoader();
+         fetch('/Payment/Start', {
+             method: 'POST',
+             headers: {
+                 'Content-Type': 'application/json'
+             },
+             body: JSON.stringify({
+                 planId: parseInt(planId),
+                 courseId: parseInt(courseId)
+             })
+         })
+             .then(res => res.json())
+             .then(data => {
+                 showPaymentUI(data);
+             })
+             .catch(() => {
+
+                 document.getElementById("planModalBody").innerHTML =
+                     `<div class="alert alert-danger">
+             Payment initialization failed
+          </div>`;
+             });
+     }
+     function showPaymentUI(data) {
+         document.getElementById("planModalBody").innerHTML = `
+         <div class="payment-box text-center">
+             <h3 class="mb-3">Complete Payment</h3>
+             <div class="payment-price">
+                 ₹${data.amount}
+             </div>
+             <p class="text-muted mb-4">
+                 Secure payment gateway
+             </p>
+             <button class="btn btn-success px-5 py-3 rounded-pill"
+                     onclick="completePayment(${data.planId}, ${data.courseId})">
+                 🔒 Pay Securely
+             </button>
+         </div>
+     `;
+     } function completePayment(planId, courseId) {
+         showLoader();
+         fetch('/Payment/Success', {
+             method: 'POST',
+             headers: {
+                 'Content-Type': 'application/json'
+             },
+             body: JSON.stringify({
+                 planId: planId,
+                 courseId: courseId
+             })
+         })
+             .then(res => res.json())
+             .then(data => {
+                 document.getElementById("planModalBody").innerHTML = `
+        <div class="text-center p-5">
+            <div class="success-check mb-3">
+                ✅
+            </div>
+            <h3>Payment Successful</h3>
+            <p class="text-muted">
+                Your course is now unlocked
+            </p>
+            <button class="btn btn-primary px-5 py-3 rounded-pill"
+                    onclick="location.reload()">
+                Start Learning 🚀
+            </button>
+        </div>
+    `;
+             });
+     }
      function getEmbedUrl(url) {
-        let videoId = "";
+         let videoId = "";
 
-        if (url.includes("watch?v=")) {
-            videoId = url.split("watch?v=")[1].split("&")[0];
-        }
-        else if (url.includes("youtu.be/")) {
-            videoId = url.split("youtu.be/")[1].split("?")[0];
-        }
-        else if (url.includes("shorts/")) {
-            videoId = url.split("shorts/")[1].split("?")[0];
-        }
+         if (url.includes("watch?v=")) {
+             videoId = url.split("watch?v=")[1].split("&")[0];
+         }
+         else if (url.includes("youtu.be/")) {
+             videoId = url.split("youtu.be/")[1].split("?")[0];
+         }
+         else if (url.includes("shorts/")) {
+             videoId = url.split("shorts/")[1].split("?")[0];
+         }
 
-        return "https://www.youtube.com/embed/" + videoId;
-    }
-    function playVideo(url, isDemo) { 
-        const isSubscribed = @User.Identity.IsAuthenticated.ToString().ToLower();
+         return "https://www.youtube.com/embed/" + videoId;
+     }
+     function playVideo(url, isDemo) {
+        
+         let embedUrl = getEmbedUrl(url);
+         document.getElementById("videoFrame").src = embedUrl;
 
-        if (!isDemo && !isSubscribed) {
-            alert("Please subscribe to watch this video");
-            return;
-        } 
-       let embedUrl = getEmbedUrl(url); 
-        document.getElementById("videoFrame").src = embedUrl;
-
-        var modal = new bootstrap.Modal(document.getElementById('videoModal'));
-        modal.show();
-    } 
-    document.getElementById('videoModal').addEventListener('hidden.bs.modal', function () {
-        document.getElementById("videoFrame").src = "";
-    });
+         var modal = new bootstrap.Modal(document.getElementById('videoModal'));
+         modal.show();
+     }
+     document.getElementById('videoModal').addEventListener('hidden.bs.modal', function () {
+         document.getElementById("videoFrame").src = "";
+     });
 </script>
+  

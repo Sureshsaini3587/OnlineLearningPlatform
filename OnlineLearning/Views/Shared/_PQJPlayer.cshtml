@@ -3,7 +3,7 @@
 <div class="student-panel-card">
     <div class="pqj-question-top">
         <span>Question @Model?.CurrentIndex of @Model?.TotalQuestions</span>
-        <strong>Time Left: <span id="timer">@Model?.TimeLeft</span></strong>
+        @* <strong>Time Left: <span id="timer">@Model?.TimeLeft</span></strong> *@
     </div>
 
     @if (Model?.Question?.Question != null)
@@ -19,11 +19,9 @@
                 {
                     foreach (var opt in q.Options)
                     {
-                        <label class="pqj-option @(Model.SelectedOptionId == opt.OptionId ? "active" : "")">
-                            <input type="radio"
-                                   name="q_@q.QuestionId"
-                                   value="@opt.OptionId"
-                            @(Model.SelectedOptionId == opt.OptionId ? "checked" : "") />
+                        <label class="pqj-option"> 
+                            <input type="radio" data-question="@q.QuestionId" data-attempt="@Model.AttemptId"
+                                   name="q_@q.QuestionId" value="@opt.OptionId"   />
                             <span>@opt.OptionText</span>
                         </label>
                     }
@@ -46,22 +44,7 @@
                     Next Question
                 </button>
             </div>
-        </div>
-
-        <script>
-                document.addEventListener('change', function (e) {
-                    if (e.target.matches('input[type="radio"]')) {
-                        fetch('/PQJ/SaveAnswer', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                questionId: @q.QuestionId,
-                                selectedOptionId: e.target.value
-                            })
-                        });
-                    }
-                });
-        </script>
+        </div> 
     }
     else
     {

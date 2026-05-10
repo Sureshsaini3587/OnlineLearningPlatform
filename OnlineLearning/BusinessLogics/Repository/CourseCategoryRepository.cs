@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.Models;
 using System.Data;
@@ -10,10 +11,12 @@ namespace OnlineLearning.BusinessLogics.Repository
     {
 
         private readonly IConfiguration _config;
+        private readonly IMemoryCache _cache;
 
-        public CourseCategoryRepository(IConfiguration config)
+        public CourseCategoryRepository(IConfiguration config, IMemoryCache cache)
         {
             _config = config;
+            _cache = cache;
         }
 
         private IDbConnection Connection
@@ -37,14 +40,28 @@ namespace OnlineLearning.BusinessLogics.Repository
         }
         public async Task<List<CourseCategoriesDTO>> GetAllWithDetails()
         {
-            using var db = Connection;
-
+            string cacheKey = "CategoryWithDetails";
+            if (_cache.TryGetValue(cacheKey, out List<CourseCategoriesDTO> courses))
+            {
+                return courses;
+            }
+            using var db = Connection; 
             var data = await db.QueryAsync<CourseCategoriesDTO>(
                 "sp_CourseCategory",                
                 new { Action = "GET_ALL_DETAILS" },
                 commandType: CommandType.StoredProcedure                
             );
-
+            courses = data.ToList();
+            _cache.Set(cacheKey, courses,
+                new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow =
+                        TimeSpan.FromMinutes(30),
+                    SlidingExpiration =
+                        TimeSpan.FromMinutes(10),
+                    Priority =
+                        CacheItemPriority.High
+                });
             return data.ToList();
         }
 

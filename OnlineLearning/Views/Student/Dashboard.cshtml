@@ -1,4 +1,6 @@
-﻿@using OnlineLearning.Helpers
+﻿@using OnlineLearning.Views.Services
+@model StudentDashboardVM
+@inject ProtectorService protector
 @{
     ViewData["Title"] = "Dashboard";
     Layout = "~/Views/Shared/Web/_StudentLayout.cshtml";
@@ -6,7 +8,7 @@
 
 <div class="dashboard-header">
     <div>
-        <h1>Welcome back, @UserHelper.GetUserName(User) 👋</h1>
+        <h1>Welcome back, @Model.UserName 👋</h1>
         <p>Track your learning, continue lessons, and monitor your PQJ performance.</p>
     </div>
     <a href="/WebHome/Courses" class="btn btn-plan">Explore More Courses</a>
@@ -16,98 +18,131 @@
     <div class="col-md-6 col-xl-3">
         <div class="dash-stat-card">
             <span>Active Plan</span>
-            <strong>Quarterly Pro</strong>
-            <small>27 days left</small>
+            <strong>@Model.PlanName</strong>
+            <small>@Model.DaysLeft days left</small>
         </div>
     </div>
+
     <div class="col-md-6 col-xl-3">
         <div class="dash-stat-card">
             <span>Courses Enrolled</span>
-            <strong>08</strong>
-            <small>2 in progress</small>
+            <strong>@Model.TotalCourses</strong>
+            <small>@Model.InProgressCourses in progress</small>
         </div>
     </div>
+
     <div class="col-md-6 col-xl-3">
         <div class="dash-stat-card">
             <span>Hours Watched</span>
-            <strong>42h</strong>
+            <strong>@Model.HoursWatched h</strong>
             <small>This month</small>
         </div>
     </div>
+
     <div class="col-md-6 col-xl-3">
         <div class="dash-stat-card">
             <span>PQJ Score</span>
-            <strong>88%</strong>
+            <strong>@Model.PQJScore%</strong>
             <small>Average performance</small>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
+     
     <div class="col-xl-8">
+         
         <div class="student-panel-card">
             <div class="panel-head">
                 <h4>Continue Learning</h4>
                 <a href="/Student/Watch">View all</a>
             </div>
 
-            <div class="continue-course-card">
-                <div class="continue-thumb">
-                    <img src="https://picsum.photos/700/420?random=111" alt="Course" />
-                </div>
-                <div class="continue-body">
-                    <span class="continue-label">Currently Watching</span>
-                    <h3>Advanced Web Platform UI</h3>
-                    <p>Lesson 07 · Dashboard metrics and modern layout flow</p>
-
-                    <div class="continue-progress">
-                        <div class="progress-track">
-                            <div class="progress-fill" style="width: 68%;"></div>
-                        </div>
-                        <span>68% completed</span>
+            @if (Model.ContinueCourse != null)
+            {
+                <div class="continue-course-card">
+                    <div class="continue-thumb">
+                        <img src="@Model.ContinueCourse.Thumbnail" alt="Course" />
                     </div>
 
-                    <a href="/Student/Watch" class="btn btn-plan mt-3">Resume Course</a>
+                    <div class="continue-body">
+                        <span class="continue-label">Currently Watching</span>
+                        <h3>@Model.ContinueCourse.Title</h3>
+                        <p>Resume your last watched lesson</p>
+
+                        <div class="continue-progress">
+                            <div class="progress-track">
+                                <div class="progress-fill"
+                                     style="width:@Model.ContinueCourse.Progress%;">
+                                </div>
+                            </div>
+                            <span>@Model.ContinueCourse.Progress% completed</span>
+                        </div>
+
+                        <a href="/Student/Watch/@Model.ContinueCourse.CourseId"
+                               class="btn btn-plan mt-3">
+                            Resume Course
+                        </a>
+                    </div>
                 </div>
-            </div>
+            }
+            else
+            {
+                <p>No active course found.</p>
+            }
         </div>
 
+        <!-- Recent Courses -->
         <div class="student-panel-card mt-4">
             <div class="panel-head">
                 <h4>Recent Courses</h4>
-                <a href="/Courses">Browse more</a>
+                <a href="/WebHome/Courses">Browse more</a>
             </div>
 
             <div class="row g-4">
-                @for (int i = 1; i <= 2; i++)
+                @if (Model.RecentCourses != null && Model.RecentCourses.Any())
                 {
-                    <div class="col-md-6">
-                        <div class="mini-course-card">
-                            <img src="https://picsum.photos/400/260?random=@(30 + i)" />
-                            <div class="mini-course-body">
-                                <h5>Premium Course @i</h5>
-                                <p>Watch lessons and improve with PQJ practice.</p>
-                                <a href="/Courses/Details/@i">Open Course</a>
+                    foreach (var course in Model.RecentCourses)
+                    {
+                        <div class="col-md-6">
+                            <div class="mini-course-card">
+                                <img src="@course.Thumbnail" alt="@course.CourseTitle" />
+
+                                <div class="mini-course-body">
+                                    <h5>@course.CourseTitle</h5>
+                                    <p>Watch lessons and improve with PQJ practice.</p> 
+                                    <a href="/WebHome/CourseDetails/@protector.Encrypt(course.CourseId)" class="btn btn-course-view">
+                                        View Details
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    }
+                }
+                else
+                {
+                    <p>No recent courses available.</p>
                 }
             </div>
         </div>
     </div>
 
+    <!-- RIGHT SIDE -->
     <div class="col-xl-4">
+
+        <!-- PQJ Performance -->
         <div class="student-panel-card">
             <div class="panel-head">
                 <h4>PQJ Performance</h4>
             </div>
 
             <div class="score-circle-wrap">
-                <div class="score-circle">88%</div>
+                <div class="score-circle">@Model.PQJScore%</div>
                 <p>Strong performance this week. Keep solving advanced sets.</p>
             </div>
         </div>
 
+        <!-- Goals -->
         <div class="student-panel-card mt-4">
             <div class="panel-head">
                 <h4>Upcoming Goals</h4>
@@ -115,18 +150,21 @@
 
             <div class="goal-list">
                 <div class="goal-item">
-                    <strong>Complete Module 4</strong>
-                    <span>Due today</span>
+                    <strong>Complete current module</strong>
+                    <span>Today</span>
                 </div>
+
                 <div class="goal-item">
-                    <strong>Attempt PQJ Set 03</strong>
+                    <strong>Attempt next PQJ set</strong>
                     <span>Tomorrow</span>
                 </div>
+
                 <div class="goal-item">
-                    <strong>Renew plan reminder</strong>
-                    <span>After 27 days</span>
+                    <strong>Renew subscription</strong>
+                    <span>@Model.DaysLeft days left</span>
                 </div>
             </div>
         </div>
+
     </div>
 </div>

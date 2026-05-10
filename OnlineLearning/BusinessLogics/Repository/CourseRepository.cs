@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
@@ -11,18 +12,19 @@ namespace OnlineLearning.BusinessLogics.Repository
     {
 
         private readonly IConfiguration _config;
+        private readonly IMemoryCache _cache;
 
-        public CourseRepository(IConfiguration config)
+        public CourseRepository(IConfiguration config, IMemoryCache cache)
         {
             _config = config;
+            _cache = cache;
         }
 
         private IDbConnection Connection
         {
             get
             {
-                return new SqlConnection(
-                    _config.GetConnectionString("DbConnection"));
+                return new SqlConnection(_config.GetConnectionString("DbConnection"));
             }
         }
          
@@ -60,6 +62,11 @@ namespace OnlineLearning.BusinessLogics.Repository
         }  
         public async Task<List<CourseDTO>> GetAllWithDetails()
         {
+            string cacheKey = "CourseWithDetails";
+            if (_cache.TryGetValue( cacheKey, out List<CourseDTO> courses))
+            {
+                return courses;
+            }
             using var db = Connection;
 
             var data = await db.QueryAsync<CourseDTO>(
@@ -68,7 +75,19 @@ namespace OnlineLearning.BusinessLogics.Repository
                 commandType: CommandType.StoredProcedure
             );
 
-            return data.ToList();
+            courses = data.ToList();
+            _cache.Set(cacheKey,courses,
+                new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow =
+                        TimeSpan.FromMinutes(30), 
+                    SlidingExpiration =
+                        TimeSpan.FromMinutes(10), 
+                    Priority =
+                        CacheItemPriority.High
+                });
+
+            return courses;
         }
 
         public async Task<CourseDTO?> GetByIdAsync(int id)
@@ -227,6 +246,18 @@ namespace OnlineLearning.BusinessLogics.Repository
             var result = await db.QueryAsync<PlanCourseListDto>(
                 "sp_PlanCourses",
                 new { Action = "GET_ALL" },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+        public async Task<List<PlanCourseListDto>> GetPlansByCourse(int Courseid)
+        {
+            using var db = Connection;
+
+            var result = await db.QueryAsync<PlanCourseListDto>(
+                "sp_PlanCourses",
+                new { Action = "GET_BY_Course" , CourseId=Courseid },
                 commandType: CommandType.StoredProcedure
             );
 

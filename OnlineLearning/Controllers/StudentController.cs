@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering; 
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Helpers;
-using OnlineLearning.Models; 
+using OnlineLearning.Models;
 
 namespace OnlineLearning.Controllers
 {
@@ -13,18 +13,24 @@ namespace OnlineLearning.Controllers
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class StudentController : BaseController
     {
-       
+        private readonly IPQJQuestionRepository _pqj;
+        private readonly IMemoryCache _cache; 
         private readonly IStudentRepository _student;
-        public StudentController(INotificationService notify,IStudentRepository student) :
+        public StudentController(IMemoryCache cache, INotificationService notify,IStudentRepository student, IPQJQuestionRepository pqj) :
             base(notify)
         {
+            _cache = cache;
             _student = student;
+            _pqj = pqj;
         }
 
         [Authorize(Roles = "Student")]
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-            return View();
+            int userId = UserHelper.GetUserId(User); 
+            var data = await _student.GetDashboard(userId);
+
+            return View(data); 
         }
 
         [Authorize(Roles = "Student")]
@@ -52,10 +58,68 @@ namespace OnlineLearning.Controllers
         } 
 
         [Authorize(Roles = "Student")]
-        public IActionResult PQJ()
+        public async Task<IActionResult> PQJ()
         {
-            return View();
-        } 
+            var courses = await _student.GetCourse();
+            var model = new PQJPlayerVM
+            {
+                Courses = courses
+            };
+            return View(model); 
+        }
+
+        [Authorize(Roles = "Student")]
+        [HttpGet]
+        public async Task<IActionResult> LoadQuestion(int index, int courseId, int topicId, int difficulty)
+        {
+            string cacheKey = $"PQJ_{courseId}_{topicId}_{difficulty}";
+            if (!_cache.TryGetValue(cacheKey, out List<QuestionVM> questions))
+            {
+                questions =
+                    await _pqj.GetFilteredQuestions(courseId, topicId, difficulty, "Student");
+
+                if (!questions.Any())
+                {
+                    return Content(
+                        "<div class='alert alert-warning'>No questions found</div>");
+                }
+
+                _cache.Set(cacheKey, questions, TimeSpan.FromMinutes(30));
+            }
+            int attemptId = await _pqj.GetOrCreateAttempt(courseId);
+            
+            if (index <= 0 ||
+                index > questions.Count)
+            {
+                await _pqj.CompleteAttempt(attemptId);
+                return Content(@"
+                         <div class='text-center p-5'>
+                             <h3>No More Questions</h3>
+                             <p>You have reached the end of this PQJ set.</p>
+                       
+                             <button class='btn btn-plan mt-3'
+                                     onclick='location.reload()'>
+                                 Restart
+                             </button>
+                         </div>");
+            }
+
+            var question =
+                questions[index - 1]; 
+
+            var model = new PQJPlayerVM
+            {
+                AttemptId = attemptId,
+                Question = question,
+                CurrentIndex = index,
+                TotalQuestions = questions.Count
+            };
+
+            return PartialView(
+                "_PQJPlayer",
+                model);
+        }
+
         #region Student
 
         [Authorize(Roles = "Admin")]

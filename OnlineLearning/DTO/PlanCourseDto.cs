@@ -10,6 +10,7 @@
     {
         public int PlanId { get; set; }
         public string PlanName { get; set; }
+        public decimal Price { get; set; }
         public int CourseId { get; set; }
         public string CourseTitle { get; set; }
     }
