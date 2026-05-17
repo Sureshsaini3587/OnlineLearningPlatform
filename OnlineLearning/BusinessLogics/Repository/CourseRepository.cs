@@ -166,7 +166,9 @@ namespace OnlineLearning.BusinessLogics.Repository
                      entity.CreatedBy
                  },
                  commandType: CommandType.StoredProcedure
-             ); 
+             );
+            string cacheKey = "CourseWithDetails"; 
+            _cache.Remove(cacheKey);
             return result > 0; 
         }
         public async Task<bool> UpdateAsync(CourseDTO entity)
@@ -193,7 +195,9 @@ namespace OnlineLearning.BusinessLogics.Repository
                 },
                 commandType: CommandType.StoredProcedure
             );
+            string cacheKey = "CourseWithDetails";
 
+            _cache.Remove(cacheKey);
             return result > 0;
         }
         public async Task<bool> DeleteAsync(CourseDTO entity)
@@ -205,7 +209,9 @@ namespace OnlineLearning.BusinessLogics.Repository
                 new { Action = "DELETE", entity.CourseId },
                 commandType: CommandType.StoredProcedure
             );
+            string cacheKey = "CourseWithDetails";
 
+            _cache.Remove(cacheKey);
             return result > 0;
         }
 

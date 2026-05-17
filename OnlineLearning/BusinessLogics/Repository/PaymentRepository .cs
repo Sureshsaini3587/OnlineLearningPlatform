@@ -1,120 +1,259 @@
 ﻿using Dapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
+using Razorpay.Api;
 using System.Data;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace OnlineLearning.BusinessLogics.Repository
 {
     public class PaymentRepository : IPaymentRepository
     {
-        private readonly IDbConnection _db;
+        private readonly IConfiguration _config;
+        private readonly IMemoryCache _cache;
 
-        public PaymentRepository(IDbConnection db)
+        public PaymentRepository(IConfiguration config, IMemoryCache cache)
         {
-            _db = db;
+            _config = config;
+            _cache = cache;
+        }
+        private IDbConnection Connection
+        {
+            get
+            {
+                return new SqlConnection(_config.GetConnectionString("DbConnection"));
+            }
         }
         public async Task<bool> HasActiveSubscription(int studentId,int courseId)
-        { 
-
-            return await _db.ExecuteScalarAsync<bool>(
+        {
+            using var db = Connection;
+            return await db.ExecuteScalarAsync<bool>(
                 @"SELECT COUNT(1)
                     FROM StudentSubscriptions
-                    WHERE StudentId=@StudentId
-                    AND CourseId=@CourseId
+                    WHERE StudentId=@StudentId 
                     AND IsActive=1
-                    AND ExpiryDate > GETDATE()",
+                    AND EndDate > GETDATE()",
                 new
                 {
                     StudentId = studentId,
                     CourseId = courseId
                 });
         }
-        public async Task<dynamic> CreateQRPayment(int userId, CoursePaymentDTO dto)
-        { 
 
-            var plan = await _db.QueryFirstAsync<PlanCourseListDto>(
-                @"SELECT * FROM SubscriptionPlans  WHERE PlanId=@PlanId",
-                new { dto.PlanId });
-
-            string transactionId = $"TXN{Guid.NewGuid():N}";
-             
-            await _db.ExecuteAsync(
-                @"INSERT INTO Payments
-                   (
-                       StudentId, SubscriptionId,  Amount,  PaymentGateway, TransactionId,  Status,  PaymentDate, IsActive, IsDeleted, CreatedBy, CreatedOn
-                   )
-                   VALUES
-                   (
-                       @StudentId,  @SubscriptionId, @Amount, @PaymentGateway, @TransactionId,'PENDING', GETDATE(), 1, 0, @CreatedBy,GETDATE()                      
-                   )",
-                new
-                {
-                    StudentId = userId,  SubscriptionId = dto.PlanId, Amount = plan.Price, PaymentGateway = "UPI",  TransactionId = transactionId,
-                    Status = "PENDING",   CreatedBy = userId
-                });
-
-            string upiLink =
-                $"upi://pay?pa=test@upi" +
-                $"&pn=OnlineLearning" +
-                $"&am={plan.Price}" +
-                $"&cu=INR" +
-                $"&tn={transactionId}";
-
-            string qrCode =
-                $"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={Uri.EscapeDataString(upiLink)}";
-
-            return new
-            {
-                amount = plan.Price,
-                qrCode,
-                transactionId
-            };
-        }
-        public async Task<bool> VerifyPayment(   string transactionId)
-        { 
-            var payment =
-                await _db.QueryFirstOrDefaultAsync(
-                @"SELECT *    FROM Payments  WHERE TransactionId=@TransactionId",
-                new
-                {
-                    TransactionId = transactionId
-                });
-
-            if (payment == null)
-                return false; 
-
-            return true;
-        }
-
-
-        public async Task<int> CompletePayment(int userId, int planId)
+        public async Task<object> CreateOrder(int userId,CoursePaymentDTO dto)
         {
-            using var tran = _db.BeginTransaction();
-
             try
-            { 
-                var plan = await _db.QueryFirstAsync<dynamic>(
-                    @"SELECT DurationDays FROM Plans WHERE PlanId=@PlanId",
-                    new { PlanId = planId }, tran);
+            {
+                using var db = Connection;
+                  
+                var plan =
+                    await db.QueryFirstOrDefaultAsync<PlanCourseListDto>(
+                        @"SELECT 
+                        SP.Price AS Price
+                             FROM SubscriptionPlans SP
+                             INNER JOIN PlanCourses PC
+                                   ON SP.PlanId = PC.PlanId
+                             WHERE PC.PlanCourseId = @PlanId",
+                        new
+                        {
+                            PlanId = dto.PlanId
+                        });
 
-                // Insert subscription
-                var subId = await _db.ExecuteScalarAsync<int>(
-                    @"INSERT INTO StudentSubscriptions
-                  (StudentId, PlanId, StartDate, ExpiryDate, IsActive)
-                  VALUES (@UserId, @PlanId, GETDATE(),
-                          DATEADD(DAY, @Days, GETDATE()), 1);
-                  SELECT SCOPE_IDENTITY();",
+                if (plan == null)
+                {
+                    throw new Exception(
+                        "Plan not found");
+                } 
+
+                if (plan.Price <= 0)
+                {
+                    throw new Exception(
+                        "Invalid plan price");
+                } 
+                var client =
+                    new RazorpayClient(
+                        _config["Razorpay:Key"],
+                        _config["Razorpay:Secret"]);
+                 
+
+                Dictionary<string, object> options =
+                    new();
+
+                options.Add(
+                    "amount",
+                    Convert.ToInt32(plan.Price * 100));
+
+                options.Add(
+                    "currency",
+                    "INR");
+
+                options.Add(
+                    "receipt",
+                    Guid.NewGuid().ToString());
+
+                options.Add(
+                    "payment_capture",
+                    1);
+                 
+
+                Order order =
+                    client.Order.Create(options);
+
+                if (order == null)
+                {
+                    throw new Exception(
+                        "Unable to create payment order");
+                }
+                 
+
+                await db.ExecuteAsync(
+                    "sp_Payment",
                     new
                     {
-                        UserId = userId,
-                        PlanId = planId,
+                        Action = "CREATE",
+                        StudentId = userId,
+                        CourseId = dto.CourseId,
+                        Amount = plan.Price,
+                        PaymentGateway = "Razorpay",
+                        TransactionId = order["id"].ToString()
+                    },
+                    commandType: CommandType.StoredProcedure);
+                  
+                return new
+                {
+                    success = true,
+
+                    key = _config["Razorpay:Key"],
+
+                    amount = order["amount"],
+
+                    orderId = order["id"].ToString(),
+
+                    courseId = dto.CourseId,
+
+                    planId = dto.PlanId
+                };
+            }
+            catch (Razorpay.Api.Errors.BadRequestError ex)
+            {
+                throw new Exception(
+                    $"Razorpay bad request: {ex.Message}");
+            }
+            catch (Razorpay.Api.Errors.ServerError ex)
+            {
+                throw new Exception(
+                    $"Razorpay server error: {ex.Message}");
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception(
+                    $"Database error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(
+                    ex.Message);
+            }
+        }
+        public async Task<bool> VerifyPayment(string orderId,string paymentId,string signature)
+        {
+            try
+            {
+                string secret =  _config["Razorpay:Secret"];
+
+                string payload =  $"{orderId}|{paymentId}";
+
+                using var hmac =  new HMACSHA256(  Encoding.UTF8.GetBytes(secret));
+
+                var hash =   hmac.ComputeHash( Encoding.UTF8.GetBytes(payload));
+
+                string generatedSignature = BitConverter.ToString(hash).Replace("-", "").ToLower();
+
+                return generatedSignature == signature;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public async Task<int> CompletePayment( int userId, CoursePaymentDTO dto)
+        {
+            using var db = Connection;
+
+            db.Open();
+            using var tran =  db.BeginTransaction();
+
+            try
+            {
+                var plan = await db.QueryFirstAsync<dynamic>(
+                   @"SELECT 
+                        SP.DurationDays AS DurationDays
+                             FROM SubscriptionPlans SP
+                             INNER JOIN PlanCourses PC
+                                   ON SP.PlanId = PC.PlanId
+                             WHERE PC.PlanCourseId =@PlanId",
+                   new { PlanId = dto.PlanId }, tran); 
+
+                if (plan == null)
+                    throw new Exception("Plan not found");
+                 
+
+                await db.ExecuteAsync(
+                    @"  UPDATE Payments  SET  Status = 'Success', TransactionId = @PaymentId,  UpdatedOn = GETDATE()   WHERE TransactionId = @OrderId  ",
+                    new
+                    {
+                        PaymentId =
+                            dto.RazorpayPaymentId,
+
+                        OrderId =
+                            dto.RazorpayOrderId
+                    },  tran);
+                 
+                int subscriptionId =
+                    await db.ExecuteScalarAsync<int>(
+                    @"
+                         INSERT INTO StudentSubscriptions
+                         (
+                             StudentId,
+                             PlanId,
+                             StartDate,
+                             EndDate,
+                             Status,
+                             IsActive,
+                             CreatedOn
+                         )
+                         VALUES
+                         (
+                             @StudentId,
+                             @PlanId,
+                             GETDATE(),
+                             DATEADD(
+                                 DAY,
+                                 @Days,
+                                 GETDATE()
+                             ),
+                             'Active',
+                             1,
+                             GETDATE()
+                         )
+                       
+                         SELECT CAST(SCOPE_IDENTITY() AS INT)
+                         ",
+                    new
+                    {
+                        StudentId = userId,
+                        PlanId = dto.PlanId,
                         Days = plan.DurationDays
-                    }, tran);
+                    },
+                    tran);
 
                 tran.Commit();
 
-                return subId;
+                return subscriptionId;
             }
             catch
             {
@@ -123,9 +262,10 @@ namespace OnlineLearning.BusinessLogics.Repository
             }
         }
 
-        // STEP 3: Course Access Check
+          
         public async Task<bool> HasCourseAccess(int userId, int courseId)
         {
+            using var _db = Connection;
             var count = await _db.ExecuteScalarAsync<int>(
                 @"SELECT COUNT(1)
               FROM StudentSubscriptions ss
@@ -140,6 +280,7 @@ namespace OnlineLearning.BusinessLogics.Repository
         }
         public async Task<bool> AddAsync(PaymentDto entity)
         {
+            using var _db = Connection;
             var result = await _db.ExecuteScalarAsync<int>(
                 "sp_Payment",
                 new
@@ -160,6 +301,7 @@ namespace OnlineLearning.BusinessLogics.Repository
 
         public async Task<bool> UpdateAsync(PaymentDto entity)
         {
+            using var _db = Connection;
             var result = await _db.ExecuteAsync(
                 "sp_Payment",
                 new
@@ -177,7 +319,7 @@ namespace OnlineLearning.BusinessLogics.Repository
 
         public async Task<bool> DeleteAsync(PaymentDto entity)
         {
-            // Agar delete nahi hai SP me, to ignore ya soft delete implement karo
+            using var _db = Connection; 
             var result = await _db.ExecuteAsync(
                 "sp_Payment",
                 new
@@ -189,32 +331,11 @@ namespace OnlineLearning.BusinessLogics.Repository
             );
 
             return result > 0;
-        }
-
-        public async Task<IEnumerable<Payment>> GetAllAsync()
-        {
-            return await _db.QueryAsync<Payment>(
-                "sp_Payment",
-                new { Action = "GET_ALL" },
-                commandType: CommandType.StoredProcedure
-            );
-        }
-
-        public async Task<Payment> GetByIdAsync(int paymentId)
-        {
-            return await _db.QueryFirstOrDefaultAsync<Payment>(
-                "sp_Payment",
-                new
-                {
-                    Action = "GET_BY_ID",
-                    PaymentId = paymentId
-                },
-                commandType: CommandType.StoredProcedure
-            );
-        }
+        } 
 
         public async Task<int> UpdateStatusAsync(int paymentId, string status, string transactionId)
         {
+            using var _db = Connection;
             return await _db.ExecuteAsync(
                 "sp_Payment",
                 new

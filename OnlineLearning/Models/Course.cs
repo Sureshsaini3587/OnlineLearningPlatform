@@ -33,8 +33,8 @@ namespace OnlineLearning.Models
 
         [Required(ErrorMessage = "Description is required")]
         [StringLength(2000)]
-        public string Description { get; set; }
-
+        public string Description { get; set; } 
+        public IFormFile? ThumbnailFile { get; set; } 
         public bool IsPublished { get; set; }
         public bool IsActive { get; set; }  
         public bool IsDeleted { get; set; }

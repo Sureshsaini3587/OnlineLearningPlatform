@@ -6,6 +6,7 @@ using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
+using System.Security.Claims;
 
 namespace OnlineLearning.Controllers
 {
@@ -28,8 +29,7 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> Dashboard()
         {
             int userId = UserHelper.GetUserId(User); 
-            var data = await _student.GetDashboard(userId);
-
+            var data = await _student.GetDashboard(userId); 
             return View(data); 
         }
 
@@ -37,12 +37,13 @@ namespace OnlineLearning.Controllers
         public IActionResult Watch()
         {
             return View();
-        }
-
+        } 
         [Authorize(Roles = "Student")]
-        public IActionResult MyCourses()
+        public async Task<IActionResult> MyCourses()
         {
-            return View();
+            int studentId = UserHelper.GetUserId(User); 
+            var courses = await _student.GetStudentCourses(studentId); 
+            return View(courses);
         }
 
         [Authorize(Roles = "Student")]

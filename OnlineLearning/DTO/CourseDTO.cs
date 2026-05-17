@@ -13,7 +13,7 @@ namespace OnlineLearning.Models
         public string Language { get; set; } 
         public int InstructorId { get; set; }
         public string? Thumbnail { get; set; } 
-        public string Description { get; set; } 
+        public string? Description { get; set; } 
         public bool IsPublished { get; set; }
         public bool IsActive { get; set; } 
         public string  CategoryName { get; set; }  

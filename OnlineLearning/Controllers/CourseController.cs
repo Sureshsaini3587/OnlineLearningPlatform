@@ -14,14 +14,16 @@ namespace OnlineLearning.Controllers
         private readonly ICourseLevelRepository _courseLevel;
         private readonly ICourseRepository _course;
         private readonly ICourseCategoryRepository _coursecategory;
+        private readonly IWebHostEnvironment _env;
 
-        public CourseController(INotificationService notify, ICourseRepository cousre, ICourseCategoryRepository coursecategory, ICourseLevelRepository courseLevel)
+        public CourseController(INotificationService notify, ICourseRepository cousre, ICourseCategoryRepository coursecategory, ICourseLevelRepository courseLevel, IWebHostEnvironment env)
          :
             base(notify)
         {
             _course = cousre;
             _coursecategory = coursecategory;
             _courseLevel = courseLevel;
+            _env = env;
         }
 
         #region Courses
@@ -45,7 +47,24 @@ namespace OnlineLearning.Controllers
                 await LoadDropdowns();
                 return View(model);
             }
-            int userId = UserHelper.GetUserId(User);
+            if (model.ThumbnailFile != null)
+            {
+                string folder =  Path.Combine(_env.ContentRootPath,"Uploads/courses"); 
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                string fileName =  Guid.NewGuid() + Path.GetExtension(model.ThumbnailFile.FileName);
+                string filePath =  Path.Combine(folder, fileName);
+
+                using var stream =  new FileStream(   filePath,  FileMode.Create);
+
+                await model.ThumbnailFile.CopyToAsync(stream);
+
+                model.Thumbnail = fileName; 
+            }
+                int userId = UserHelper.GetUserId(User);
             var CourseDTO = new CourseDTO
             {
                 CourseTitle=model.CourseTitle,
@@ -101,7 +120,34 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> Edit(Course model)
         {
             if (ModelState.IsValid)
-            { 
+            {
+                if (model.ThumbnailFile != null)
+                {
+                    string folder = Path.Combine(_env.ContentRootPath, "Uploads/courses");
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                    }
+                    if (!string.IsNullOrEmpty(model.Thumbnail))
+                    { 
+                        string oldPath =  Path.Combine(folder,model.Thumbnail);
+
+                        if (System.IO.File.Exists(oldPath))
+                        {
+                            System.IO.File.Delete(oldPath);
+                        }
+                    }   
+                    string fileName =   Guid.NewGuid() + Path.GetExtension(model.ThumbnailFile.FileName);
+
+                    string filePath =   Path.Combine(folder, fileName);
+
+                    using var stream =   new FileStream(  filePath, FileMode.Create);
+
+                    await model.ThumbnailFile.CopyToAsync(stream);
+
+                    model.Thumbnail =  fileName;
+                }
+
                 int userId = UserHelper.GetUserId(User); 
                 var CourseDTO = new CourseDTO
                 {

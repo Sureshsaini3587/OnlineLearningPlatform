@@ -1,5 +1,6 @@
  
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.FileProviders;
 using NToastNotify;
 using OnlineLearning.Extensions;
 
@@ -37,7 +38,12 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
+app.UseStaticFiles(
+    new StaticFileOptions
+    {
+        FileProvider =  new PhysicalFileProvider(   Path.Combine(  builder.Environment.ContentRootPath,   "Uploads")), 
+        RequestPath = "/Uploads"
+    });
 app.UseRouting(); 
 app.UseSession();   
 app.UseAuthentication();   

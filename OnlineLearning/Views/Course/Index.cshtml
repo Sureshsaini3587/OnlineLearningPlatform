@@ -23,7 +23,7 @@
                 </thead>
                 <tbody>
                     @{
-                        int srNo = 1;
+                        int srNo = 1; 
                     }
                     @foreach (var item in Model)
                     {
@@ -31,7 +31,7 @@
                             
                             <th scope="row">@srNo</th>
                             <td>
-                                <img src="@item.Thumbnail" width="80" class="rounded" />
+                                <img src="~/Uploads/courses/@item.Thumbnail" width="80" class="rounded" />
                             </td>
                             <td>@item.CourseTitle</td>
                             <td>@item.CategoryName</td>

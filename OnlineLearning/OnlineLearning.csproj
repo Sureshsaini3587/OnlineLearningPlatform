@@ -11,10 +11,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.9" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
     <PackageReference Include="NToastNotify" Version="7.0.0" />
+    <PackageReference Include="Razorpay" Version="3.3.2" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Uploads\" />
     <Folder Include="wwwroot\js\page\" />
   </ItemGroup>
 

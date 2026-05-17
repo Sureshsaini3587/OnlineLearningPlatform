@@ -87,6 +87,30 @@ namespace OnlineLearning.BusinessLogics.Repository
 
             return vm;
         }
+        public async Task<List<CourseDTO>> GetStudentCourses(int studentId)
+        {
+            using var db = Connection;
+
+            var data =
+                await db.QueryAsync<CourseDTO>(
+                @"
+                     SELECT DISTINCT  c.CourseId,  c.CourseTitle,    c.Description,   c.Thumbnail,c.IsActive,   L.LevelName,  CT.CategoryName,   ss.EndDate
+                      FROM StudentSubscriptions ss 
+                     INNER JOIN PlanCourses pc  ON ss.PlanId = pc.PlanCourseId 
+                     INNER JOIN Courses c   ON pc.CourseId = c.CourseId 
+                     INNER JOIN CourseCategories CT ON CT.CategoryId=C.CategoryId
+                     INNER JOIN CourseLevels L ON L.LevelId=c.Level
+                     WHERE ss.StudentId = @StudentId
+                     AND ss.IsActive = 1
+                     AND ss.EndDate >= GETDATE()
+                ",
+                new
+                {
+                    StudentId = studentId
+                });
+
+            return data.ToList();
+        }
         public async Task<List<StudentDTO>> GetAllAsync()
         {  
             using var db = Connection; 

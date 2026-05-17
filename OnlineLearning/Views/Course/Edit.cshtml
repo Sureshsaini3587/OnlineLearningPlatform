@@ -10,8 +10,9 @@
                     </a>
                 </div>
                 <h4 class="sub-title">Update Course Details</h4>
-                <form asp-action="Edit" method="post">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
                     <input type="hidden" asp-for="CourseId" />
+                    <input type="hidden" asp-for="Thumbnail" />
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">Course Title *</label>
                         <div class="col-sm-10">
@@ -63,12 +64,12 @@
                         </div>
                     </div>
                     <div class="form-group row mt-2">
-                        <label class="col-sm-2 col-form-label">Thumbnail URL</label>
-                        <div class="col-sm-10">
-                            <input asp-for="Thumbnail" class="form-control" />
-                            <span asp-validation-for="Thumbnail" class="text-danger"></span>
-                        </div>
-                    </div>
+                        <img src="~/Uploads/courses/@Model.Thumbnail" width="200" class="rounded" /> 
+                    </div> 
+                    <div class="form-group row mt-2">
+                        <label class="col-sm-2 col-form-label">Change Thumbnail</label> 
+                        <input asp-for="ThumbnailFile" accept=".jpg,.jpeg,.png,.webp" type="file" class="form-control" />
+                    </div> 
                     <div class="form-group row mt-2">
                         <label class="col-sm-2 col-form-label">Description *</label>
                         <div class="col-sm-10">

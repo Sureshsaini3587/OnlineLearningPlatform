@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
 using OnlineLearning.Views.Services;
+using System.Security.Claims;
 
 namespace OnlineLearning.Controllers
 {
@@ -149,14 +151,21 @@ namespace OnlineLearning.Controllers
             }));
         }
 
+
+        [Authorize(Roles = "Student")]
         [HttpGet]
         public async Task<IActionResult> CoursePlans(int  courseId)
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
             var plans = await _course.GetPlansByCourse(courseId);
 
             return View(plans);
         }
-      
+
+        
         [HttpGet]
         public async Task<IActionResult> LoadQuestion(int index,  int courseId,  int topicId, int difficulty)
         {
