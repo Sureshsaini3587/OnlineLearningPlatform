@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OnlineLearning.BusinessLogics.Services;
 using OnlineLearning.Helpers;
@@ -10,11 +11,11 @@ namespace OnlineLearning.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IAuthRepository _authRepository;
-
+        private readonly IAuthRepository _authRepository; 
+        
         public AccountController(IAuthRepository authRepository)
         {
-            _authRepository = authRepository;
+            _authRepository = authRepository; 
         }
         public IActionResult Login()
         {
@@ -25,7 +26,42 @@ namespace OnlineLearning.Controllers
         {
             return View();
         }
-        
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+             
+            var user = await _authRepository.RegisterUser(model);
+
+            if (user != null)
+            {
+                var claims = new List<Claim>()
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Name, user.FullName),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role,user.Role)
+                };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                if (user.Role == "Admin")
+                    return RedirectToAction("Index", "Home");
+                else if (user.Role == "Student")
+                    return RedirectToAction("Dashboard", "Student");
+                else if (user.Role == "Teacher")
+                    return RedirectToAction("Dashboard", "Instructor");
+            }
+             
+            ModelState.AddModelError(string.Empty, "Registration failed. Email or Mobile number might already be in use.");
+            return View(model);
+        }
         public IActionResult AccessDenied()
         {
             return View();

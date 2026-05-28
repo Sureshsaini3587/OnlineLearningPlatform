@@ -16,23 +16,27 @@ namespace OnlineLearning.Models
     }
     public class RegisterViewModel
     {
-        [Required]
-        public string FullName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Full name is required")]
+        [Display(Name = "Full Name")]
+        public string FullName { get; set; }
 
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Mobile number is required")]
+        [Display(Name = "Mobile Number")] 
+        [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Mobile number must be exactly 10 digits and numeric only.")]
+        public string MobileNumber { get; set; }
 
-        [Required]
-        public string MobileNumber { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Password is required")]
         [DataType(DataType.Password)]
-        public string Password { get; set; } = string.Empty;
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        public string Password { get; set; }
 
-        [Required]
         [DataType(DataType.Password)]
-        [Compare("Password")]
-        public string ConfirmPassword { get; set; } = string.Empty;
+        [Display(Name = "Confirm Password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } 
     }
 }
