@@ -95,10 +95,10 @@
 
             <main class="student-content">
                 @RenderBody()
-            </main>
+                </main> 
         </div>
     </div>
-
+    @await Component.InvokeAsync("NToastNotify")
     <script>
             function toggleStudentSidebar() {
                 document.getElementById("studentSidebar").classList.toggle("show");

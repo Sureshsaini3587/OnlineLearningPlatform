@@ -1,0 +1,156 @@
+﻿@{
+    Layout = "~/Views/Shared/Web/_StudentLayout.cshtml"; 
+}
+@model CourseDetailsVM
+<section class="inner-hero inner-hero-sm">
+    <div class="container">
+        <div class="inner-hero-content">
+            <span class="section-kicker">Course details</span>
+            <h1>Master Web UI for Modern Platforms</h1>
+            <p>
+                A structured premium course with free demo access, locked advanced modules, and integrated PQJ practice.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section-space">
+    <div class="container">
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-12">
+                <div class="details-main-card"> 
+                    <div class="details-video-preview"
+                         style="background-image:url('@(Model.Thumbnail ?? "/default.jpg")')"> 
+                        @if (Model.HasDemo)
+                        {
+                            <span class="preview-pill">Preview Available</span>
+                        }
+                    </div>
+                    <div class="details-info-grid">
+                        <div class="details-info-chip"><i class="bi bi-star-fill"></i> 4.8 Rating</div> 
+                        <div class="details-info-chip"> <i class="bi bi-camera-video"></i> @Model.TotalLectures Lessons   </div> 
+                        <div class="details-info-chip">   <i class="bi bi-bar-chart"></i> @Model.LevelName </div> 
+                        <div class="details-info-chip">   <i class="bx bx-category"></i> @Model.CategoryName   </div> 
+                        <div class="details-info-chip"><i class="bi bi-patch-check-fill"></i> Certificate</div>
+                    </div>
+
+                    <div class="details-section-block">
+                        <h3>What you will learn</h3>
+                        <div class="learn-grid">
+                            <div><i class="bi bi-check2-circle"></i> Modern UI layout strategy</div>
+                            <div><i class="bi bi-check2-circle"></i> Razor-based page design</div>
+                            <div><i class="bi bi-check2-circle"></i> Premium animation styling</div>
+                            <div><i class="bi bi-check2-circle"></i> Dashboard and course flows</div>
+                        </div>
+                    </div>
+
+                    <div class="details-section-block">
+                        <h3>Course content</h3>
+                        <div class="lesson-list-card"> 
+                            @foreach (var section in Model.Sections)
+                            {
+                                foreach (var video in section.Videos)
+                                {
+                                    <div class="lesson-row-item @(video.IsDemo ? "free" : "locked")">
+            
+                                        <div class="lesson-left">
+
+                                            @if (video.IsDemo)
+                                            {
+                                                <span class="lesson-badge free-badge">Free Demo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="lesson-badge lock-badge">Locked</span>
+                                            }
+
+                                            <div>
+                                                <h6>@video.Title</h6>
+                                                <p>
+                                                    @(video.IsDemo ? "Watchable for all" : "Requires subscription")
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        @if (video.IsDemo)
+                                        {
+                                            <button class="btn btn-lesson-action"
+                                                    onclick="playVideo('@video.VideoUrl', @video.IsDemo.ToString().ToLower())">
+                                                Play
+                                            </button> 
+                                        }
+                                        else
+                                        {
+
+                                            <button class="btn btn-lesson-locked" onclick="showSubscribe()">
+                                                <i class="bi bi-lock-fill"></i>
+                                            </button> 
+                                        }
+
+                                    </div>
+                                }
+                            } 
+                        </div> 
+                    </div>
+
+                    <div class="details-section-block">
+                        <h3>PQJ Practice included</h3>
+                        <div class="pqj-inline-box">
+                            <div>
+                                <h5>Test your understanding after each module</h5>
+                                <p>
+                                    Solve topic-wise questions, track score, and revisit explanations instantly.
+                                </p>
+                            </div>
+                            <a href="/PQJ" class="btn btn-course-view">Open PQJ</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             
+        </div>
+    </div> 
+</section>
+<div class="modal fade" id="videoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content"> 
+            <div class="modal-body p-0">
+                <iframe id="videoFrame"
+                        width="100%" height="400"
+                        src=""
+                        frameborder="0"
+                        allowfullscreen>
+                </iframe>
+            </div> 
+        </div>
+    </div>
+</div> 
+<script>  
+     function getEmbedUrl(url) {
+         let videoId = "";
+
+         if (url.includes("watch?v=")) {
+             videoId = url.split("watch?v=")[1].split("&")[0];
+         }
+         else if (url.includes("youtu.be/")) {
+             videoId = url.split("youtu.be/")[1].split("?")[0];
+         }
+         else if (url.includes("shorts/")) {
+             videoId = url.split("shorts/")[1].split("?")[0];
+         }
+
+         return "https://www.youtube.com/embed/" + videoId;
+     }
+     function playVideo(url, isDemo) {
+        
+         let embedUrl = getEmbedUrl(url);
+         document.getElementById("videoFrame").src = embedUrl;
+
+         var modal = new bootstrap.Modal(document.getElementById('videoModal'));
+         modal.show();
+     }
+     document.getElementById('videoModal').addEventListener('hidden.bs.modal', function () {
+         document.getElementById("videoFrame").src = "";
+     });
+</script>
+  

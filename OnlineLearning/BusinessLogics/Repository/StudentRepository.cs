@@ -31,6 +31,34 @@ namespace OnlineLearning.BusinessLogics.Repository
                     _config.GetConnectionString("DbConnection"));
             }
         }
+        public async Task<StudentProfileViewModel> GetStudentProfileAsync(int studentId)
+        {
+            string query = @"
+            SELECT 
+                u.UserId AS StudentId, u.FullName, u.Email, u.Mobile,
+                p.DOB, p.Gender, p.Address, p.ProfileImage
+            FROM Users u
+            LEFT JOIN StudentProfile p ON u.UserId = p.StudentId
+            WHERE u.UserId = @StudentId AND u.IsDeleted = 0"; 
+            using var db = Connection;
+            return await db.QueryFirstOrDefaultAsync<StudentProfileViewModel>(query, new { StudentId = studentId });
+        }
+         
+        public async Task<bool> UpdateStudentProfileAsync(StudentProfileViewModel model)
+        {
+            string updateQuery = @" 
+            UPDATE Users 
+            SET FullName = @FullName, Mobile = @Mobile 
+            WHERE UserId = @StudentId;
+ 
+            UPDATE StudentProfile
+            SET DOB = @DOB, Gender = @Gender, Address = @Address, ProfileImage= @ProfileImage ,
+                UpdatedBy = @StudentId, UpdatedOn = GETDATE()
+            WHERE StudentId = @StudentId;";
+            using var db = Connection;
+            int rowsAffected = await db.ExecuteAsync(updateQuery, model);
+            return rowsAffected > 0;
+        }
         public async Task<List<CourseDTO>> GetCourse()
         {
             

@@ -6,6 +6,7 @@ using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
+using OnlineLearning.Views.Services;
 using System.Security.Claims;
 
 namespace OnlineLearning.Controllers
@@ -14,12 +15,16 @@ namespace OnlineLearning.Controllers
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class StudentController : BaseController
     {
+        private readonly ICourseRepository _course;
         private readonly IPQJQuestionRepository _pqj;
         private readonly IMemoryCache _cache; 
         private readonly IStudentRepository _student;
-        public StudentController(IMemoryCache cache, INotificationService notify,IStudentRepository student, IPQJQuestionRepository pqj) :
+        private readonly ProtectorService _protect;
+        public StudentController(ICourseRepository course, IMemoryCache cache, ProtectorService protect, INotificationService notify,IStudentRepository student, IPQJQuestionRepository pqj) :
             base(notify)
         {
+            _course = course;
+            _protect = protect;
             _cache = cache;
             _student = student;
             _pqj = pqj;
@@ -52,11 +57,69 @@ namespace OnlineLearning.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Student")] 
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        { 
+            int studentId = UserHelper.GetUserId(User); 
+            var profile = await _student.GetStudentProfileAsync(studentId);
+            if (profile == null) return NotFound();
+
+            return View(profile);
+        }
+
         [Authorize(Roles = "Student")]
-        public IActionResult Profile()
+        public async Task<IActionResult> CourseDetails(string id)
         {
-            return View();
-        } 
+            try
+            {
+                int did = _protect.Decrypt(id);
+                var course = await _course.GetCourseDetailsById(did);
+
+                if (course == null)
+                    return NotFound();
+
+                return View(course);
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
+            }
+
+        }
+        [Authorize(Roles = "Student")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(StudentProfileViewModel model)
+        {
+            int studentId = UserHelper.GetUserId(User);
+            model.StudentId = studentId;   
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            if (model.ImageFile != null)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await model.ImageFile.CopyToAsync(ms);
+                    model.ProfileImage = ms.ToArray();
+                }
+            }
+            else
+            {
+                var existingData = await _student.GetByIdAsync((int)studentId);
+                model.ProfileImage = existingData?.ProfileImage;
+            }
+            bool isUpdated = await _student.UpdateStudentProfileAsync(model);
+            if (isUpdated)
+            {
+                _notify.Success("Profile updated successfully!");
+                return RedirectToAction("Profile"); 
+            } 
+            ModelState.AddModelError("", "Something went wrong while updating profile.");
+            return View(model);
+        }
 
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> PQJ()
