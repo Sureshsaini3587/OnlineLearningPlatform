@@ -11,16 +11,18 @@ using System.Security.Claims;
 namespace OnlineLearning.BusinessLogics.Repository
 {
     public class StudentRepository : IStudentRepository 
-    { 
+    {
+        private readonly ILogger<StudentRepository> _logger; 
         private readonly IMemoryCache _cache;
         private readonly IConfiguration _config;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public StudentRepository(IConfiguration config, IMemoryCache cache, IHttpContextAccessor httpContextAccessor)
+        public StudentRepository(IConfiguration config, IMemoryCache cache, IHttpContextAccessor httpContextAccessor, ILogger<StudentRepository> logger)
         {
             _config = config;
             _cache = cache;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         private IDbConnection Connection
@@ -30,6 +32,97 @@ namespace OnlineLearning.BusinessLogics.Repository
                 return new SqlConnection(
                     _config.GetConnectionString("DbConnection"));
             }
+        }
+        public async Task<CourseDetailsVM> GetCourseDetailsById(int id)
+        {
+            try
+            {
+                using var db = Connection;
+                var parameters = new { Action = "GET_Course_DETAILS_BY_ID", CourseId = id };
+                 
+                var rawResult = await db.QueryAsync<dynamic>("sp_Student", parameters, commandType: CommandType.StoredProcedure);
+                var rawRows = rawResult.ToList();
+
+                if (!rawRows.Any()) return null;
+
+                var courseDict = new Dictionary<int, CourseDetailsVM>();
+
+                foreach (var row in rawRows)
+                {
+                    int courseId = (int)row.CourseId;
+                     
+                    if (!courseDict.TryGetValue(courseId, out var courseEntry))
+                    {
+                        courseEntry = new CourseDetailsVM
+                        {
+                            CourseId = courseId,
+                            CourseTitle = row.CourseTitle,
+                            Description = row.Description,
+                            Price = row.Price != null ? (decimal)row.Price : 0,
+                            Thumbnail = row.Thumbnail,
+                            LevelName = row.LevelName,
+                            CategoryName = row.CategoryName,
+                            Sections = new List<SectionVM>()
+                        };
+                        courseDict.Add(courseId, courseEntry);
+                    }
+                     
+                    if (row.SectionId != null && (int)row.SectionId > 0)
+                    {
+                        int sectionId = (int)row.SectionId;
+                         
+                        var existingSection = courseEntry.Sections.FirstOrDefault(s => s.SectionId == sectionId);
+                         
+                        if (existingSection == null)
+                        {
+                            existingSection = new SectionVM
+                            {
+                                SectionId = sectionId,
+                                SectionTitle = row.SectionTitle,
+                                SectionOrder = row.SectionOrder,  
+                                Videos = new List<VideoVM>()
+                            };
+                            courseEntry.Sections.Add(existingSection);
+                        }
+                         
+                        if (row.VideoId != null && (int)row.VideoId > 0)
+                        {
+                            int videoId = (int)row.VideoId;
+                             
+                            if (!existingSection.Videos.Any(v => v.VideoId == videoId))
+                            {
+                                existingSection.Videos.Add(new VideoVM
+                                {
+                                    VideoId = videoId,
+                                    Title = row.Title,
+                                    IsDemo = row.IsDemo != null ? Convert.ToBoolean(row.IsDemo) : false,
+                                    VideoUrl = row.VideoUrl,
+                                    VideoOrder = row.VideoOrder,  
+                                    Duration = row.Duration != null ? (int)row.Duration : 0
+                                }
+                                );
+                            }
+                        }
+                    }
+                }
+                return courseDict.Values.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Runtime tracking error inside data matrix transformation for Course: {Id}", id);
+                throw;
+            }
+        }
+        public async Task<bool> CheckCourseAccessAsync(int userId, int courseId)
+        {
+            using var db = Connection;
+            var hasAccess = await db.ExecuteScalarAsync<int>(
+                "sp_Student",
+                new { Action = "CHECK_COURSE_ACCESS", UserId = userId, CourseId = courseId },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return hasAccess == 1;
         }
         public async Task<StudentProfileViewModel> GetStudentProfileAsync(int studentId)
         {

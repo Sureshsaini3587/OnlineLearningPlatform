@@ -17,64 +17,58 @@
             </div>
             <section class="section-space">
                 <div class="container">
-
                     @if (Model.Any())
                     {  
-                            @foreach (var course in Model)
-                            {
-                                <div class="col-md-6 col-lg-4">
+                       @foreach (var course in Model)
+                       {
+                           <div class="col-md-6 col-lg-4">
 
-                                    <div class="course-show-card">
+                               <div class="course-show-card">
 
-                                        <div class="course-thumb">
-                                             <img src="~/Uploads/courses/@course.Thumbnail"  />  
-                                        <span class="course-chip @(course.IsActive ? "premium" : "bg-danger")">
-                                            @(course.IsActive ? "Active" : "Inactive")
-                                        </span>
+                                   <div class="course-thumb">
+                                        <img src="~/Uploads/courses/@course.Thumbnail"  />  
+                                   <span class="course-chip @(course.IsActive ? "premium" : "bg-danger")">
+                                       @(course.IsActive ? "Active" : "Inactive")
+                                   </span>
 
-                                        </div>
+                                   </div>
 
-                                        <div class="course-body">
+                                   <div class="course-body">
 
-                                            <h5>
-                                                @course.CourseTitle
-                                            </h5>
+                                       <h5>
+                                           @course.CourseTitle
+                                       </h5>
 
-                                            <p>
-                                                @course.Description
-                                            </p>
+                                       <p>
+                                           @course.Description
+                                       </p>
 
-                                            <div class="course-meta">
+                                       <div class="course-meta">
 
-                                                <span>
-                                                    <i class="bi bi-bar-chart"></i>
-                                                    @course.LevelName
-                                                </span>
+                                           <span>
+                                               <i class="bi bi-bar-chart"></i>
+                                               @course.LevelName
+                                           </span>
 
-                                                <span>
-                                                    <i class="bx bx-category"></i>
-                                                    @course.CategoryName
-                                                </span>
+                                           <span>
+                                               <i class="bx bx-category"></i>
+                                               @course.CategoryName
+                                           </span>
 
-                                            </div>
+                                       </div>
 
-                                            <div class="mt-4">
+                                       <div class="mt-4">
+                                            <a asp-action="Watch" asp-route-I="@protector.Encrypt(course.CourseId)" class="btn btn-plan w-100">
+                                                Start Learning 🚀
+                                            </a> 
+                                       </div>
 
-                                                <a href="/Student/CourseDetails/@protector.Encrypt(course.CourseId)"
-                                                       class="btn btn-plan w-100">
+                                   </div>
 
-                                                    Continue Learning 🚀
+                               </div>
 
-                                                </a>
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-                            } 
+                           </div>
+                       } 
                     }
                     else
                     {

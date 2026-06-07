@@ -19,6 +19,8 @@
     }
     public class SectionVM
     {
+        public int SectionId { get; set; }
+        public int SectionOrder { get; set; }
         public string SectionTitle { get; set; }
         public List<VideoVM> Videos { get; set; }
     }
@@ -29,5 +31,7 @@
         public string Title { get; set; }
         public bool IsDemo { get; set; }
         public string VideoUrl { get; set; } 
+        public int Duration { get; set; } 
+        public int VideoOrder { get; set; } 
     }
 }

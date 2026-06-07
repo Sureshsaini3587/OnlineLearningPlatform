@@ -42,27 +42,27 @@
             </a>
 
             <div class="student-nav">
-                    <a asp-controller="Student" asp-action="Dashboard" class="student-nav-link @IsActive("Student", "Dashboard")">
+                <a asp-controller="Student" asp-action="Dashboard" class="student-nav-link @IsActive("Student", "Dashboard")">
                     <i class="bi bi-grid-1x2-fill"></i> Dashboard
                 </a>
-                    <a asp-controller="Student" asp-action="MyCourses" class="student-nav-link @IsActive("Student", "MyCourses")">
-                    <i class="bi bi-collection-play-fill"></i> Available Courses
+                <a asp-controller="Student" asp-action="MyCourses" class="student-nav-link @IsActive("Student", "MyCourses")">
+                    <i class="bi bi-collection-play-fill"></i> My Courses
                 </a>
-                    <a asp-controller="Student" asp-action="Watch" class="student-nav-link @IsActive("Student", "Watch")">
-                        <i class="bi bi-play-btn-fill"></i> Watch Videos
-                    </a>
-                    <a asp-controller="Student" asp-action="Subscription" class="student-nav-link @IsActive("Student", "Subscription")">
-                       <i class="bi bi-gem"></i> Subscription
-                    </a>
-                    <a asp-controller="Student" asp-action="PQJ" class="student-nav-link @IsActive("Student", "PQJ")">
-                        <i class="bi bi-ui-checks-grid"></i> PQJ Practice
-                    </a>
-                    <a asp-controller="Student" asp-action="Profile" class="student-nav-link @IsActive("Student", "Profile")">
-                        <i class="bi bi-person-circle"></i> Profile
-                    </a>
-                    <a asp-controller="Account" asp-action="Logout" class="student-nav-link @IsActive("Student", "Logout")">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </a>
+                @* <a asp-controller="Student" asp-action="Watch" class="student-nav-link @IsActive("Student", "Watch")">
+                    <i class="bi bi-play-btn-fill"></i> Watch Videos
+                </a> *@
+                <a asp-controller="Student" asp-action="Subscription" class="student-nav-link @IsActive("Student", "Subscription")">
+                   <i class="bi bi-gem"></i> Subscription
+                </a>
+                <a asp-controller="Student" asp-action="PQJ" class="student-nav-link @IsActive("Student", "PQJ")">
+                    <i class="bi bi-ui-checks-grid"></i> PQJ Practice
+                </a>
+                <a asp-controller="Student" asp-action="Profile" class="student-nav-link @IsActive("Student", "Profile")">
+                    <i class="bi bi-person-circle"></i> Profile
+                </a>
+                <a asp-controller="Account" asp-action="Logout" class="student-nav-link @IsActive("Student", "Logout")">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
             </div>
         </aside>
 

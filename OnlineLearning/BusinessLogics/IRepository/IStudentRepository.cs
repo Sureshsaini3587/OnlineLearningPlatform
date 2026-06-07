@@ -5,6 +5,8 @@ namespace OnlineLearning.BusinessLogics.IRepository
 {
     public interface IStudentRepository : ICommonRepository<StudentDTO>
     {
+        Task<bool> CheckCourseAccessAsync(int userId, int courseId);
+        Task<CourseDetailsVM> GetCourseDetailsById(int id);
         Task<StudentProfileViewModel> GetStudentProfileAsync(int studentId);
         Task<bool> UpdateStudentProfileAsync(StudentProfileViewModel model);
         Task<List<CourseDTO>> GetCourse();

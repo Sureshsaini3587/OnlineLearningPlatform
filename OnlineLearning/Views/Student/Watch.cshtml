@@ -1,68 +1,152 @@
-﻿@{
+﻿@using OnlineLearning.Views.Services
+@model VideoVM
+@{
     Layout = "~/Views/Shared/Web/_StudentLayout.cshtml";
-    ViewData["Title"] = "Watch Course";
+     
+    var course = ViewBag.CourseDetails as CourseDetailsVM;
+    ViewData["Title"] = Model?.Title ?? course?.CourseTitle;
+    string cleanEmbedUrl = "";
+    
+    if (Model != null && !string.IsNullOrEmpty(Model.VideoUrl))
+    { 
+        var match = System.Text.RegularExpressions.Regex.Match(Model.VideoUrl, @"(?:(?:v|embed|vi|youtu\.be)\/|(?:(?:watch|\?)\?v(?:i)?=|\&v(?:i)?=))([^#\&\? ]+)");
+        
+        if (match.Success)
+        { 
+            string videoId = match.Groups[1].Value;
+             
+            cleanEmbedUrl = $"https://www.youtube.com/embed/{videoId}?rel=0&modestbranding=1";
+        }
+        else
+        { 
+            cleanEmbedUrl = Model.VideoUrl;
+        }
+    }
 }
-
+@inject ProtectorService protector
+ <style> 
+    .watch-sidebar {
+        height: calc(100vh - 60px) !important; 
+        overflow: hidden !important;
+    }
+     
+    .watch-sidebar-card {
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+     
+    .watch-lesson-list {
+        max-height: calc(100vh - 140px) !important; 
+        overflow-y: auto !important;                
+        overflow-x: hidden !important;              
+    }
+     
+    .watch-lesson-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .watch-lesson-list::-webkit-scrollbar-track {
+        background: #f8fafc; 
+    }
+    .watch-lesson-list::-webkit-scrollbar-thumb {
+        background: #cbd5e1; 
+        border-radius: 10px;
+    }
+    .watch-lesson-list::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8; 
+    }
+ </style>
 <div class="watch-layout">
+    
     <div class="watch-main">
-        <div class="watch-player">
-            <div class="play-button-glow"><i class="bi bi-play-fill"></i></div>
-            <span class="preview-pill">Now Playing</span>
-        </div>
-
-        <div class="watch-content-card">
-            <h2>Lesson 07: Dashboard Metrics and Learning Flow</h2>
-            <p>
-                Understand how to structure a premium student dashboard, organize watch flow,
-                and build a better learning experience.
-            </p>
-
-            <div class="watch-actions">
-                <button class="btn btn-plan">Mark as Complete</button>
-                <a href="/PQJ" class="btn btn-outline-dark rounded-pill px-4 py-3">Take PQJ</a>
+        @if (Model != null)
+        {
+            <div class="watch-player">
+                <span class="preview-pill">Now Playing</span>
+                  
+                <div class="ratio ratio-16x9">
+                    <iframe src="@cleanEmbedUrl?rel=0&modestbranding=1"
+                            title="@Model.Title"
+                            allowfullscreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                    </iframe>
+                </div> 
             </div>
-        </div>
-    </div>
 
+            <div class="watch-content-card">
+                <h2>@Model.Title</h2>
+                <p>
+                    @course.Description
+                </p>
+                <div class="watch-actions">
+                    <button class="btn btn-plan">Mark as Complete</button>
+                    <a href="/PQJ" class="btn btn-outline-dark rounded-pill px-4 py-2.5 d-inline-flex align-items-center">Take PQJ</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex flex-column align-items-center justify-content-center h-70 text-muted p-5 bg-white rounded-3 shadow-sm">
+                <i class="bi bi-exclamation-triangle display-3 text-warning mb-3"></i>
+                <h4>No Active Media Selected</h4>
+                <p class="small text-secondary">Please select a valid curriculum module from the syllabus workspace sidebar to continue execution.</p>
+            </div>
+        }
+    </div>
     <div class="watch-sidebar">
         <div class="watch-sidebar-card">
-            <div class="panel-head">
-                <h4>Course Content</h4>
-            </div>
-
-            <div class="watch-lesson-list">
-                <div class="watch-lesson-item active">
-                    <div>
-                        <strong>Lesson 07</strong>
-                        <span>Dashboard Metrics</span>
+        <div class="panel-head">
+            <h4>Course Content</h4>
+        </div>
+        
+        <div class="watch-lesson-list">
+            @if (course?.Sections != null && course.Sections.Any())
+            {  
+                @foreach (var section in course.Sections.OrderBy(s => s.SectionId).ThenBy(s=>s.SectionOrder))
+                {
+                    <div class="section-divider-title d-flex justify-content-between align-items-center">
+                        <span>@(section.SectionTitle)</span>
+                        <span class="badge bg-light text-secondary border fw-normal" style="font-size: 0.7rem;">
+                            @(section.Videos.Count) Modules
+                        </span>
                     </div>
-                    <i class="bi bi-play-circle-fill"></i>
+                        int count = 1;
+                        foreach (var video in section.Videos.OrderBy(v => v.VideoOrder))
+                        {
+                            bool isCurrentPlaying = Model?.VideoId == video.VideoId;
+                            
+                            <a asp-action="Watch" 
+                               asp-route-I="@protector.Encrypt(course.CourseId)" 
+                               asp-route-contentId="@video.VideoId" 
+                               class="watch-lesson-item @(isCurrentPlaying ? "active" : "")">
+                                
+                                <div class="d-flex-col">
+                                    <strong>Lecture NO.: #@count</strong>
+                                    <span>@video.Title</span>
+                                </div>
+                                
+                                @if (isCurrentPlaying)
+                                {
+                                    <i class="bi bi-play-circle-fill"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-play-circle"></i>
+                                }
+                            </a>
+                            count++;
+                        }
+                }
+            }
+            else
+            {
+                <div class="p-4 text-center text-muted small">
+                    No curriculum structures mapped for this workspace.
                 </div>
-
-                <div class="watch-lesson-item">
-                    <div>
-                        <strong>Lesson 08</strong>
-                        <span>Subscription UX</span>
-                    </div>
-                    <i class="bi bi-play-circle"></i>
-                </div>
-
-                <div class="watch-lesson-item locked">
-                    <div>
-                        <strong>Lesson 09</strong>
-                        <span>Premium Analytics</span>
-                    </div>
-                    <i class="bi bi-lock-fill"></i>
-                </div>
-
-                <div class="watch-lesson-item locked">
-                    <div>
-                        <strong>Lesson 10</strong>
-                        <span>Advanced PQJ Review</span>
-                    </div>
-                    <i class="bi bi-lock-fill"></i>
-                </div>
-            </div>
+            }
         </div>
     </div>
+    </div>  
+
 </div>
+ 

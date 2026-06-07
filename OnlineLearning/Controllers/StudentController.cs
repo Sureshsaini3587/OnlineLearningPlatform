@@ -37,12 +37,7 @@ namespace OnlineLearning.Controllers
             var data = await _student.GetDashboard(userId); 
             return View(data); 
         }
-
-        [Authorize(Roles = "Student")]
-        public IActionResult Watch()
-        {
-            return View();
-        } 
+   
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> MyCourses()
         {
@@ -86,6 +81,43 @@ namespace OnlineLearning.Controllers
                 return NotFound();
             }
 
+        }
+
+
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Watch(string I, int? contentId)
+        {
+            int studentId = UserHelper.GetUserId(User);
+
+            int courseId = _protect.Decrypt(I);
+            bool hasAccess = await _student.CheckCourseAccessAsync(studentId, courseId);
+            if (!hasAccess)
+            {
+                _notify.Error("Access Denied. This course is not included in your active subscription plan.");
+                return RedirectToAction("MyCourses");
+            }
+
+            CourseDetailsVM courseDetails = await _student.GetCourseDetailsById(courseId);
+            
+            if (courseDetails == null || courseDetails.Sections == null || !courseDetails.Sections.Any())
+            {
+                _notify.Error("This course doesn't have any content yet.");
+                return RedirectToAction("MyCourses");
+            }
+            ViewBag.CourseDetails = courseDetails;
+
+            VideoVM activeVideo = null;
+
+            if (contentId.HasValue)
+            {
+                activeVideo = courseDetails.Sections.SelectMany(s => s.Videos).FirstOrDefault(v => v.VideoId == contentId.Value);
+            }
+            else
+            {
+                activeVideo = courseDetails.Sections.OrderBy(s => s.SectionId).FirstOrDefault()?.Videos.OrderBy(v => v.VideoId).FirstOrDefault();
+            }
+
+            return View(activeVideo);
         }
         [Authorize(Roles = "Student")]
         [HttpPost]
