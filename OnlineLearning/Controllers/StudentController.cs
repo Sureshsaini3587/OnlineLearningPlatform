@@ -119,6 +119,7 @@ namespace OnlineLearning.Controllers
 
             return View(activeVideo);
         }
+     
         [Authorize(Roles = "Student")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -162,6 +163,58 @@ namespace OnlineLearning.Controllers
                 Courses = courses
             };
             return View(model); 
+        }
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> CoursePQJ(string courseId)
+        { 
+            if (string.IsNullOrEmpty(courseId))
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
+
+            try
+            { 
+                int cleanCourseId = _protect.Decrypt(courseId);
+                if (cleanCourseId <= 0)
+                {
+                    return BadRequest("Malformed authorization context or token corruption.");
+                }
+
+                var model = new PqjCourseQuizVM
+                {
+                    CourseId = cleanCourseId,
+                    CourseTitle = "Advanced Quantitative Aptitude",  
+                    Questions = new List<PqjQuestionVM>
+                    {
+                       new PqjQuestionVM
+                       {
+                           QuestionId = 101,
+                           LectureTitle = "Permutations Basics",
+                           QuestionText = "In how many distinct ways can the letters of the word 'MATRIX' be arranged?",
+                           OptionA = "360",
+                           OptionB = "720",
+                           OptionC = "540",
+                           OptionD = "120",
+                           CorrectOption = "B",
+                           Explanation = "The word 'MATRIX' contains 6 unique letters. Total arrangements = 6! = 720."
+                       }
+                   }
+                };
+
+                if (model == null || !model.Questions.Any())
+                {
+                    TempData["Info"] = "No PQJ question modules have been published for this course yet.";
+                    return RedirectToAction("Index", "Dashboard");
+                }
+
+                // 4. Return to your View (Make sure the view is named CoursePQJ.cshtml or specify it explicitly)
+                return View(model);
+            }
+            catch
+            {
+                // Handles decryption failure or unexpected tampering attempts safely
+                return RedirectToAction("Index", "Dashboard");
+            }
         }
 
         [Authorize(Roles = "Student")]
