@@ -1,0 +1,73 @@
+﻿@using OnlineLearning.DTO
+@model PqjSingleQuestionVM
+
+<style>
+    .pqj-option {
+        display: block;
+        padding: 1rem 1rem 1rem 3.5rem;
+        margin-bottom: 0.75rem;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .pqj-option:hover { background-color: #f1f5f9; }
+    .pqj-option input { position: absolute; opacity: 0; }
+    
+    /* Option State Stylings */
+    .pqj-option.correct-option {
+        background-color: #d1fae5 !important;
+        border-color: #10b981 !important;
+        color: #065f46 !important;
+        font-weight: 600;
+    }
+    .pqj-option.wrong-option {
+        background-color: #fee2e2 !important;
+        border-color: #ef4444 !important;
+        color: #991b1b !important;
+    }
+</style>
+
+<div class="card border border-slate shadow-sm rounded-4 p-4 bg-white animate-fade">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="badge bg-dark rounded-pill px-3 py-1.5">Question @(Model.CurrentIndex + 1) of @Model.TotalQuestions</span>
+        <small class="text-muted fw-medium"><i class="bi bi-bookmark me-1"></i> @Model.LectureTitle</small>
+    </div>
+
+    <h5 class="fw-bold mb-4 text-dark text-height-base">@Model.QuestionText</h5>
+
+    <div class="pqj-answers-block mb-4">
+        <label class="pqj-option">
+            <input type="radio" name="pqjRadioGroup" value="A" data-attempt="@Model.AttemptId" data-question="@Model.QuestionId">
+            <strong>A.</strong> @Model.OptionA
+        </label>
+        <label class="pqj-option">
+            <input type="radio" name="pqjRadioGroup" value="B" data-attempt="@Model.AttemptId" data-question="@Model.QuestionId">
+            <strong>B.</strong> @Model.OptionB
+        </label>
+        <label class="pqj-option">
+            <input type="radio" name="pqjRadioGroup" value="C" data-attempt="@Model.AttemptId" data-question="@Model.QuestionId">
+            <strong>C.</strong> @Model.OptionC
+        </label>
+        <label class="pqj-option">
+            <input type="radio" name="pqjRadioGroup" value="D" data-attempt="@Model.AttemptId" data-question="@Model.QuestionId">
+            <strong>D.</strong> @Model.OptionD
+        </label>
+    </div>
+
+    <div class="p-3 bg-light border-start border-success border-3 rounded mb-4 d-none" id="explanationPanel_@Model.QuestionId">
+        <h6 class="text-success fw-bold mb-1"><i class="bi bi-info-circle-fill me-1"></i> Solution Breakdown:</h6>
+        <p class="small text-secondary m-0">@Model.Explanation</p>
+    </div>
+
+    <div class="d-flex justify-content-between pt-3 border-top">
+        <button class="btn btn-sm btn-outline-dark px-4 rounded-pill" onclick="handleWizardPagination(-1)" @(Model.CurrentIndex == 0 ? "disabled" : "")>
+            Previous
+        </button>
+        <button class="btn btn-sm btn-dark px-4 rounded-pill" onclick="handleWizardPagination(1)">
+            @(Model.CurrentIndex == Model.TotalQuestions - 1 ? "Finish Exercise" : "Next Module")
+        </button>
+    </div>
+</div>

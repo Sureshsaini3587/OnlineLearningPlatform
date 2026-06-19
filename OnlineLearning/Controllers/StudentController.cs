@@ -164,6 +164,7 @@ namespace OnlineLearning.Controllers
             };
             return View(model); 
         }
+       
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> CoursePQJ(string courseId)
         { 
@@ -179,43 +180,20 @@ namespace OnlineLearning.Controllers
                 {
                     return BadRequest("Malformed authorization context or token corruption.");
                 }
-
-                var model = new PqjCourseQuizVM
+                var courses = await _student.GetCourse();
+                var course = courses.Where(w => w.CourseId == cleanCourseId).FirstOrDefault();
+                var model = new PQJPlayerVM
                 {
-                    CourseId = cleanCourseId,
-                    CourseTitle = "Advanced Quantitative Aptitude",  
-                    Questions = new List<PqjQuestionVM>
-                    {
-                       new PqjQuestionVM
-                       {
-                           QuestionId = 101,
-                           LectureTitle = "Permutations Basics",
-                           QuestionText = "In how many distinct ways can the letters of the word 'MATRIX' be arranged?",
-                           OptionA = "360",
-                           OptionB = "720",
-                           OptionC = "540",
-                           OptionD = "120",
-                           CorrectOption = "B",
-                           Explanation = "The word 'MATRIX' contains 6 unique letters. Total arrangements = 6! = 720."
-                       }
-                   }
-                };
-
-                if (model == null || !model.Questions.Any())
-                {
-                    TempData["Info"] = "No PQJ question modules have been published for this course yet.";
-                    return RedirectToAction("Index", "Dashboard");
-                }
-
-                // 4. Return to your View (Make sure the view is named CoursePQJ.cshtml or specify it explicitly)
+                    CourseId =  course.CourseId,
+                    CourseTitle = course.CourseTitle
+                };   
                 return View(model);
             }
             catch
-            {
-                // Handles decryption failure or unexpected tampering attempts safely
+            { 
                 return RedirectToAction("Index", "Dashboard");
             }
-        }
+        } 
 
         [Authorize(Roles = "Student")]
         [HttpGet]
@@ -224,8 +202,7 @@ namespace OnlineLearning.Controllers
             string cacheKey = $"PQJ_{courseId}_{topicId}_{difficulty}";
             if (!_cache.TryGetValue(cacheKey, out List<QuestionVM> questions))
             {
-                questions =
-                    await _pqj.GetFilteredQuestions(courseId, topicId, difficulty, "Student");
+                questions =  await _pqj.GetFilteredQuestions(courseId, topicId, difficulty, "Student");
 
                 if (!questions.Any())
                 {
@@ -237,8 +214,7 @@ namespace OnlineLearning.Controllers
             }
             int attemptId = await _pqj.GetOrCreateAttempt(courseId);
             
-            if (index <= 0 ||
-                index > questions.Count)
+            if (index <= 0 ||  index > questions.Count)
             {
                 await _pqj.CompleteAttempt(attemptId);
                 return Content(@"
@@ -253,8 +229,7 @@ namespace OnlineLearning.Controllers
                          </div>");
             }
 
-            var question =
-                questions[index - 1]; 
+            var question =  questions[index - 1]; 
 
             var model = new PQJPlayerVM
             {
