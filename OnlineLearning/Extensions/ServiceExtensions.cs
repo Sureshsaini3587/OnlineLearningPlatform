@@ -21,6 +21,7 @@ namespace OnlineLearning.Extensions
             services.AddScoped<IInstructorRepository, InstructorRepository>();
             services.AddScoped<IPQJQuestionRepository, PQJQuestionRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddTransient<IEmailSender, EmailSender>();
             services.AddDataProtection();
             services.AddScoped<ProtectorService>();
         }

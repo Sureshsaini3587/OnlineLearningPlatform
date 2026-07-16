@@ -4,7 +4,17 @@
     ViewData["Title"] = "Login";
     Layout = "~/Views/Shared/Web/_Layout.cshtml";
 }
+<style>
+    .forgot-password-link {
+        color: #4f46e5; 
+        transition: color 0.2s ease-in-out;
+    }
 
+        .forgot-password-link:hover {
+            color: #3730a3; 
+            text-decoration: underline !important;
+        }
+</style>
 <section class="auth-section">
     <div class="container">
         <div class="auth-shell">
@@ -37,9 +47,14 @@
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
-                        <div class="form-check mb-4">
-                            <input asp-for="RememberMe" class="form-check-input" />
-                            <label asp-for="RememberMe" class="form-check-label"></label>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check mb-0">
+                                <input asp-for="RememberMe" class="form-check-input" />
+                                <label asp-for="RememberMe" class="form-check-label"></label>
+                            </div> 
+                            <a asp-controller="Account" asp-action="ForgotPassword" class="forgot-password-link text-decoration-none small fw-medium">
+                                Forgot Password?
+                            </a>
                         </div>
 
                         <button type="submit" class="btn btn-plan w-100">Login Now</button>

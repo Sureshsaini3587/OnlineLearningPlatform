@@ -5,6 +5,7 @@ namespace OnlineLearning.BusinessLogics.Services
 {
     public interface IAuthRepository
     {
+        Task<bool> UpdatePasswordAsync(int userId, string newPasswordHash);
         Task<User> LoginUserAsync(LoginViewModel loginViewModel);
         Task<User> RegisterUser(RegisterViewModel registerViewModel);
     }
