@@ -219,15 +219,13 @@ a {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    color: #f7efefd6 !important;
+    color: #f7efefd6!important;
     font-size: 1.3rem;
     font-weight: 800;
 }
-
-    .brand-mark:hover {
-        color: #e6e5e599 !important
-    }
-
+.brand-mark:hover{
+    color:#e6e5e599 !important
+}
 .brand-icon {
     width: 42px;
     height: 42px;
@@ -1643,7 +1641,7 @@ a {
     background: rgba(255,255,255,0.90);
     border: 1px solid rgba(17, 24, 39, 0.06);
     border-radius: 28px;
-    /*    box-shadow: var(--shadow-md);*/
+/*    box-shadow: var(--shadow-md);*/
 }
 
 .details-main-card {
@@ -2400,10 +2398,11 @@ a {
 .pqj-option {
     display: block;
     cursor: pointer;
+
     align-items: center;
     gap: 5px;
-    /*    padding: 8px;*/
-    /*    margin-bottom: 10px;*/
+/*    padding: 8px;*/
+/*    margin-bottom: 10px;*/
     border: 2px solid #e5e7eb;
     border-radius: 10px;
     transition: all .25s ease;
@@ -2428,7 +2427,7 @@ a {
         background: #eef6f3;
         border-color: rgba(46, 197, 167, 0.30);
     }
-
+ 
 
     /* CORRECT */
 
@@ -2443,7 +2442,6 @@ a {
         background: #fee2e2 !important;
         border-color: #ef4444 !important;
     }
-
 .pqj-nav-actions {
     display: flex;
     justify-content: space-between;
@@ -2771,7 +2769,7 @@ a {
 }
 /* HOME EXTRA SECTIONS */
 .stats-strip-section {
-    margin-top: 30px;
+    margin-top: -34px;
     position: relative;
     z-index: 4;
 }
@@ -3102,7 +3100,6 @@ a {
             justify-content: center;
         }
 }
-
 .success-icon {
     width: 90px;
     height: 90px;
@@ -3122,7 +3119,7 @@ a {
     }
 
     .chip-right {
-        right: 10px !important;
+        right: 10px !important; 
     }
 
     .chip-top {
@@ -3138,13 +3135,13 @@ a {
 
 @media (max-width: 991.98px) {
     .hero-section {
-        padding-top: 140px !important;
+        padding-top: 140px !important; 
         padding-bottom: 80px !important;
         height: auto !important;
         min-height: auto !important;
     }
 
-
+        
         .hero-section .row.min-vh-100,
         .hero-section .row.align-items-center {
             min-height: auto !important;
@@ -3172,7 +3169,7 @@ a {
     .hero-floating-card {
         bottom: -25px !important;
         left: 50% !important;
-        transform: translateX(-50%) !important;
+        transform: translateX(-50%) !important; 
         width: 90% !important;
     }
 }
@@ -3235,19 +3232,19 @@ a {
 
 @media (max-width: 1200px) {
     .hero-section {
-        padding-top: 150px !important;
+        padding-top: 150px !important; 
         min-height: auto !important;
         height: auto !important;
         display: block !important;
     }
 
-
+       
         .hero-section .row,
         .hero-section .row.align-items-center,
         .hero-section .row.min-vh-100 {
             min-height: auto !important;
             height: auto !important;
-            align-items: flex-start !important;
+            align-items: flex-start !important; 
             margin-top: 20px !important;
         }
 
@@ -3257,7 +3254,7 @@ a {
         margin-top: 40px !important;
     }
 
-
+  
     .chip-top {
         top: -15px !important;
         left: 15px !important;
@@ -3315,7 +3312,7 @@ html, body {
 
 
 @media (max-width: 991.98px) {
-
+  
     .blur-one, .blur-two {
         left: 0 !important;
         right: 0 !important;
@@ -3323,7 +3320,7 @@ html, body {
         overflow: hidden !important;
     }
 
-
+    
     .chip-top {
         left: 10px !important;
         top: 10px !important;
@@ -3334,14 +3331,14 @@ html, body {
         width: calc(100% - 20px) !important;
     }
 
-
+    
     .hero-section .container {
         padding-left: 16px !important;
         padding-right: 16px !important;
         max-width: 100% !important;
     }
 
-
+   
     .app-navbar {
         width: 100% !important;
         max-width: 100vw !important;
@@ -3357,14 +3354,14 @@ html, body {
         padding-bottom: 30px !important;
     }
 
-
+    
     .hero-panel-main {
         transform: none !important;
         width: 100% !important;
         margin: 0 !important;
     }
 
-
+    
     .chip-top {
         top: -15px !important;
         left: 15px !important;
@@ -3380,7 +3377,7 @@ html, body {
     .hero-floating-card {
         bottom: -20px !important;
         left: 50% !important;
-        transform: translateX(-50%) !important;
+        transform: translateX(-50%) !important; 
         width: 90% !important;
         z-index: 10 !important;
     }
@@ -3388,7 +3385,7 @@ html, body {
 
 
 @media (max-width: 767.98px) {
-
+    
     .hero-visual-wrap {
         display: flex !important;
         flex-direction: column !important;
@@ -3397,14 +3394,14 @@ html, body {
         padding-bottom: 20px !important;
     }
 
-
+   
     .hero-panel-main {
         order: 2 !important;
         width: 100% !important;
         box-shadow: var(--shadow-lg) !important;
     }
 
-
+    
     .chip-top,
     .chip-right {
         position: relative !important;
@@ -3415,11 +3412,11 @@ html, body {
         display: inline-flex !important;
         width: fit-content !important;
         margin: 0 !important;
-        order: 1 !important;
-        animation: none !important;
+        order: 1 !important; 
+        animation: none !important; 
     }
 
-
+  
     .hero-floating-card {
         position: relative !important;
         top: 0 !important;
@@ -3429,7 +3426,7 @@ html, body {
         width: 100% !important;
         margin: 0 !important;
         transform: none !important;
-        order: 3 !important;
+        order: 3 !important; 
         animation: none !important;
     }
 
