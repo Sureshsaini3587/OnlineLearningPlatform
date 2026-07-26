@@ -1,0 +1,120 @@
+﻿<style> 
+/* --- Cinematic Theme Alerts (Optimized for Visibility) --- */
+.cine-alert-wrapper {
+    position: fixed;
+    top: 85px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.cine-alert {
+    /* Background thoda light kiya taki contrast bane */
+    background-color: #1a252f !important; 
+    /* Border ko thoda bright kiya */
+    border: 1px solid #33485d; 
+    border-radius: 14px;
+    /* Shadow ko strong kiya taki alert "float" kare */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    min-width: 320px;
+    max-width: 400px;
+    position: relative;
+    padding: 18px 22px;
+}
+
+/* Success uses Teal */
+.cine-alert-success { border-left: 5px solid #2dd4bf; }
+.cine-alert-success .cine-alert-icon { color: #2dd4bf; }
+
+/* Error uses Peach */
+.cine-alert-error { border-left: 5px solid #f3a17c; }
+.cine-alert-error .cine-alert-icon { color: #f3a17c; }
+
+/* Info uses Violet */
+.cine-alert-info { border-left: 5px solid #c084fc; }
+.cine-alert-info .cine-alert-icon { color: #c084fc; }
+
+.cine-alert-content { flex-grow: 1; }
+
+.cine-alert-title {
+    color: #ffffff !important; /* Text ko white kiya (Full Contrast) */
+    font-size: 14px;
+    margin: 0 0 6px 0;
+    letter-spacing: 0.5px;
+    font-weight: 800; /* Font aur bold kiya */
+    text-transform: uppercase;
+}
+
+.cine-alert-text {
+    font-size: 15px; /* Font size thoda badhaya */
+    line-height: 1.5;
+    color: #e2e8f0 !important; /* Text color ko light gray se white-gray kiya */
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Close button thoda bada kiya */
+.cine-alert .cine-close-btn {
+    filter: invert(1); /* Button dikhne lagega */
+    opacity: 0.8;
+}
+</style>
+<div class="cine-alert-wrapper">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="cine-alert cine-alert-success alert-dismissible fade show" role="alert">
+            <div class="cine-alert-icon"> 
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="cine-alert-content">
+                <h4 class="cine-alert-title">✦ Success</h4>
+                <p class="cine-alert-text">@TempData["SuccessMessage"]</p>
+            </div>
+            <button type="button" class="btn-close btn-close-white cine-close-btn" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="cine-alert cine-alert-error alert-dismissible fade show" role="alert">
+            <div class="cine-alert-icon"> 
+                <i class="bi bi-exclamation-circle-fill"></i>
+            </div>
+            <div class="cine-alert-content">
+                <h4 class="cine-alert-title">✦ Error</h4>
+                <p class="cine-alert-text">@TempData["ErrorMessage"]</p>
+            </div>
+            <button type="button" class="btn-close btn-close-white cine-close-btn" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["InfoMessage"] != null)
+     {
+         <div class="cine-alert cine-alert-info alert-dismissible fade show" role="alert">
+             <div class="cine-alert-icon">
+                 <i class="bi bi-info-circle-fill"></i>
+             </div>
+             <div class="cine-alert-content">
+                 <h4 class="cine-alert-title">✦ Information</h4>
+                 <p class="cine-alert-text">@TempData["InfoMessage"]</p>
+             </div>
+             <button type="button" class="btn-close btn-close-white cine-close-btn" data-bs-dismiss="alert" aria-label="Close"></button>
+         </div>
+     }
+</div>
+ 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+            let alerts = document.querySelectorAll('.cine-alert');
+            alerts.forEach(function (alert) {
+                let bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000); // 5000ms = 5 seconds
+    });
+</script>

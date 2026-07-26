@@ -2,29 +2,50 @@
     ViewData["Title"] = "Demo Classes";
     Layout = "~/Views/Shared/Web/_Layout.cshtml";
 }
-
-<section class="inner-hero">
-    <div class="container">
-        <div class="inner-hero-content text-center">
-            <span class="section-kicker">Demo classes</span>
-            <h1>Watch free preview lessons before unlocking full access</h1>
-            <p>
-                Explore demo content from featured courses and experience the teaching style before subscribing.
-            </p>
-        </div>
+@model List<CourseVideoDTO>
+<section class="inner-hero"> 
+    <div class="container"> 
+        <div class="inner-hero-content text-center"> 
+            <span class="section-kicker">Demo classes</span> 
+            <h1>Watch free preview lessons before unlocking full access</h1> 
+            <p> 
+                Explore demo content from featured courses and experience the teaching style before subscribing. 
+            </p> 
+        </div> 
     </div>
 </section>
+<!-- Modal (Video Player) -->
+<div class="modal fade" id="videoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: #0c1319; border: 1px solid #1e2d3b;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white" id="videoTitle">Watch Demo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="ratio ratio-16x9">
+                    <iframe id="videoIframe" src="" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <section class="section-space">
     <div class="container">
         <div class="row g-4">
-            @for (int i = 1; i <= 6; i++)
+            @{
+                int  index = 0;
+            }
+            @foreach (var item in Model)
             {
+                index++;
                 <div class="col-md-6 col-xl-4">
                     <div class="demo-card">
                         <div class="demo-thumb">
-                            <img src="https://picsum.photos/700/420?random=@(500 + i)" alt="Demo Video" />
-                            <div class="demo-play-btn">
+                            <img alt="@item.Title" src="@(string.IsNullOrEmpty(item.ThumbnailUrl)
+                                  ? $"https://picsum.photos/600/420?random={index}" : $"/Uploads/VideoThumbnail/{item.ThumbnailUrl}")" />
+                            <div class="demo-play-btn" onclick="playVideo('@item.VideoUrl', '@item.Title')" style="cursor:pointer;">
                                 <i class="bi bi-play-fill"></i>
                             </div>
                             <span class="course-chip">Free Demo</span>
@@ -32,14 +53,13 @@
 
                         <div class="demo-body">
                             <div class="course-meta">
-                                <span><i class="bi bi-camera-video"></i> 12 min</span>
-                                <span><i class="bi bi-collection-play"></i> UI Course</span>
+                                <span><i class="bi bi-camera-video"></i> @item.Duration min</span>
+                                <span><i class="bi bi-collection-play"></i> @item.SectionName</span>
                             </div>
-                            <h5>Demo Lesson @i: Introduction to Premium Learning UI</h5>
-                            <p>
-                                Preview the lesson structure and understand how the course experience works.
-                            </p>
-                            <a href="#" class="btn btn-course-view">Watch Demo</a>
+                            <h5>@item.Title</h5>
+                            <button onclick="playVideo('@item.VideoUrl', '@item.Title')" class="btn btn-course-view">
+                                Watch Demo
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -47,3 +67,19 @@
         </div>
     </div>
 </section>
+
+<!-- JavaScript to handle Modal Play -->
+<script>
+    function playVideo(videoId, title) {
+        document.getElementById('videoIframe').src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1";
+        document.getElementById('videoTitle').innerText = title;
+        var myModal = new bootstrap.Modal(document.getElementById('videoModal'));
+        myModal.show();
+    }
+
+    // Modal close hone par video band ho jaye
+    var modal = document.getElementById('videoModal');
+    modal.addEventListener('hidden.bs.modal', function () {
+        document.getElementById('videoIframe').src = "";
+    });
+</script>

@@ -35,6 +35,18 @@ namespace OnlineLearning.BusinessLogics.Repository
               ); 
             return data.ToList();
         }  
+        public async Task<List<CourseVideoDTO>> GetAllDemosDetails()
+        {
+            using var db = Connection;
+
+            var data = await db.QueryAsync<CourseVideoDTO>(
+                "sp_CourseVideo",               
+                new { Action = "GET_ALL_Demo" },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return data.ToList();
+        }
         public async Task<List<CourseVideoDTO>> GetAllWithDetails()
         {
             using var db = Connection;
@@ -72,6 +84,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                      entity.Duration,
                      entity.IsDemo,
                      entity.VideoUrl,
+                     entity.ThumbnailUrl,
                      entity.IsActive,
                      entity.CreatedBy
                  },
@@ -98,6 +111,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                         entity.Duration,
                         entity.IsDemo,
                         entity.VideoUrl,
+                        entity.ThumbnailUrl,
                         entity.IsActive,
                         entity.UpdatedBy
                     },

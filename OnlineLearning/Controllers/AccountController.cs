@@ -11,13 +11,12 @@ using System.Security.Claims;
 
 namespace OnlineLearning.Controllers
 {
-    public class AccountController : BaseController 
+    public class AccountController : Controller 
     {
         private readonly IDataProtector _protector;
         private readonly IAuthRepository _authRepository; 
         private readonly IEmailSender _emailSender; 
-        public AccountController(IAuthRepository authRepository, INotificationService notify, IDataProtectionProvider provider, IEmailSender emailSender) :
-           base(notify)
+        public AccountController(IAuthRepository authRepository, IDataProtectionProvider provider, IEmailSender emailSender) 
         {
             _authRepository = authRepository; 
             _protector = provider.CreateProtector("AccountController");
@@ -77,19 +76,23 @@ namespace OnlineLearning.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
             var user = await _authRepository.LoginUserAsync(model);
             if (user == null)
             {
-                _notify.Error("Invalid Email");
-                return View();
+                TempData["ErrorMessage"] = "Invalid Email or Username.";
+                ModelState.AddModelError("Email", "Invalid Email or Username.");
+                return View(model);
             }
-            bool valid = PasswordHelper.VerifyPassword(
-                       model.Password,
-                       user.PasswordHash);
+            bool valid = PasswordHelper.VerifyPassword(model.Password,user.PasswordHash);
             if (!valid)
             {
-                ViewBag.Message = "Invalid Password";
-                return View();
+                ModelState.AddModelError("Password", "Invalid Password.");
+                TempData["ErrorMessage"] = "Invalid Password.";
+                return View(model);
             }
 
             if (user != null && valid)
@@ -113,7 +116,7 @@ namespace OnlineLearning.Controllers
                     return RedirectToAction("Dashboard", "Instructor"); 
             }
 
-            ViewBag.Message = "Invalid Login";
+            TempData["ErrorMessage"]  = "Invalid Login";
             return View();
 
         }
@@ -141,6 +144,7 @@ namespace OnlineLearning.Controllers
             var user = await _authRepository.LoginUserAsync(login);
             if (user == null)
             {
+                ModelState.AddModelError("Email", "Invalid Email.");
                 TempData["ErrorMessage"] = "User Not Found"; 
                 return View(model);
             }
@@ -236,7 +240,7 @@ namespace OnlineLearning.Controllers
                 model.UserId = _protector.Unprotect(model.UserId);
                 if (!int.TryParse(model.UserId, out int cleanUserId))
                 {
-                    _notify.Error("Invalid User Identification Identity Matrix.");
+                    TempData["ErrorMessage"]="Invalid User Identification Identity Matrix.";
                     return RedirectToAction("Login");
                 }
                  
@@ -244,18 +248,18 @@ namespace OnlineLearning.Controllers
 
                 if (isUpdated)
                 {
-                    TempData["LoginSuccessMessage"] = "Your password has been reset successfully. Please login with your new credentials.";
+                    TempData["SuccessMessage"] = "Your password has been reset successfully. Please login with your new credentials.";
                     return RedirectToAction("Login");
                 }
                 else
                 {
-                    _notify.Error("Unable to update password. Account might be inactive.");
+                    TempData["ErrorMessage"] = "Unable to update password. Account might be inactive.";
                     return View(model);
                 }
             }
             catch (Exception ex)
             {
-                _notify.Error("An error occurred while resetting the password.");
+                TempData["ErrorMessage"] = "An error occurred while resetting the password.";
                 return View(model);
             }
         }

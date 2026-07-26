@@ -278,9 +278,7 @@
                         <h5>@cat.CategoryName</h5>
                         <p>@cat.Description</p>
                         <span>@cat.CourseCount  Courses</span>
-                        <a asp-controller="WebHome"
-                               asp-action="Courses"
-                               class="stretched-link">
+                        <a asp-controller="WebHome" asp-action="Courses" class="stretched-link">
                         </a>
                     </div>
                 </div>
@@ -312,10 +310,10 @@
 
                         <div class="course-thumb">
                             <span class="course-chip">Best Seller</span>
-                            <img src="@(string.IsNullOrEmpty(course.Thumbnail)
-                                                                         ? $"https://picsum.photos/600/420?random={Courseindex}"
-                                                                         : $"/Uploads/courses/{course.Thumbnail}")"
-                                 alt="Course Image" />
+                            <img src="@(string.IsNullOrEmpty(course.Thumbnail) 
+                                   ? $"https://picsum.photos/600/420?random={Courseindex}"
+                                   : $"/Uploads/courses/{course.Thumbnail}")"
+                            alt="Course Image" />
                         </div>
 
                         <div class="course-body">
@@ -357,7 +355,7 @@
         <div class="row g-4 align-items-center">
             <div class="col-lg-6" data-aos="fade-right">
                 <div class="demo-spotlight-media">
-                    <div class="play-button-glow"><i class="bi bi-play-fill"></i></div>
+                    @* <div class="play-button-glow"><i class="bi bi-play-fill"></i></div> *@
                     <span class="preview-pill">Free Demo Lesson</span>
                 </div>
             </div>
@@ -388,7 +386,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <a asp-controller="Demo" asp-action="Index" class="btn btn-plan">Explore Demo Classes</a>
+                    <a asp-controller="WebHome" asp-action="Demos" class="btn btn-plan">Explore Demo Classes</a>
                 </div>
             </div>
         </div>
@@ -555,7 +553,7 @@
             </div>
 
             <div class="final-cta-actions">
-                <a asp-controller="Demo" asp-action="Index" class="btn btn-footer-secondary">Watch Demo</a>
+                <a asp-controller="WebHome" asp-action="Demos" class="btn btn-footer-secondary">Watch Demo</a>
                 <a asp-controller="Account" asp-action="Register" class="btn btn-footer-primary">Create Account</a>
             </div>
         </div>

@@ -18,8 +18,8 @@
 <body>
     <partial name="~/Views/Shared/Web/_Navbar.cshtml" /> 
     <main>
-        @RenderBody()
-            @await Component.InvokeAsync("NToastNotify")
+         <partial name="~/Views/Shared/Web/_Alerts.cshtml" />
+        @RenderBody() 
     </main>
     <partial name="~/Views/Shared/Web/_Footer.cshtml" /> 
         
@@ -33,7 +33,8 @@
         once: true,
         offset: 70
         });
-    </script> 
+        </script>  
+        @await Component.InvokeAsync("NToastNotify")
    @* @await RenderSectionAsync("Scripts", required: false) *@
 </body>
 </html>

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.FileProviders;
 using NToastNotify;
 using OnlineLearning.Extensions;
+using OnlineLearning.Models;
 
 var builder = WebApplication.CreateBuilder(args);
  
@@ -19,7 +20,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";  
-});
+}); 
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.RegisterRepositories();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

@@ -1,6 +1,4 @@
-﻿using static System.Collections.Specialized.BitVector32;
-
-namespace OnlineLearning.Models
+﻿namespace OnlineLearning.Models
 {
 
     public class CourseVideoDTO
@@ -10,6 +8,7 @@ namespace OnlineLearning.Models
         public int SectionId { get; set; }
         public string SectionName { get; set; } 
         public string Title { get; set; }
+        public string ThumbnailUrl { get; set; }
         public string VideoUrl { get; set; }
         public int Duration { get; set; } = 0;
         public bool IsDemo { get; set; }

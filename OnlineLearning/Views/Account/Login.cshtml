@@ -30,20 +30,17 @@
                     <p>Enter your credentials to access your account.</p>
 
                     <form asp-action="Login" asp-controller="Account" method="post">
-                        @Html.AntiForgeryToken() 
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                        <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
-
+                        @Html.AntiForgeryToken()  
+                        <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" /> 
                         <div class="mb-3">
                             <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" class="form-control auth-input" placeholder="Enter your username" />
+                            <input asp-for="Email" class="form-control auth-input" required placeholder="Enter your username" />
                             <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="Password" class="form-label"></label>
-                            <input asp-for="Password" class="form-control auth-input" placeholder="Enter your password" />
+                            <input asp-for="Password" class="form-control auth-input" required placeholder="Enter your password" />
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 

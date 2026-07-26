@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Uploads\" />
+    <Folder Include="Uploads\VideoThumbnail\" />
     <Folder Include="wwwroot\js\page\" />
   </ItemGroup>
 

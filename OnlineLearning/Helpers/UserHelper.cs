@@ -16,5 +16,11 @@ namespace OnlineLearning.Helpers
 
             return userId != null ?  (userId) : "";
         }
+        public static string  GetUserRole(ClaimsPrincipal user)
+        {
+            var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+            return role != null ?  (role) : "";
+        }
     }
 }

@@ -5,26 +5,29 @@ using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
 using OnlineLearning.Views.Services;
-using System.Security.Claims;
 
 namespace OnlineLearning.Controllers
 {
     public class WebHomeController : Controller
     {
         private readonly ICourseRepository _course;
+        private readonly ICourseVideoRepository _courseVideo;
         private readonly ICourseCategoryRepository _courseCategory;
         private readonly ISubscriptionPlanRepository _plan;
         private readonly ICourseSectionRepository _section;
         private readonly IPQJQuestionRepository  _pqj;
         private readonly ProtectorService _protect;
         private readonly IMemoryCache _cache;
-        public WebHomeController(IMemoryCache cache,ProtectorService protect, IPQJQuestionRepository pqj,ICourseSectionRepository section, ICourseRepository course, ICourseCategoryRepository courseCategory, ISubscriptionPlanRepository plan)
+        private readonly IEmailSender _mail;
+        public WebHomeController(IMemoryCache cache, IEmailSender mail, ICourseVideoRepository courseVideo,ProtectorService protect, IPQJQuestionRepository pqj,ICourseSectionRepository section, ICourseRepository course, ICourseCategoryRepository courseCategory, ISubscriptionPlanRepository plan)
         {
             _cache = cache;
+            _mail = mail;
             _pqj = pqj;
             _section = section;
             _protect = protect;
             _course = course;
+            _courseVideo = courseVideo;
             _courseCategory = courseCategory;
             _plan = plan;
         }
@@ -67,12 +70,42 @@ namespace OnlineLearning.Controllers
         {
             return View();
         }
+
+        [HttpGet]
         public IActionResult ContactUS()
         {
             return View();
         }
-        
-        public async Task<IActionResult> Courses(string search, int? categoryId)
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]  
+        public async Task<IActionResult> ContactUS(ContactViewModel model)
+        { 
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            } 
+            try
+            { 
+                await _mail.SendContactEmailAsync(
+                    model.Email,
+                    model.Name,
+                    model.Subject,
+                    model.Message
+                );
+                
+                
+                TempData["SuccessMessage"] = "Thank you! Your message has been sent successfully. Our team will get back to you soon.";
+                 
+                return RedirectToAction(nameof(ContactUS));
+            }
+            catch (System.Exception ex)
+            { 
+                ModelState.AddModelError(string.Empty, "Sorry, there was a problem sending your message. Please try again later.");
+                return View(model);
+            }
+        }
+        public async Task<IActionResult> Courses(string search, int? categoryId, bool isAjax = false)
         {
             var courses = await _course.GetAllWithDetails();
             var categories = await _courseCategory.GetAllWithDetails();
@@ -88,12 +121,10 @@ namespace OnlineLearning.Controllers
             {
                 courses = courses.Where(c => c.CategoryId == categoryId).ToList();
             }
-             
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            if (isAjax)
             {
                 return PartialView("_CourseList", courses);
             }
-
             var model = new HomeVM
             {
                 Courses = courses,
@@ -125,14 +156,28 @@ namespace OnlineLearning.Controllers
             }
             
         }
-        public IActionResult Demos()
+        public async Task<IActionResult> Demos()
         {
-            return View();
+            var videoDTOs = await _courseVideo.GetAllDemosDetails();
+
+            return View(videoDTOs);
         }
         public IActionResult Faq()
         {
             return View();
         }
+
+        
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+         
+        public IActionResult Terms()
+        {
+            return View();
+        }
+          
         public async Task<IActionResult> PQJ()
         {
             var courses = await _course.GetAllWithDetails();
@@ -245,5 +290,7 @@ namespace OnlineLearning.Controllers
         {
             return View();
         }
+
+
     }
 }
