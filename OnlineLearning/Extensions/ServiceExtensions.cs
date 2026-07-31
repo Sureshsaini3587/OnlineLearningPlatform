@@ -11,6 +11,7 @@ namespace OnlineLearning.Extensions
         {
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IDashboardRepository, DashboardRepository>();
             services.AddScoped<ICourseLevelRepository, CourseLevelRepository>();
             services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();

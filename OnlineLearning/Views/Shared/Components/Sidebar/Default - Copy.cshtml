@@ -1,0 +1,86 @@
+﻿@model List<NavigationItem>
+ 
+ <style> 
+    .dropdown-menu {
+        list-style: none !important;  
+        padding-left: 0 !important;
+    }
+     
+    .dropdown-menu li {
+        list-style: none; 
+        margin: 0;
+    }
+
+    .dropdown-item {
+        padding: 10px 20px;
+        display: block;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #000;
+    }
+
+    .dropdown-item.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    .submenu-container {
+        padding-left: 20px;  
+        background-color: #0c1427;  
+    }
+     
+    .sub-nav-link {
+        display: block;
+        padding: 10px 15px;
+        color: #a0a8b3;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: 0.2s;
+    }
+
+    .sub-nav-link:hover {
+        color: #ffffff;
+        background-color: #1a243a;  
+        border-radius: 5px;
+    }
+     
+    .student-nav-link[aria-expanded="true"] .bi-chevron-down {
+        transform: rotate(180deg);
+    }
+ </style> 
+ @foreach (var item in Model)
+ { 
+     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+               
+    @if (item.HasSubMenu)
+    {
+        <a class="student-nav-link" data-bs-toggle="collapse"   href="#collapse-@item.Title.Replace(" ", "")"  role="button">
+            <i class="@item.Icon"></i> @item.Title
+            <i class="bi bi-chevron-down ms-auto"></i>
+        </a> 
+        <div class="collapse" id="collapse-@item.Title.Replace(" ", "")">
+            <div class="submenu-container">
+                @foreach (var sub in item.SubItems)
+                {
+                    <a class="sub-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == item.Controller && ViewContext.RouteData.Values["action"]?.ToString() == item.Action ? "active" : "")" asp-controller="@sub.Controller" asp-action="@sub.Action">
+                        @sub.Title
+                    </a>
+                }
+            </div>
+        </div>
+    }
+    else
+    {  
+       <a class="student-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == item.Controller && ViewContext.RouteData.Values["action"]?.ToString() == item.Action ? "active" : "")"
+           asp-controller="@item.Controller" asp-action="@item.Action">
+         <i class="@item.Icon"></i>
+            @item.Title
+         </a>   
+    }
+}
+            

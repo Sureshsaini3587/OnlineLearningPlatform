@@ -1,82 +1,48 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
-}
-<div class="dashboard-header">
-    <div>
-        <h1>Welcome back,   👋</h1>
-        <p>Track your learning, continue lessons, and monitor your PQJ performance.</p>
+﻿@using OnlineLearning.Helpers
+@model OnlineLearning.Models.DashboardViewModel
+
+<div class="container-fluid py-4"> 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">Dashboard</h2>
+            <p class="text-muted">Welcome back, @UserHelper.GetUserName(User). Overview of your platform health.</p>
+        </div>
+        <button class="btn btn-primary"><i class="bi bi-download"></i> Export Report</button>
     </div> 
-</div>
-<div class="row g-4 mb-4">
-    <div class="col-md-6 col-xl-3">
-        <div class="dash-stat-card">
-            <span>Total Students</span>
-            <strong> </strong>
-            <small></small>
-        </div>
+    <div class="row g-4 mb-4">
+        @await Html.PartialAsync("_StatCard", new StatCardModel("Total Students", Model.TotalStudents.ToString(), "bi-people", "text-primary"))
+        @await Html.PartialAsync("_StatCard", new StatCardModel("Active Courses", Model.ActiveCourses.ToString(), "bi-book", "text-success"))
+        @await Html.PartialAsync("_StatCard", new StatCardModel("Revenue", $"₹{Model.MonthlyRevenue:N0}", "bi-cash-coin", "text-info"))
+        @await Html.PartialAsync("_StatCard", new StatCardModel("Pending Queries", Model.PendingQueries.ToString(), "bi-question-circle", "text-warning"))
     </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="dash-stat-card">
-            <span>Active Courses</span>
-            <strong> </strong>
-            <small> </small>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="dash-stat-card">
-            <span>Revenue</span>
-            <strong> </strong>
-            <small>This month</small>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3">
-        <div class="dash-stat-card">
-            <span>Pending Queries</span>
-            <strong> </strong>
-            <small>Average performance</small>
-        </div>
-    </div>
-</div> 
-
-    <!-- 2. Charts and Activity Row -->
+     
     <div class="row g-4">
-        <!-- Revenue Chart -->
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm p-4">
-                <h5 class="fw-bold mb-3">Revenue Growth</h5>
-                <canvas id="revenueChart" height="100"></canvas>
+        <div class="col-xl-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-4">Revenue Trends</h5>
+                    <canvas id="revenueChart" style="max-height: 300px;"></canvas>
+                </div>
             </div>
         </div>
-        <!-- Quick Actions / Notifications -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm p-4 h-100">
-                <h5 class="fw-bold mb-3">Recent Enrollments</h5>
-                <div class="list-group list-group-flush">
-                    <div class="list-group-item d-flex align-items-center border-0 px-0">
-                        <div class="bg-light p-2 rounded me-3"><i class="bi bi-person"></i></div>
-                        <div><div class="fw-bold">Rahul S.</div><small class="text-muted">Purchased Web Dev</small></div>
-                    </div>
-                    <div class="list-group-item d-flex align-items-center border-0 px-0">
-                        <div class="bg-light p-2 rounded me-3"><i class="bi bi-person"></i></div>
-                        <div><div class="fw-bold">Priya V.</div><small class="text-muted">Purchased UI/UX</small></div>
+        <div class="col-xl-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-3">Recent Activity</h5>
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.RecentEnrollments)
+                        {
+                            <div class="list-group-item px-0 border-0 d-flex align-items-center">
+                                <div class="avatar bg-light p-2 rounded me-3"><i class="bi bi-person-fill"></i></div>
+                                <div>
+                                    <div class="fw-semibold">@item.StudentName</div>
+                                    <small class="text-muted">Enrolled in @item.PlanName</small>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
         </div>
-    </div> 
-
-<!-- Chart.js Script (Include at bottom of page) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const ctx = document.getElementById('revenueChart').getContext('2d');
-    new Chart(ctx, {
-    type: 'line',
-    data: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [{ label: 'Revenue ($)', data: [1200, 1900, 3000, 2500, 4000, 5200], borderColor: '#0d6efd', tension: 0.4 }]
-    }
-    });
-</script>
+    </div>
+</div>

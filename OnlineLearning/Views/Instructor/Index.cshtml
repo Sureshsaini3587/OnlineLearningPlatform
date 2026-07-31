@@ -1,59 +1,130 @@
 ﻿@using OnlineLearning.DTO
 @model IEnumerable<InstructorDTO>
 
-<div class="card">
-    <div class="card-header">
-        <div class="d-flex justify-content-between mb-3">
-            <h5>📚 Instructor Management</h5>
-            <a asp-action="Create" class="btn btn-primary">+ Add Instructor</a>
-        </div>
+@{ 
+    ViewData["Title"] = "Instructor Management";
+} 
+<div class="container-fluid px-4 py-4"> 
+    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-3">
+        <h3 class="fw-bold text-dark mb-0">
+            <i class="bi bi-person-workspace text-primary me-2"></i>Instructors
+        </h3>
+        <a asp-action="Create" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> Add New Instructor
+        </a>
     </div>
-    <div class="card-block table-border-style">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Sr.No.</th> 
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Bio</th> 
-                        <th>Mobile No</th> 
-                        <th>Status</th>
-                        <th width="180">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{
-                        int srNo = 1;
-                    }
-                    @foreach (var item in Model)
-                    {
+     
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive"> 
+                <table id="instructorTable" class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase fs-7 text-muted">
                         <tr>
-                            
-                            <th scope="row">@srNo</th> 
-                            <td>@item.FullName</td>
-                            <td>@item.Email</td>
-                            <td>@item.Bio</td> 
-                            <td>@item.Mobile</td> 
-                            <td>
-                                @if (item.IsActive)
-                                {
-                                    <span class="badge bg-success">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Inactive</span>
-                                }
-                            </td>
-                            <td>
-                                <a asp-action="Edit" title="Edit" asp-route-id="@item.InstructorId" class="btn   btn-outline-primary"><i class="icofont icofont-pencil-alt-5"></i></a>
-                                <a asp-action="Delete" title="Delete" asp-route-id="@item.InstructorId" class="btn   btn-outline-danger"><i class="icofont icofont-ui-delete"></i></a>
-                            </td>
+                            <th class="ps-4 py-3" style="width: 60px;">#</th>
+                            <th class="py-3">Name</th>
+                            <th class="py-3">Contact Info</th>
+                            <th class="py-3">Bio Snippet</th>
+                            <th class="py-3">Status</th>
+                            <th class="text-end pe-4 py-3" style="width: 150px;">Actions</th>
                         </tr>
-                        srNo++;
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox display-6 d-block mb-3"></i>
+                                    No instructors found. Click "Add New Instructor" to get started.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            int srNo = 1;
+                            foreach (var item in Model)
+                            {
+                                <tr> 
+                                    <td class="ps-4 text-muted fw-bold">@srNo</td> 
+                                    <td>
+                                        <div class="d-flex align-items-center"> 
+                                            @{ 
+                                                var colorClasses = new[] { "bg-primary-subtle text-primary", "bg-success-subtle text-success", "bg-warning-subtle text-warning", "bg-info-subtle text-info" };
+                                                var colorIndex = Math.Abs(item.FullName.GetHashCode()) % colorClasses.Length;
+                                                var avatarClass = colorClasses[colorIndex];
+                                            }
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" 
+                                                 style="width: 45px; height: 45px; font-weight: 700; font-size: 1.1rem;">
+                                                <span class="@avatarClass w-100 h-100 rounded-circle d-flex align-items-center justify-content-center">
+                                                    @item.FullName.Substring(0, 1).ToUpper()
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold text-dark">@item.FullName</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                     
+                                    <td>
+                                        <div class="text-dark">@item.Email</div>
+                                        <div class="text-muted small">@item.Mobile</div>
+                                    </td>
+                                     
+                                    <td class="text-truncate" style="max-width: 200px;" title="@item.Bio">
+                                        <span class="text-muted">@(string.IsNullOrEmpty(item.Bio) ? "—" : item.Bio)</span>
+                                    </td>
+                                     
+                                    <td>
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2 text-uppercase fw-bold fs-8">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2 text-uppercase fw-bold fs-8">Inactive</span>
+                                        }
+                                    </td>
+                                     
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Edit" title="Edit Details" asp-route-id="@item.InstructorId" 
+                                               class="btn btn-light btn-sm text-primary border-0 me-1 rounded">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-action="Delete" title="Remove Instructor" asp-route-id="@item.InstructorId" 
+                                               class="btn btn-light btn-sm text-danger border-0 rounded">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                srNo++;
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+             
         </div>
     </div>
-</div> 
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#instructorTable').DataTable({
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "lengthMenu": [10, 25, 50, 100],
+                "language": {
+                    "search": "",  
+                    "searchPlaceholder": "Search instructors..."
+                }, 
+                "dom": "<'row justify-content-end mt-2 me-2'<'col-auto'l><'col-auto'f>>" +
+                  "<'row'<'col-sm-12'tr>>" +
+                  "<'row justify-content-end'<'col-auto'i><'col-auto'p>>"
+            }); 
+            $('div.dataTables_filter input').addClass('form-control form-control-sm');
+        });
+    </script>
+}
