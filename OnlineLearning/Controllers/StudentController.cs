@@ -252,13 +252,14 @@ namespace OnlineLearning.Controllers
             var students = await _student.GetAllWithDetails();
             return View(students);
         }
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create()
-        {
-            await LoadGender();
-            return View();
-        }
+         
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create() {
+            await LoadGender();
+          return  PartialView("_StudentForm", new Student());
+        } 
         public async Task<IActionResult> LoadGender()
         {
             var list =await _student.GetGender();
