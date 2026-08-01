@@ -3526,3 +3526,19 @@ table.dataTable thead .sorting_asc:before,
 table.dataTable thead .sorting_desc:before {
     display: none;
 }
+
+.app-navbar {
+    background: radial-gradient(circle at 20% 20%, rgba(46, 197, 167, 0.10), transparent 22%), radial-gradient(circle at 80% 30%, rgba(255, 155, 113, 0.12), transparent 22%), linear-gradient(135deg, #09101f 0%, #0c1325 35%, #111a31 100%);
+}
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+
+.modal {
+    z-index: 1060 !important;
+}
+
+/* Agar header (navbar) ki z-index bahut zyada hai, toh use kam karein */
+.navbar {
+    z-index: 1000 !important;
+}
