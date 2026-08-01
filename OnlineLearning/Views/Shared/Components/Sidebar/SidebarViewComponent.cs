@@ -40,12 +40,8 @@ namespace OnlineLearning.Views.Shared.Components.Sidebar
                  new NavigationItem { Title = "Instructors", Controller = "Instructor", Action = "Index", Icon = "bi bi-person-badge" },
                  new NavigationItem { Title = "PQJ Questions", Controller = "PQJQuestion", Action = "Index", Icon = "bi bi-question-diamond" },
                  new NavigationItem { Title = "Subscription Plans", Controller = "Subscription", Action = "Index", Icon = "bi bi-gem" },
-             
-                 new NavigationItem { Title = "Student", Icon = "bi bi-people-fill", SubItems = new List<NavigationItem> {
-                     new NavigationItem { Title = "All Students", Controller = "Student", Action = "Index" },
-                     new NavigationItem { Title = "Add Student", Controller = "Student", Action = "Create" }
-                 }},
-             
+                 new NavigationItem { Title = "Students", Controller = "Student", Action = "Index", Icon = "bi bi-people-fill" },
+               
                  new NavigationItem { Title = "Courses", Icon = "bi bi-book-half", SubItems = new List<NavigationItem> {
                      new NavigationItem { Title = "All Courses", Controller = "Course", Action = "Index" },
                      new NavigationItem { Title = "Add Course", Controller = "Course", Action = "Create" },
