@@ -4,7 +4,6 @@ using OnlineLearning.BusinessLogics.Services;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
 using OnlineLearning.Models.ResponseModel;
-using Org.BouncyCastle.Crypto.Generators;
 using System.Data;
 
 public class AuthRepository : IAuthRepository

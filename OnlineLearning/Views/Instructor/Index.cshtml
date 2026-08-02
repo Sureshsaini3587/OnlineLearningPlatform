@@ -119,14 +119,9 @@
     
             var form = $(this);
             var submitBtn = form.find('button[type="submit"]');
-            var originalBtnText = submitBtn.text();
-             
-            submitBtn.prop('disabled', true).text('Saving...');
-
-            var formData = new FormData(this);
-
-            var token = $('input[name="__RequestVerificationToken"]').val();
-
+            var originalBtnText = submitBtn.text(); 
+            var formData = new FormData(this); 
+            var token = $('input[name="__RequestVerificationToken"]').val(); 
              $.ajax({
                  url: form.attr('action'),
                  type: 'POST',
@@ -134,7 +129,10 @@
                  processData: false,
                  contentType: false,
                  headers: {
-                     "RequestVerificationToken": token  
+                     "RequestVerificationToken": token                   
+                 },
+                 beforeSend: function () {
+                     submitBtn.prop('disabled', true).text('Saving...');
                  },
                 success: function (response) {
                     if(response.success){
@@ -146,9 +144,11 @@
                         showNotification('Error', response.message, 'error');
                     }
                 },
-                error: function (xhr) { 
-                    submitBtn.prop('disabled', false).text(originalBtnText); 
+                error: function (xhr) {
                     showNotification('Error', 'Unable to save data. Please check your inputs.', 'error');
+                }, 
+                complete: function () {
+                    submitBtn.prop('disabled', false).text(originalBtnText);
                 }
             });
         });

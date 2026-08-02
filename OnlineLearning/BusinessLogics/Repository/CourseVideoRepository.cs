@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 using System.Data;
 
 namespace OnlineLearning.BusinessLogics.Repository
@@ -70,35 +71,44 @@ namespace OnlineLearning.BusinessLogics.Repository
             );  
         }
 
-        public async Task<bool> AddAsync(CourseVideoDTO entity)
-        {
-            using var db = Connection;
-            var result = await db.ExecuteAsync(
-                 "sp_CourseVideo",
-                 new
-                 {
-                     Action = "INSERT",
-                     entity.Title,
-                     entity.SectionId, 
-                     entity.SortOrder, 
-                     entity.Duration,
-                     entity.IsDemo,
-                     entity.VideoUrl,
-                     entity.ThumbnailUrl,
-                     entity.IsActive,
-                     entity.CreatedBy
-                 },
-                 commandType: CommandType.StoredProcedure
-             ); 
-            return result > 0; 
-        }
-        public async Task<bool> UpdateAsync(CourseVideoDTO entity)
+        public async Task<Result> AddAsync(CourseVideoDTO entity)
         {
             try
             {
-
                 using var db = Connection;
+                var result = await db.ExecuteAsync(
+                     "sp_CourseVideo",
+                     new
+                     {
+                         Action = "INSERT",
+                         entity.Title,
+                         entity.SectionId,
+                         entity.SortOrder,
+                         entity.Duration,
+                         entity.IsDemo,
+                         entity.VideoUrl,
+                         entity.ThumbnailUrl,
+                         entity.IsActive,
+                         entity.CreatedBy
+                     },
+                     commandType: CommandType.StoredProcedure
+                 );
 
+                return result > 0
+                    ? new Result { Success = true, Message = "Video added successfully." }
+                    : new Result { Success = false, Message = "Failed to add video." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
+        }
+
+        public async Task<Result> UpdateAsync(CourseVideoDTO entity)
+        {
+            try
+            {
+                using var db = Connection;
                 var result = await db.ExecuteAsync(
                     "sp_CourseVideo",
                     new
@@ -118,24 +128,35 @@ namespace OnlineLearning.BusinessLogics.Repository
                     commandType: CommandType.StoredProcedure
                 );
 
-                return result > 0;
+                return result > 0
+                    ? new Result { Success = true, Message = "Video updated successfully." }
+                    : new Result { Success = false, Message = "Video update failed or not found." };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return false;
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
             }
         }
-        public async Task<bool> DeleteAsync(CourseVideoDTO entity)
+
+        public async Task<Result> DeleteAsync(CourseVideoDTO entity)
         {
-            using var db = Connection;
+            try
+            {
+                using var db = Connection;
+                var result = await db.ExecuteAsync(
+                    "sp_CourseVideo",
+                    new { Action = "DELETE", entity.VideoId },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            var result = await db.ExecuteAsync(
-                "sp_CourseVideo",
-                new { Action = "DELETE", entity.VideoId },
-                commandType: CommandType.StoredProcedure
-            );
-
-            return result > 0;
-        } 
+                return result > 0
+                    ? new Result { Success = true, Message = "Video deleted successfully." }
+                    : new Result { Success = false, Message = "Video could not be found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
+        }
     }
 }

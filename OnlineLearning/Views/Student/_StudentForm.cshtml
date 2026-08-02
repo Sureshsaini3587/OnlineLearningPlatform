@@ -1,17 +1,13 @@
 ﻿@model Student
 
-<form asp-action="@(Model.StudentId == null ||Model.StudentId == 0 ? "Create" : "Edit")"
-      method="post"
-      enctype="multipart/form-data"
-      id="studentForm">
-
+<form asp-action="@(Model.UserID == null ||Model.UserID == 0 ? "Create" : "Edit")"
+      method="post" enctype="multipart/form-data"   id="studentForm"> 
     @Html.AntiForgeryToken()
 
-    @if (Model.StudentId != 0 || Model.StudentId != null)
+    @if (Model.UserID != 0 || Model.UserID != null)
     {
-        <input type="hidden" asp-for="StudentId" />
-    }
-
+        <input type="hidden" asp-for="UserID" />
+    } 
     <div class="modal-body">
         <div class="row g-3"> 
             <div class="col-md-7">
@@ -78,7 +74,7 @@
     <div class="modal-footer border-0">
         <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
         <button type="submit" class="btn btn-primary rounded-pill px-4">
-            @(Model.StudentId == null || Model.StudentId == 0 ? "Save Student" : "Update Changes") 
+            @(Model.UserID == null || Model.UserID == 0 ? "Save Student" : "Update Changes")
         </button>
     </div>
 </form>

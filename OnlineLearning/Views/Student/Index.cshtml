@@ -51,12 +51,12 @@
                             </td>
                             <td class="text-end pe-4">
                                 <button type="button" class="btn btn-sm"
-                                        onclick="openGlobalModal('Edit Student', '@Url.Action("Edit", "Student", new { id = item.StudentId })')">
+                                        onclick="openGlobalModal('Edit Student', '@Url.Action("Edit", "Student", new { id = item.UserID })')">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button type="button"
                                         class="btn btn-sm text-danger"
-                                        onclick="confirmDelete('@item.StudentId')">
+                                        onclick="confirmDelete('@item.UserID')">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </td>
@@ -116,14 +116,9 @@
     
             var form = $(this);
             var submitBtn = form.find('button[type="submit"]');
-            var originalBtnText = submitBtn.text();
-             
-            submitBtn.prop('disabled', true).text('Saving...');
-
-            var formData = new FormData(this);
-
-            var token = $('input[name="__RequestVerificationToken"]').val();
-
+            var originalBtnText = submitBtn.text();  
+            var formData = new FormData(this); 
+            var token = $('input[name="__RequestVerificationToken"]').val(); 
              $.ajax({
                  url: form.attr('action'),
                  type: 'POST',
@@ -132,6 +127,9 @@
                  contentType: false,
                  headers: {
                      "RequestVerificationToken": token
+                 },
+                 beforeSend: function () {
+                     submitBtn.prop('disabled', true).text('Saving...');
                  },
                 success: function (response) {
                     if(response.success){
@@ -144,8 +142,10 @@
                     }
                 },
                 error: function (xhr) {
-                    submitBtn.prop('disabled', false).text(originalBtnText);
                     showNotification('Error', 'Unable to save data. Please check your inputs.', 'error');
+                }, 
+                complete: function () {
+                    submitBtn.prop('disabled', false).text(originalBtnText);
                 }
             });
         });

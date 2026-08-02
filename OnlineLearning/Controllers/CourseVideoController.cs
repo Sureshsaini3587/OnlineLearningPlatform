@@ -55,17 +55,7 @@ namespace OnlineLearning.Controllers
                 CreatedBy = userId
             };
             var result = await _video.AddAsync(CourseDTO);
-
-            if (result)
-            {
-                _notify.Success("Course Video saved successfully!");
-                return RedirectToAction("Index");
-            }
-
-            _notify.Error("Something went wrong!");
-            await LoadDropdowns();
-
-            return View(model);
+            return Json(new { success = result.Success, message = result.Message });
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -107,15 +97,7 @@ namespace OnlineLearning.Controllers
                     UpdatedBy = userId
                 };
                 var result = await _video.UpdateAsync(CourseDTO);
-                if (!result)
-                {
-                    _notify.Error("An Error Occures While Updating Video Details !");
-                    await LoadDropdowns();
-                    return View(model);
-                }
-
-                _notify.Success("Course Video Details update successfully");
-                return RedirectToAction("Index");
+                return Json(new { success = result.Success, message = result.Message });
             }
             await LoadDropdowns();
             return View(model);
@@ -140,8 +122,7 @@ namespace OnlineLearning.Controllers
             course.IsDeleted = true;
             course.UpdatedBy = userId;
             var result = await _video.DeleteAsync(course);
-            _notify.Success("Video Details Delete Successfully !");
-            return RedirectToAction("Index");
+            return Json(new { success = result.Success, message = result.Message });
         }
         private async Task LoadDropdowns()
         {

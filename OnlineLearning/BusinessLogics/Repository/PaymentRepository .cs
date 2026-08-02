@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 using Razorpay.Api;
 using System.Data;
 using System.Security.Cryptography;
@@ -278,60 +279,87 @@ namespace OnlineLearning.BusinessLogics.Repository
 
             return count > 0;
         }
-        public async Task<bool> AddAsync(PaymentDto entity)
+        public async Task<Result> AddAsync(PaymentDto entity)
         {
-            using var _db = Connection;
-            var result = await _db.ExecuteScalarAsync<int>(
-                "sp_Payment",
-                new
-                {
-                    Action = "CREATE",
-                    entity.StudentId,
-                    entity.PlanName,
-                    entity.SubscriptionId,
-                    entity.Amount,
-                    entity.PaymentMethod,
-                    TransactionId = Guid.NewGuid().ToString()
-                },
-                commandType: CommandType.StoredProcedure
-            );
+            try
+            {
+                using var _db = Connection; 
+                var result = await _db.ExecuteScalarAsync<int>(
+                    "sp_Payment",
+                    new
+                    {
+                        Action = "CREATE",
+                        entity.StudentId,
+                        entity.PlanName,
+                        entity.SubscriptionId,
+                        entity.Amount,
+                        entity.PaymentMethod,
+                        TransactionId = Guid.NewGuid().ToString()
+                    },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return result > 0;
+                return result > 0
+                    ? new Result { Success = true, Message = "Payment recorded successfully." }
+                    : new Result { Success = false, Message = "Failed to record payment." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
 
-        public async Task<bool> UpdateAsync(PaymentDto entity)
+        public async Task<Result> UpdateAsync(PaymentDto entity)
         {
-            using var _db = Connection;
-            var result = await _db.ExecuteAsync(
-                "sp_Payment",
-                new
-                {
-                    Action = "UPDATE_STATUS", // mostly status hi update hota hai
-                    PaymentId = entity.PaymentId,
-                    PaymentStatus = entity.PaymentStatus,
-                    TransactionId = entity.TransactionId
-                },
-                commandType: CommandType.StoredProcedure
-            );
+            try
+            {
+                using var _db = Connection;
+                var result = await _db.ExecuteAsync(
+                    "sp_Payment",
+                    new
+                    {
+                        Action = "UPDATE_STATUS",
+                        entity.PaymentId,
+                        entity.PaymentStatus,
+                        entity.TransactionId
+                    },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return result > 0;
+                return result > 0
+                    ? new Result { Success = true, Message = "Payment status updated successfully." }
+                    : new Result { Success = false, Message = "Payment update failed or not found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
 
-        public async Task<bool> DeleteAsync(PaymentDto entity)
+        public async Task<Result> DeleteAsync(PaymentDto entity)
         {
-            using var _db = Connection; 
-            var result = await _db.ExecuteAsync(
-                "sp_Payment",
-                new
-                {
-                    Action = "DELETE",
-                    PaymentId = entity.PaymentId
-                },
-                commandType: CommandType.StoredProcedure
-            );
+            try
+            {
+                using var _db = Connection;
+                var result = await _db.ExecuteAsync(
+                    "sp_Payment",
+                    new
+                    {
+                        Action = "DELETE",
+                        entity.PaymentId
+                    },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return result > 0;
-        } 
+                return result > 0
+                    ? new Result { Success = true, Message = "Payment record deleted successfully." }
+                    : new Result { Success = false, Message = "Payment record could not be found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
+        }
 
         public async Task<int> UpdateStatusAsync(int paymentId, string status, string transactionId)
         {

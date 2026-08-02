@@ -5,6 +5,7 @@ using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 using System.Data;
 using System.Security.Claims;
 
@@ -276,69 +277,99 @@ namespace OnlineLearning.BusinessLogics.Repository
             );  
         }
 
-        public async Task<bool> AddAsync(StudentDTO entity)
+        public async Task<Result> AddAsync(StudentDTO entity)
         {
-            var Pswd = PasswordHelper.HashPassword("Std@123");
-            using var db = Connection;
-            var result = await db.ExecuteAsync(
-                 "sp_Student",
-                 new
-                 {
-                     Action = "INSERT",
-                     entity.FullName, 
-                     entity.Email, 
-                     entity.DOB, 
-                     entity.Address, 
-                     entity.Mobile, 
-                     entity.Role, 
-                     entity.Gender, 
-                     entity.ProfileImage, 
-                     entity.IsActive,
-                     entity.CreatedBy,
-                     Pswd
-                 },
-                 commandType: CommandType.StoredProcedure
-             ); 
-            return result > 0; 
+            try
+            {
+                var pswd = PasswordHelper.HashPassword("Std@123");
+                using var db = Connection;
+                 
+                var result = await db.QueryFirstOrDefaultAsync<int>(
+                     "sp_Student",
+                     new
+                     {
+                         Action = "INSERT",
+                         entity.FullName,
+                         entity.Email,
+                         entity.DOB,
+                         entity.Address,
+                         entity.Mobile,
+                         entity.Role,
+                         entity.Gender,
+                         entity.ProfileImage,
+                         entity.IsActive,
+                         entity.CreatedBy,
+                         Pswd = pswd
+                     },
+                     commandType: CommandType.StoredProcedure
+                 );
+
+                if (result == -1) return new Result { Success = false, Message = "Student email already exists." };
+                return result > 0
+                    ? new Result { Success = true, Message = "Student added successfully." }
+                    : new Result { Success = false, Message = "Failed to add student." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
-        public async Task<bool> UpdateAsync(StudentDTO entity)
+
+        public async Task<Result> UpdateAsync(StudentDTO entity)
         {
-            using var db = Connection;
+            try
+            {
+                using var db = Connection;
+                var result = await db.ExecuteAsync(
+                    "sp_Student",
+                    new
+                    {
+                        Action = "UPDATE",
+                        entity.StudentId,
+                        entity.UserID,
+                        entity.FullName,
+                        entity.Email,
+                        entity.DOB,
+                        entity.Address,
+                        entity.Mobile,
+                        entity.Role,
+                        entity.Gender,
+                        entity.ProfileImage,
+                        entity.IsActive,
+                        entity.UpdatedBy
+                    },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            var result = await db.ExecuteAsync(
-                "sp_Student",
-                new
-                {
-                    Action = "UPDATE",
-                    entity.StudentId,
-                    entity.UserID,
-                    entity.FullName,
-                    entity.Email,
-                    entity.DOB,
-                    entity.Address,
-                    entity.Mobile,
-                    entity.Role,
-                    entity.Gender,
-                    entity.ProfileImage,
-                    entity.IsActive,
-                    entity.UpdatedBy
-                },
-                commandType: CommandType.StoredProcedure
-            );
-
-            return result > 0;
+                return result > 0
+                    ? new Result { Success = true, Message = "Student updated successfully." }
+                    : new Result { Success = false, Message = "Student update failed or not found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
-        public async Task<bool> DeleteAsync(StudentDTO entity)
+
+        public async Task<Result> DeleteAsync(StudentDTO entity)
         {
-            using var db = Connection;
+            try
+            {
+                using var db = Connection;
+                var result = await db.ExecuteAsync(
+                    "sp_Student",
+                    new { Action = "DELETE", entity.UserID },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            var result = await db.ExecuteAsync(
-                "sp_Student",
-                new { Action = "DELETE", entity.UserID },
-                commandType: CommandType.StoredProcedure
-            );
-
-            return result > 0;
-        } 
+                return result > 0
+                    ? new Result { Success = true, Message = "Student deleted successfully." }
+                    : new Result { Success = false, Message = "Student could not be found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
+        }
     }
 }

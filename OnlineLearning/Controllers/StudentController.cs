@@ -7,7 +7,6 @@ using OnlineLearning.DTO;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
 using OnlineLearning.Views.Services;
-using System.Security.Claims;
 
 namespace OnlineLearning.Controllers
 {
@@ -277,9 +276,8 @@ namespace OnlineLearning.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await LoadGender();
-                return View(model);
-            }
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            } 
             int userId = UserHelper.GetUserId(User);
             if(model.ImageFile != null)
             {
@@ -302,16 +300,8 @@ namespace OnlineLearning.Controllers
                 CreatedBy = userId
             };
             var result = await _student.AddAsync(studentDTO);
-
-            if (result)
-            {
-                _notify.Success("Student saved successfully ! ");
-                return RedirectToAction("Index");
-            }
-
-            await LoadGender();
-            _notify.Error("Some Error Occured while saving details!");
-            return View(model);
+            return Json(new { success = result.Success, message = result.Message });
+             
         }
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id)
@@ -331,16 +321,20 @@ namespace OnlineLearning.Controllers
                 Mobile = student.Mobile,
                 ProfileImage = student.ProfileImage,
                 IsActive = student.IsActive,
-            };
+            }; 
             await LoadGender();
-            return View(studentDTO);
+            return PartialView("_StudentForm", studentDTO); 
         }
-
+       
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(Student model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, message = "Please fill the data correctly!" });
+            }
+            try
             {
                 int userId = UserHelper.GetUserId(User);
                 if (model.ImageFile != null)
@@ -353,14 +347,14 @@ namespace OnlineLearning.Controllers
                 }
                 else
                 {
-                    var existingData = await _student.GetByIdAsync((int)model.UserID); 
+                    var existingData = await _student.GetByIdAsync((int)model.UserID);
                     model.ProfileImage = existingData?.ProfileImage;
                 }
 
                 var studentDTO = new StudentDTO
                 {
                     StudentId = model.StudentId,
-                    UserID = model.UserID, 
+                    UserID = model.UserID,
                     FullName = model.FullName,
                     DOB = model.DOB,
                     Email = model.Email,
@@ -372,47 +366,40 @@ namespace OnlineLearning.Controllers
                     UpdatedBy = userId
                 };
                 var result = await _student.UpdateAsync(studentDTO);
-                if (!result)
-                {
-                    await LoadGender();
-                    _notify.Error("An Error Occures While Updating Section Details !"); 
-                    return View(model);
-                }
-
-                if (result)
-                {
-                    _notify.Success("Student Profile updated successfully!"); 
-                    return RedirectToAction("Index");
-                } 
+                return Json(new { success = result.Success, message = result.Message });
             }
-            await LoadGender();
-            return View(model);
-        }
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var student = await _student.GetByIdAsync(id);
-            var studentDTO = new Student
-            {
-                FullName = student.FullName,
-                UserID = student.UserID
-            };
-            return View(studentDTO);
+            catch (Exception ex)
+            { // _logger.LogError(ex, "Error updating Student ID {Id}", model.StudentId); 
+                return Json(new { success = false, message = "System Error: " + ex.Message });
+            } 
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteConfirmed(int UserID)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            int userId = UserHelper.GetUserId(User);
-            var student = await _student.GetByIdAsync(UserID);
-            student.IsDeleted = true;
-            student.UpdatedBy = userId;
-            var result = await _student.DeleteAsync(student);
-            _notify.Success("Student Profile Delete successfully!");
-            return RedirectToAction("Index");
-        } 
+            try
+            {
+                int userId = UserHelper.GetUserId(User);
+                var student = await _student.GetByIdAsync(id); 
 
+                if (student == null)
+                {
+                    return Json(new { success = false, message = "student not found!" });
+                } 
+                student.IsDeleted = true;
+                student.UpdatedBy = userId;
+
+                var result = await _student.DeleteAsync(student);
+                return Json(new { success = result.Success, message = result.Message }); 
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error deleting student ID {Id}", id); 
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            }
+        } 
         #endregion
     }
 }

@@ -59,12 +59,7 @@ namespace OnlineLearning.Controllers
                 CreatedBy = userId
             };
             var result = await _instructor.AddAsync(InstructorDTO);
-
-            if (result)
-            {
-                return Json(new { success = true, message = "Instructor saved successfully !" }); 
-            }
-            return Json(new { success = false, message = "Some Error Occured while saving details!" }); 
+            return Json(new { success = result.Success, message = result.Message });  
         }
 
         [HttpGet]
@@ -127,13 +122,7 @@ namespace OnlineLearning.Controllers
                     UpdatedBy = userId
                 }; 
                 var result = await _instructor.UpdateAsync(InstructorDTO);
-
-                if (!result)
-                {
-                    return Json(new { success = false, message = "An Error Occured While Updating Instructor Details!" });
-                }
-
-                return Json(new { success = true, message = "Instructor Profile updated successfully!" });
+                return Json(new { success = result.Success, message = result.Message }); 
             }
             catch (Exception ex)
             { 
@@ -162,15 +151,7 @@ namespace OnlineLearning.Controllers
                 instructor.UpdatedBy = userId;
                  
                 var result = await _instructor.DeleteAsync(instructor);
-
-                if (result)
-                {
-                    return Json(new { success = true, message = "Instructor deleted successfully!" });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Unable to delete instructor. Please try again." });
-                }
+                return Json(new { success = result.Success, message = result.Message }); 
             }
             catch (Exception ex)
             { 

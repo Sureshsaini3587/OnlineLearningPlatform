@@ -43,8 +43,7 @@ namespace OnlineLearning.Views.Shared.Components.Sidebar
                  new NavigationItem { Title = "Students", Controller = "Student", Action = "Index", Icon = "bi bi-people-fill" },
                
                  new NavigationItem { Title = "Courses", Icon = "bi bi-book-half", SubItems = new List<NavigationItem> {
-                     new NavigationItem { Title = "All Courses", Controller = "Course", Action = "Index" },
-                     new NavigationItem { Title = "Add Course", Controller = "Course", Action = "Create" },
+                     new NavigationItem { Title = "Course List", Controller = "Course", Action = "Index" }, 
                      new NavigationItem { Title = "Course Categories", Controller = "Course", Action = "Categories" },
                      new NavigationItem { Title = "Course Section", Controller = "CourseSection", Action = "Index" },
                      new NavigationItem { Title = "Course Videos", Controller = "CourseVideo", Action = "Index" },

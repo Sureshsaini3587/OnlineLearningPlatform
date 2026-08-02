@@ -1,0 +1,54 @@
+﻿@model SubscriptionPlan
+
+<form asp-action="@(Model.PlanId == null ||Model.PlanId == 0 ? "Create" : "Edit")"
+      method="post"
+      id="planForm">
+
+    @Html.AntiForgeryToken()
+    @if (Model.PlanId != 0 || Model.PlanId != null)
+    {
+      
+        <input type="hidden" asp-for="PlanId" />
+    }
+
+    <div class="modal-body">
+        <div class="row g-3"> 
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold">Plan Name *</label>
+                <input asp-for="PlanName" class="form-control" required placeholder="Enter plan name" />
+                <span asp-validation-for="PlanName" class="text-danger small"></span>
+            </div>
+             
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Price *</label>
+                <input asp-for="Price" class="form-control" type="number" step="0.01" min="0" required />
+                <span asp-validation-for="Price" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Duration (Days) *</label>
+                <input asp-for="DurationInDays" class="form-control" type="number" min="1" required />
+                <span asp-validation-for="DurationInDays" class="text-danger small"></span>
+            </div>
+             
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold">Description *</label>
+                <textarea asp-for="Description" class="form-control" rows="3" required></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+             
+            <div class="col-md-12">
+                <div class="form-check form-switch">
+                    <input asp-for="IsActive" class="form-check-input" id="activeSwitch" />
+                    <label class="form-check-label fw-bold" for="activeSwitch">Set Plan as Active</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-success rounded-pill px-4">
+            @(Model.PlanId == null || Model.PlanId == 0 ? "Save Plan" : "Update Changes") 
+        </button>
+    </div>
+</form>

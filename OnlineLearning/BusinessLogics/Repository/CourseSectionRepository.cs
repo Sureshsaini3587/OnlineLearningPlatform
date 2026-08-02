@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 using System.Data;
 
 namespace OnlineLearning.BusinessLogics.Repository
@@ -91,35 +92,45 @@ namespace OnlineLearning.BusinessLogics.Repository
             );  
         }
 
-        public async Task<bool> AddAsync(CourseSectionDTO entity)
-        {
-            string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
-            _cache.Remove(cacheKey);
-            using var db = Connection;
-            var result = await db.ExecuteAsync(
-                 "sp_CourseSection",
-                 new
-                 {
-                     Action = "INSERT",
-                     entity.CourseId,
-                     entity.SectionTitle, 
-                     entity.SortOrder, 
-                     entity.IsActive,
-                     entity.CreatedBy
-                 },
-                 commandType: CommandType.StoredProcedure
-             ); 
-            return result > 0; 
-        }
-        public async Task<bool> UpdateAsync(CourseSectionDTO entity)
+        public async Task<Result> AddAsync(CourseSectionDTO entity)
         {
             try
             {
-
-                string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
-                _cache.Remove(cacheKey);
                 using var db = Connection;
+                var result = await db.ExecuteAsync(
+                     "sp_CourseSection",
+                     new
+                     {
+                         Action = "INSERT",
+                         entity.CourseId,
+                         entity.SectionTitle,
+                         entity.SortOrder,
+                         entity.IsActive,
+                         entity.CreatedBy
+                     },
+                     commandType: CommandType.StoredProcedure
+                 );
 
+                if (result > 0)
+                { 
+                    string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
+                    _cache.Remove(cacheKey);
+                    return new Result { Success = true, Message = "Section added successfully." };
+                }
+
+                return new Result { Success = false, Message = "Failed to add section." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
+        }
+
+        public async Task<Result> UpdateAsync(CourseSectionDTO entity)
+        {
+            try
+            {
+                using var db = Connection;
                 var result = await db.ExecuteAsync(
                     "sp_CourseSection",
                     new
@@ -135,26 +146,45 @@ namespace OnlineLearning.BusinessLogics.Repository
                     commandType: CommandType.StoredProcedure
                 );
 
-                return result > 0;
+                if (result > 0)
+                { 
+                    string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
+                    _cache.Remove(cacheKey);
+                    return new Result { Success = true, Message = "Section updated successfully." };
+                }
+
+                return new Result { Success = false, Message = "Section update failed or not found." };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return false;
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
             }
         }
-        public async Task<bool> DeleteAsync(CourseSectionDTO entity)
+
+        public async Task<Result> DeleteAsync(CourseSectionDTO entity)
         {
-            string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
-            _cache.Remove(cacheKey);
-            using var db = Connection;
+            try
+            {
+                using var db = Connection;
+                var result = await db.ExecuteAsync(
+                    "sp_CourseSection",
+                    new { Action = "DELETE", entity.SectionId },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            var result = await db.ExecuteAsync(
-                "sp_CourseSection",
-                new { Action = "DELETE", entity.SectionId },
-                commandType: CommandType.StoredProcedure
-            );
+                if (result > 0)
+                {  
+                    string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
+                    _cache.Remove(cacheKey);
+                    return new Result { Success = true, Message = "Section deleted successfully." };
+                }
 
-            return result > 0;
-        } 
+                return new Result { Success = false, Message = "Section could not be found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
+        }
     }
 }
