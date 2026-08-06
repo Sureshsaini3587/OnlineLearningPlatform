@@ -332,62 +332,82 @@ namespace OnlineLearning.BusinessLogics.Repository
               );
             return data.ToList();
         }
-        public async Task<int> CreateAsync(PQJQuestion q, List<PQJOption> options, int correctOption)
+        public async Task<Result> CreateAsync(PQJQuestion q, List<PQJOption> options, int correctOption)
         {
             using var db = Connection;
-             
-            var questionId = await db.ExecuteScalarAsync<int>(
+            try
+            {
+                var questionId = await db.ExecuteScalarAsync<int>(
                 "sp_PQJQuestion",
                 new
                 {
-                    Action = "CREATE",
-                    q.QuestionText,
-                    q.CategoryId,
-                    q.CourseId,
-                    QuestionType = (int)q.QuestionType,
-                    q.IsTrial,
-                    q.DifficultyLevel,
-                    q.Explanation,
-                    q.Marks, 
-                    q.CreatedBy
-                },
-                commandType: CommandType.StoredProcedure
-            );
+                         Action = "CREATE",
+                         q.QuestionText,
+                         q.CategoryId,
+                         q.CourseId,
+                         QuestionType = (int)q.QuestionType,
+                         q.IsTrial,
+                         q.DifficultyLevel,
+                         q.Explanation,
+                         q.Marks, 
+                         q.CreatedBy
+                     },
+                     commandType: CommandType.StoredProcedure
+                 );
              
-            for (int i = 0; i < options.Count; i++)
+                  for (int i = 0; i < options.Count; i++)
+                  {
+                      await db.ExecuteAsync(
+                          "sp_PQJOption",
+                          new
+                          {
+                              Action = "INSERT",
+                              QuestionId = questionId,
+                              OptionText = options[i].OptionText,
+                              IsCorrect = (i == correctOption)
+                          },
+                          commandType: CommandType.StoredProcedure
+                      );
+                }
+                if (questionId > 0)
+                { 
+                    return new Result { Success = true, Message = "Question added successfully." };
+                }
+                return new Result { Success = false, Message = "Failed to add question." };
+             }
+            catch (Exception ex)
             {
-                await db.ExecuteAsync(
-                    "sp_PQJOption",
+                         return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            } 
+        }
+
+        public async Task<Result> DeleteAsync(int id, int userId)
+        {
+            using var db = Connection;
+            try
+            {
+                var result = await db.ExecuteAsync(
+                    "sp_PQJQuestion",
                     new
                     {
-                        Action = "INSERT",
-                        QuestionId = questionId,
-                        OptionText = options[i].OptionText,
-                        IsCorrect = (i == correctOption)
+                        Action = "DELETE",
+                        QuestionId = id,
+                        UpdatedBy = userId
                     },
                     commandType: CommandType.StoredProcedure
                 );
+
+                if (result > 0)
+                { 
+                    return new Result { Success = true, Message = "Question deleted successfully." };
+                }
+
+                return new Result { Success = false, Message = "Question could not be found." };
             }
-
-            return questionId;
-        }
-
-        public async Task<bool> DeleteAsync(int id, int userId)
-        {
-            using var db = Connection;
-
-            var result = await db.ExecuteAsync(
-                "sp_PQJQuestion",
-                new
-                {
-                    Action = "DELETE",
-                    QuestionId = id,
-                    UpdatedBy = userId
-                },
-                commandType: CommandType.StoredProcedure
-            );
-
-            return result > 0;
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
         public async Task<IEnumerable<PQJQuestion>> GetAllAsync()
         {
@@ -423,7 +443,7 @@ namespace OnlineLearning.BusinessLogics.Repository
             return question;
         }
 
-        public async Task<bool> UpdateAsync(PQJQuestion q, List<PQJOption> options, int correctOption)
+        public async Task<Result> UpdateAsync(PQJQuestion q, List<PQJOption> options, int correctOption)
         {
             using var db = Connection;
             try
@@ -470,14 +490,18 @@ namespace OnlineLearning.BusinessLogics.Repository
                         },
                         commandType: CommandType.StoredProcedure
                     );
-                } 
-
-                return result > 0;
+                }
+                if (result > 0)
+                {
+                    return new Result { Success = true, Message = "Question update successfully." };
+                }
+                return new Result { Success = false, Message = "Failed to update question." };
             }
-            catch (Exception)
-            { 
-                throw;
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
             }
+         
         }
     }
 }

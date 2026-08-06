@@ -1,0 +1,105 @@
+﻿@model QuestionVM
+
+<form asp-action="@(Model.Question.QuestionId == 0 || Model.Question.QuestionId == null ? "Create" : "Edit")"
+      method="post" id="QuestionForm" class="needs-validation">
+
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Question.QuestionId" />
+
+    <div class="modal-body p-4"> 
+        <div class="row g-3"> 
+            <div class="col-md-7"> 
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">Question <span class="text-danger">*</span></label>
+                    <textarea asp-for="Question.QuestionText" class="form-control" rows="3" placeholder="Enter question text..." required></textarea>
+                    <span asp-validation-for="Question.QuestionText" class="text-danger small"></span>
+                </div>
+                 
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">Course <span class="text-danger">*</span></label>
+                        <select id="courseId" asp-for="Question.CourseId" asp-items="ViewBag.Course" class="form-select" required>
+                            <option value="">-- Select Course --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">Section <span class="text-danger">*</span></label>
+                        <select asp-for="Question.CategoryId" id="section" class="form-select" required>
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+                </div>
+                 
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">Question Type <span class="text-danger">*</span></label>
+                        <select asp-for="Question.QuestionType" class="form-select" id="questionType">
+                            <option value="1">MCQ</option>
+                            <option value="2">True/False</option>
+                            <option value="3">Descriptive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">Difficulty</label>
+                        <select asp-for="Question.DifficultyLevel" class="form-select">
+                            <option value="1">Easy</option>
+                            <option value="2">Medium</option>
+                            <option value="3">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                 
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">Marks</label>
+                        <input asp-for="Question.Marks" class="form-control" type="number" min="0" placeholder="0" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">Is Trial</label>
+                        <select asp-for="Question.IsTrial" class="form-select">
+                            <option value="false">False</option>
+                            <option value="true">True</option>
+                        </select>
+                    </div>
+                </div> 
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">Explanation</label>
+                    <textarea asp-for="Question.Explanation" class="form-control" rows="2" placeholder="Optional explanation..."></textarea>
+                </div>
+            </div>
+             
+            <div class="col-md-5">
+                <div id="mcqOptions" class="p-3 border rounded bg-light h-100">
+                    <label class="form-label fw-bold text-muted small mb-2" id="optionLabel">Options <span class="text-danger">*</span></label>
+
+                    <div id="optionsContainer"> 
+                        @for (int i = 0; i < 4; i++)
+                        {
+                            <div class="mb-2 d-flex align-items-center gap-2 option-row">
+                                <input name="Options[@i].OptionText"
+                                       class="form-control form-control-sm"
+                                       placeholder="Option @(i + 1)" />
+
+                                <div class="form-check text-nowrap mb-0">
+                                    <input type="radio"
+                                           name="CorrectOption"
+                                           value="@i"
+                                           class="form-check-input" />
+                                    <label class="form-check-label small">Correct</label>
+                                </div>
+                            </div>
+                        }
+                    </div>  
+                </div>
+            </div>
+        </div>
+    </div>
+     
+    <div class="modal-footer border-0 p-3 bg-white rounded-bottom">
+        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary px-4 shadow-sm">
+            <i class="bi bi-save me-1"></i> @(Model.Question.QuestionId == 0 || Model.Question.QuestionId == null ? "Save Question" : "Update Question")
+        </button>
+    </div>
+</form>
+ 

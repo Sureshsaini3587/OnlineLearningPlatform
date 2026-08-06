@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.Helpers;
 using OnlineLearning.Helpers.enums;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 
 namespace OnlineLearning.Controllers
 {
@@ -33,39 +35,38 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> Create()
         {
             await LoadDropdowns();
-            return View(new QuestionVM());
+            var vm = new QuestionVM
+            {
+                Question = new PQJQuestion()  
+            };
+            return PartialView("_QuestionForm", vm);
         }
          
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(QuestionVM vm)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    await LoadDropdowns(); 
-                    return View(vm);
-                }
-                 
-                if (vm.Question.QuestionType == QuestionType.MCQ)
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            }
+            try
+            {  
+                if (vm.Question.QuestionType == QuestionType.MCQ || vm.Question.QuestionType == QuestionType.TrueFalse)
                 {
                     if (vm.Options == null || vm.Options.Count < 2)
                     {
-                        ModelState.AddModelError("", "Minimum 2 options required");
-                        return View(vm);
+                        return Json(new { success = false, message = "Minimum 2 options required !" }); 
                     }
                 }
                 int userId = UserHelper.GetUserId(User);
                 vm.Question.CreatedBy = userId;   
-                await _service.CreateAsync(vm.Question, vm.Options, vm.CorrectOption); 
-               _notify.Success("Question created successfully");
-                return RedirectToAction("Index");
+               var result = await _service.CreateAsync(vm.Question, vm.Options, vm.CorrectOption);
+                return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
-                await LoadDropdowns();
-                return View(vm);
+                return Json(new { success = false, message = "System Error: " + ex.Message });
             }
         }
          
@@ -81,57 +82,46 @@ namespace OnlineLearning.Controllers
                 Options = data.Options ?? new List<PQJOption>(),
                 CorrectOption = data.Options?.FindIndex(x => x.IsCorrect) ?? -1
             };
-
-            return View(vm);
+            return PartialView("_QuestionForm", vm); 
         }
          
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(QuestionVM vm)
         {
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            }
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    await LoadDropdowns();
-                    return View(vm);
-                }
                 int userId = UserHelper.GetUserId(User);
                 vm.Question.UpdatedBy = userId;
 
-                await _service.UpdateAsync(vm.Question, vm.Options, vm.CorrectOption);
+               var result =  await _service.UpdateAsync(vm.Question, vm.Options, vm.CorrectOption);
 
-                _notify.Success("Question updated successfully");
-                return RedirectToAction("Index");
+                return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
             {
-                await LoadDropdowns();
-                ModelState.AddModelError("", ex.Message);
-                return View(vm);
+                return Json(new { success = false, message = "System Error: " + ex.Message });
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var data = await _service.GetByIdAsync(id); 
-            var CourseDTO = new QuestionVM
-            {
-                Question = new PQJQuestion
-                {
-                    QuestionId = data.QuestionId,
-                    QuestionText = data.QuestionText
-                }
-            };
-            return View(CourseDTO); 
-        }
-          
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int QuestionId)
         {
-            int userId = UserHelper.GetUserId(User);
-            await _service.DeleteAsync(QuestionId, userId);
-            _notify.Success("Deleted successfully");
-            return RedirectToAction("Index");
+            try
+            {
+                int userId = UserHelper.GetUserId(User);
+             var result = await _service.DeleteAsync(QuestionId, userId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            }
         }
         private async Task LoadDropdowns()
         {
