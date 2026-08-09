@@ -1,0 +1,68 @@
+﻿@model IEnumerable<OnlineLearning.Models.ReadingQuestionVM>
+
+@if (Model != null && Model.Any())
+{
+    int index = 1;
+    foreach (var q in Model)
+    {
+        <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-white">
+            <div class="card-body"> 
+                <h5 class="fw-bold text-dark mb-3">
+                    <span class="text-primary me-2">Q.@index</span> @q.QuestionTextEn
+                </h5>
+                <h6 class="text-muted mb-3">@q.QuestionTextHi</h6>
+                 
+                @if (!string.IsNullOrEmpty(q.DiagramImageUrl))
+                {
+                    <div class="mb-3 text-center">
+                        <img src="@q.DiagramImageUrl" class="img-fluid rounded border" style="max-height: 250px;" alt="Diagram" />
+                    </div>
+                }
+                 
+                <div class="list-group mb-3">
+                    @if (q.Options != null)
+                    {
+                        int optIndex = 0;
+                        char[] optChars = { 'A', 'B', 'C', 'D', 'E', 'F' };
+
+                        foreach (var opt in q.Options)
+                        {
+                            <div class="list-group-item list-group-item-action border rounded mb-2 bg-light">
+                                <span class="fw-bold text-secondary me-2">(@optChars[optIndex])</span>
+                                <span>@opt.OptionTextEn</span> / <span class="text-muted">@opt.OptionTextHi</span>
+                            </div>
+                            optIndex++;
+                        }
+                    }
+                </div>
+                 
+                @if (!string.IsNullOrEmpty(q.ExplanationText))
+                {
+                    <div class="accordion" id="accordionExplanation_@q.QuestionId">
+                        <div class="accordion-item border-0 bg-light">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-transparent shadow-none text-success fw-bold small py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@q.QuestionId">
+                                    <i class="bi bi-lightbulb me-1"></i> View Explanation / Notes
+                                </button>
+                            </h2>
+                            <div id="collapse_@q.QuestionId" class="accordion-collapse collapse" data-bs-parent="#accordionExplanation_@q.QuestionId">
+                                <div class="accordion-body small text-secondary">
+                                    @q.ExplanationText
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        index++;
+    }
+}
+else
+{
+    <div class="text-center py-5 text-muted my-5">
+        <i class="bi bi-journal-x display-4 text-warning"></i>
+        <h5 class="fw-bold mt-3">No questions found</h5>
+        <p class="small">There are no reading questions added for this section yet.</p>
+    </div>
+}

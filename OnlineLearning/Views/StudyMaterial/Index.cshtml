@@ -36,9 +36,9 @@
                                     <strong>HI:</strong> @item.QuestionTextHi
                                 </div>
                             </td>
-                            <td><span class="badge bg-info text-dark">Topic ID: @item.CategoryId</span></td>
+                            <td><span class="badge bg-info text-dark">Course ID: @item.CourseId</span></td>
                             <td>
-                                <span class="badge bg-secondary">Exam ID: @item.ExamId</span>
+                                <span class="badge bg-secondary">Section ID: @item.SectionId</span>
                                 <span class="badge bg-dark">@item.Year</span>
                             </td>
                             <td>
@@ -82,8 +82,48 @@
                 "language": { "search": "", "searchPlaceholder": "Search Mapping..." }
             });
             $('.dataTables_filter input').addClass('form-control shadow-none');
-        }); 
-         
+        });
+        function confirmDelete(id) {
+            showConfirm(
+                "Delete Qusetion",
+                "Are you sure you want to delete this question? This record will be removed permanently.",
+                function() {
+                    var token = $('input[name="__RequestVerificationToken"]').val();
+
+                    $.ajax({
+                        url: '/StudyMaterial/DeleteConfirmed',
+                        type: 'POST',
+                        data: { id: id },
+                        headers: {
+                            "RequestVerificationToken": token
+                        },
+                        success: function(response) {
+                            showNotification('Success', 'Question deleted successfully!', 'success');
+                            
+                            setTimeout(() => location.reload(), 1000);
+                        },
+                        error: function(xhr) {
+                            showNotification('Error', 'Could not delete questiom. Error: ' + xhr.statusText, 'error');
+                        }
+                    });
+                }
+            );
+        }
+        $(document).on('change', '#CourseId', function (e) { 
+            var courseId = $(this).val();
+            var sectionDropdown = $('#SectionId');
+            
+            sectionDropdown.empty();
+            sectionDropdown.append('<option value="">-- Select Section --</option>');
+
+            if (courseId) {
+                $.get('/StudyMaterial/GetSectionsByCourseId', { courseId: courseId }, function (data) {
+                    $.each(data, function (index, item) {
+                        sectionDropdown.append($('<option></option>').val(item.id).text(item.title));
+                    });
+                });
+            }
+        });
         $(document).on('submit', '#ReadingForm', function (e) {
             e.preventDefault();
     

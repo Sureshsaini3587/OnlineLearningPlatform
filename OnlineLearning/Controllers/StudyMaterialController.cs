@@ -10,11 +10,14 @@ namespace OnlineLearning.Controllers
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class StudyMaterialController : Controller
     {
-        private readonly IReadingQuestionRepository _questionRepo;
-         
-        public StudyMaterialController(IReadingQuestionRepository questionRepo)
+        private readonly ICourseRepository _course;
+        private readonly IReadingQuestionRepository _questionRepo; 
+        private readonly ICourseSectionRepository _section;
+        public StudyMaterialController(ICourseRepository cousre,IReadingQuestionRepository questionRepo, ICourseSectionRepository section)
         {
+            _course = cousre;
             _questionRepo = questionRepo;
+            _section = section;
         }
          
         public async Task<IActionResult> Index()
@@ -22,22 +25,21 @@ namespace OnlineLearning.Controllers
             var data = await _questionRepo.GetAllAsync();
             return View(data);
         }
-         
+
         [HttpGet]
         public async Task<IActionResult> Create()
         {
             var vm = new ReadingQuestionVM();
+            var courses = await _course.GetAllAsync();
 
-            ViewBag.Exams = new SelectList(new List<SelectListItem> {
-                new SelectListItem { Value = "1", Text = "RAS" },
-                new SelectListItem { Value = "2", Text = "UPSC" }
-            }, "Value", "Text");
-
-            ViewBag.Categories = new SelectList(new List<SelectListItem> {
-                new SelectListItem { Value = "1", Text = "Rajasthan Art & Culture" },
-                new SelectListItem { Value = "2", Text = "Indian History" }
-            }, "Value", "Text");
-
+            ViewBag.Courses = new SelectList(
+                courses.Select(x => new SelectListItem
+                {
+                    Value = x.CourseId.ToString(),
+                    Text = x.CourseTitle
+                }),
+                "Value",  "Text" );
+            ViewBag.Sections = new SelectList(new List<SelectListItem>(), "Value", "Text");
             return PartialView("_ReadingQuestionForm", vm);
         }
          
@@ -78,7 +80,16 @@ namespace OnlineLearning.Controllers
                 return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
-          
+        [HttpGet]
+        public async Task<IActionResult> GetSectionsByCourseId(int courseId)
+        {
+            var sections = await _section.GetByCourseId(courseId);
+            var sectionList = sections.Select(x => new {
+                id = x.SectionId,
+                title = x.SectionTitle
+            });
+            return Json(sectionList);
+        }
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -86,20 +97,28 @@ namespace OnlineLearning.Controllers
 
             var model = await _questionRepo.GetByIdAsync(id);
             if (model == null) return Json(new { success = false, message = "Question not found!" });
-
-            ViewBag.Exams = new SelectList(new List<SelectListItem> {
-                new SelectListItem { Value = "1", Text = "RAS" },
-                new SelectListItem { Value = "2", Text = "UPSC" }
-            }, "Value", "Text", model.ExamId);
-
-            ViewBag.Categories = new SelectList(new List<SelectListItem> {
-                new SelectListItem { Value = "1", Text = "Rajasthan Art & Culture" },
-                new SelectListItem { Value = "2", Text = "Indian History" }
-            }, "Value", "Text", model.CategoryId);
+             
+            var courses = await _course.GetAllAsync();
+            ViewBag.Courses = new SelectList(
+                courses.Select(x => new SelectListItem
+                {
+                    Value = x.CourseId.ToString(),
+                    Text = x.CourseTitle
+                }),
+                "Value", "Text", model.CourseId);
+             
+            var section = await _section.GetByCourseId(model.CourseId);
+            ViewBag.Sections = new SelectList(
+              section.Select(x => new SelectListItem
+              {
+                  Value = x.SectionId.ToString(),
+                  Text = x.SectionTitle
+              }),
+              "Value", "Text", model.SectionId);  
 
             return PartialView("_ReadingQuestionForm", model);
         }
-         
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ReadingQuestionVM model, IFormFile? DiagramFile, int CorrectOptionIndex)

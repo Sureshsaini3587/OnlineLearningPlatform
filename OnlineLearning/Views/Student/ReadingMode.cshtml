@@ -1,90 +1,144 @@
-﻿ 
-@model StudentReadingVM
+﻿@model OnlineLearning.Models.StudentReadingVM
 
-<div class="container-fluid py-4 bg-light min-vh-100">
-     
-    <div class="row justify-content-center mb-4">
-        <div class="col-md-8 text-center">
-            <div class="btn-group shadow-sm bg-white p-1 rounded-pill w-100" role="group">
-                <a href="#" class="btn btn-outline-secondary rounded-pill border-0">🎥 VIDEO MODE</a>
-                <a href="#" class="btn btn-warning rounded-pill fw-bold shadow-sm">📖 READING MODE (Notes + PYQs)</a>
-                <a href="#" class="btn btn-outline-secondary rounded-pill border-0">📝 TEST MODE (PYQ)</a>
+<div class="container-fluid my-3">
+    <!-- Top Mode Navigation Bar -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm rounded-4 p-2 bg-white">
+                <div class="d-flex justify-content-around text-center">
+                    <a href="javascript:void(0);" class="btn btn-outline-secondary border-0 flex-fill py-2 text-muted fw-bold">
+                        <i class="bi bi-play-circle-fill me-1"></i> VIDEO MODE <br><small class="text-muted fw-normal" style="font-size: 11px;">Learn with Video + Notes</small>
+                    </a>
+                    <a href="javascript:void(0);" class="btn btn-warning bg-opacity-10 text-dark border border-warning flex-fill py-2 fw-bold rounded-3 shadow-sm">
+                        <i class="bi bi-book-half text-warning me-1"></i> READING MODE (Notes + PYQs) <br><small class="text-muted fw-normal" style="font-size: 11px;">Study Notes + PYQs with Explanations</small>
+                    </a>
+                    <a href="javascript:void(0);" class="btn btn-outline-secondary border-0 flex-fill py-2 text-muted fw-bold">
+                        <i class="bi bi-file-earmark-text-fill me-1"></i> TEST MODE (PYQ) <br><small class="text-muted fw-normal" style="font-size: 11px;">Practice PYQs in Test Environment</small>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="row"> 
-        <div class="col-lg-9">
-            <div class="card border-0 shadow-sm p-4 mb-3 bg-white rounded-4">
-                 
-                <div class="mb-3">
-                    <h5 class="fw-bold text-dark">
-                        Q. @Model.QuestionNumber. @Model.QuestionTextEn
-                    </h5>
-                </div> 
-                <div class="mb-4 pb-3 border-bottom">
-                    <h5 class="fw-bold text-secondary">
-                        प्र. @Model.QuestionNumber. @Model.QuestionTextHi
+    <div class="row g-3">
+        
+        <!-- 1. LEFT SIDEBAR (Courses & Sections Syllabus) -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 20px; max-height: 80vh; overflow-y: auto;">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-list-nested text-primary me-2"></i> Reading Syllabus
                     </h5>
                 </div>
-                 
-                @if (!string.IsNullOrEmpty(Model.DiagramImageUrl))
-                {
-                    <div class="text-center my-4 p-3 border rounded bg-light">
-                        <img src="@Model.DiagramImageUrl" alt="Diagram" class="img-fluid rounded" style="max-height: 350px;" />
-                    </div>
-                } 
-                <div class="row g-3 mb-4">
-                    @foreach (var opt in Model.Options)
+                <div class="card-body p-2">
+                    @if (Model != null && Model.EnrolledCourses != null && Model.EnrolledCourses.Any())
                     {
-                        string optionClass = opt.IsCorrect ? "border-success bg-success bg-opacity-10 text-success fw-bold" : "border-light bg-light";
-                        
-                        <div class="col-md-6">
-                            <div class="p-3 border rounded-3 @optionClass d-flex align-items-center">
-                                <div class="ms-2">
-                                    <div>@opt.OptionTextEn</div>
-                                    <div class="small text-muted">@opt.OptionTextHi</div>
+                        <div class="accordion accordion-flush" id="courseAccordion">
+                            @foreach (var course in Model.EnrolledCourses)
+                            {
+                                <div class="accordion-item border-0 mb-2">
+                                    <h2 class="accordion-header" id="heading_@course.CourseId">
+                                        <button class="accordion-button collapsed bg-light rounded-3 fw-bold text-dark small py-2 px-3 shadow-none"
+                                                type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@course.CourseId">
+                                            <i class="bi bi-book me-2 text-primary"></i> @course.CourseTitle
+                                        </button>
+                                    </h2>
+                                    <div id="collapse_@course.CourseId" class="accordion-collapse collapse" data-bs-parent="#courseAccordion">
+                                        <div class="accordion-body px-2 py-1">
+                                            <div class="list-group list-group-flush small">
+                                                @if (course.Sections != null && course.Sections.Any())
+                                                {
+                                                    foreach (var sec in course.Sections)
+                                                    {
+                                                        <a href="javascript:void(0);" onclick="loadQuestions(@course.CourseId, @sec.SectionId)"
+                                                               class="list-group-item list-group-item-action border-0 rounded my-1 text-secondary section-link">
+                                                            <i class="bi bi-chevron-right me-1 text-muted small"></i> @sec.SectionTitle
+                                                        </a>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small ps-3">No sections available</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            }
                         </div>
                     }
+                    else
+                    {
+                        <p class="text-muted small text-center p-3">No enrolled courses found.</p>
+                    }
                 </div>
-                 
-                @if (!string.IsNullOrEmpty(Model.ExplanationText))
-                {
-                    <div class="p-3 mt-3 bg-info bg-opacity-10 border border-info rounded-3">
-                        <h6 class="fw-bold text-info mb-1"><i class="bi bi-info-circle me-1"></i> Explanation & Notes:</h6>
-                        <p class="mb-0 text-dark small">@Model.ExplanationText</p>
-                    </div>
-                }
-
             </div>
         </div>
          
-        <div class="col-lg-3">
-            <div class="card border-0 shadow-sm p-3 mb-3 bg-white rounded-4">
-                <h6 class="fw-bold text-muted border-bottom pb-2">QUESTION INFO</h6>
-                <ul class="list-unstyled small mb-0">
-                    <li class="d-flex justify-content-between py-1"><span>Exam:</span> <strong class="text-primary">RAS</strong></li>
-                    <li class="d-flex justify-content-between py-1"><span>Year:</span> <strong>@Model.Year</strong></li>
-                    <li class="d-flex justify-content-between py-1"><span>Question No:</span> <strong>Q.@Model.QuestionNumber</strong></li>
-                    <li class="d-flex justify-content-between py-1">
-                        <span>Difficulty:</span>
-                        <strong class="@(Model.DifficultyLevel == 1 ? "text-success" : "text-warning")">
-                            @(Model.DifficultyLevel == 1 ? "Easy" : Model.DifficultyLevel == 2 ? "Medium" : "Hard")
-                        </strong>
-                    </li>
-                </ul>
-            </div>
-             
-            <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
-                <h6 class="fw-bold text-muted border-bottom pb-2">LEGEND</h6>
-                <div class="small text-muted">
-                    <div class="mb-1"><i class="bi bi-check-circle-fill text-success me-1"></i> Correct Answer Highlighted</div>
-                    <div class="mb-1"><i class="bi bi-bookmark-fill text-warning me-1"></i> Bookmark Question</div>
-                    <div><i class="bi bi-journal-text text-info me-1"></i> Includes Notes</div>
+        <!-- 2. MIDDLE CONTENT AREA (Questions Display Container) -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4" id="questionsContainer" style="min-height: 75vh; background-color: #f8f9fa;">
+                    <div class="text-center py-5 text-muted my-5">
+                        <i class="bi bi-arrow-left-circle display-4 text-primary"></i>
+                        <h5 class="fw-bold mt-3">Select a section from the left sidebar</h5>
+                        <p class="small">Click on any course and section to start reading questions and explanations.</p>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- 3. RIGHT SIDEBAR (Question Info & Filters - As per Image) -->
+        <div class="col-md-3">
+            <!-- Question Info Box -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-3 sticky-top" style="top: 20px;">
+                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-info-circle me-1"></i> QUESTION INFO</h6>
+                <div class="small text-muted mb-2 d-flex justify-content-between"><span>Exam:</span> <strong class="text-dark">General</strong></div>
+                <div class="small text-muted mb-2 d-flex justify-content-between"><span>Year:</span> <span class="badge bg-success bg-opacity-10 text-success">2026</span></div>
+                <div class="small text-muted mb-2 d-flex justify-content-between"><span>Paper:</span> <strong class="text-dark">Shift-1</strong></div>
+                <div class="small text-muted mb-2 d-flex justify-content-between"><span>Question No.:</span> <span class="badge bg-warning bg-opacity-10 text-dark">--</span></div>
+                <div class="small text-muted d-flex justify-content-between"><span>Difficulty:</span> <span class="badge bg-primary bg-opacity-10 text-primary">Medium</span></div>
+            </div>
+
+            <!-- Filters Box -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="bi bi-funnel me-1"></i> FILTERS</h6>
+                <div class="form-check small mb-2">
+                    <input class="form-check-input" type="checkbox" id="allExams" checked>
+                    <label class="form-check-label text-dark fw-bold" for="allExams">All Questions</label>
+                </div>
+                <div class="form-check small mb-2">
+                    <input class="form-check-input" type="checkbox" id="pyqs">
+                    <label class="form-check-label text-muted" for="pyqs">PYQs Only</label>
+                </div>
+                <div class="form-check small">
+                    <input class="form-check-input" type="checkbox" id="favorites">
+                    <label class="form-check-label text-muted" for="favorites">Favorites / Bookmarks</label>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function loadQuestions(courseId, sectionId) { 
+            $('.section-link').removeClass('active bg-primary text-white');
+            event.currentTarget.classList.add('active', 'bg-primary', 'text-white');
+              
+            $('#questionsContainer').html(`
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2 small">Loading questions...</p>
+                </div>
+            `);
+              
+            $.get('/Student/GetQuestionsPartial', { courseId: courseId, sectionId: sectionId }, function (htmlResponse) {
+                $('#questionsContainer').html(htmlResponse);
+            }).fail(function() {
+                $('#questionsContainer').html('<div class="text-center text-danger py-5">Failed to load questions. Please try again.</div>');
+            });
+        }
+    </script>
+}

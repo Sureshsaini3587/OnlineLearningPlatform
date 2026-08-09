@@ -16,14 +16,16 @@ namespace OnlineLearning.Controllers
     {
         private readonly ICourseRepository _course;
         private readonly IPQJQuestionRepository _pqj;
-        private readonly IMemoryCache _cache; 
+        private readonly IMemoryCache _cache;
+        private readonly IReadingQuestionRepository _questionRepo;
         private readonly IStudentRepository _student;
         private readonly ProtectorService _protect;
-        public StudentController(ICourseRepository course, IMemoryCache cache, ProtectorService protect, INotificationService notify,IStudentRepository student, IPQJQuestionRepository pqj) :
+        public StudentController(ICourseRepository course, IMemoryCache cache, IReadingQuestionRepository questionRepo , ProtectorService protect, INotificationService notify,IStudentRepository student, IPQJQuestionRepository pqj) :
             base(notify)
         {
             _course = course;
             _protect = protect;
+            _questionRepo = questionRepo;
             _cache = cache;
             _student = student;
             _pqj = pqj;
@@ -36,7 +38,30 @@ namespace OnlineLearning.Controllers
             var data = await _student.GetDashboard(userId); 
             return View(data); 
         }
-   
+
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> ReadingMode()
+        {
+            int userId = UserHelper.GetUserId(User);
+            var data = await _questionRepo.GetStudentReadingSyllabusAsync(userId);
+             
+            return View(data);
+        }
+
+        [Authorize(Roles = "Student")]
+        [HttpGet]
+        public async Task<IActionResult> GetQuestionsPartial(int courseId, int sectionId)
+        { 
+            var questions = await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId);
+             
+            foreach (var q in questions)
+            {
+                q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
+            }
+             
+            return PartialView("_StudentQuestionsList", questions);
+        }
+
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> MyCourses()
         {

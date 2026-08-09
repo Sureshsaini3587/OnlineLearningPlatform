@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
@@ -10,15 +9,12 @@ using System.Data;
 namespace OnlineLearning.BusinessLogics.Repository
 {
     public class CourseRepository : ICourseRepository
-    {
-        private const string CacheKey = "CourseWithDetails"; 
-        private readonly IConfiguration _config;
-        private readonly IMemoryCache _cache;
+    { 
+        private readonly IConfiguration _config; 
 
-        public CourseRepository(IConfiguration config, IMemoryCache cache)
+        public CourseRepository(IConfiguration config )
         {
-            _config = config;
-            _cache = cache;
+            _config = config; 
         }
 
         private IDbConnection Connection
@@ -64,10 +60,7 @@ namespace OnlineLearning.BusinessLogics.Repository
         public async Task<List<CourseDTO>> GetAllWithDetails()
         {
             string cacheKey = "CourseWithDetails";
-            if (_cache.TryGetValue( cacheKey, out List<CourseDTO> courses))
-            {
-                return courses;
-            }
+            
             using var db = Connection;
 
             var data = await db.QueryAsync<CourseDTO>(
@@ -76,19 +69,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                 commandType: CommandType.StoredProcedure
             );
 
-            courses = data.ToList();
-            _cache.Set(cacheKey,courses,
-                new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow =
-                        TimeSpan.FromMinutes(30), 
-                    SlidingExpiration =
-                        TimeSpan.FromMinutes(10), 
-                    Priority =
-                        CacheItemPriority.High
-                });
-
-            return courses;
+            return  data.ToList(); 
         }
 
         public async Task<CourseDTO?> GetByIdAsync(int id)
@@ -172,8 +153,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                  );
 
                 if (result > 0)
-                {
-                    _cache.Remove(CacheKey);
+                { 
                     return new Result { Success = true, Message = "Course added successfully." };
                 }
 
@@ -212,8 +192,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                 );
 
                 if (result > 0)
-                {
-                    _cache.Remove(CacheKey);
+                { 
                     return new Result { Success = true, Message = "Course updated successfully." };
                 }
 
@@ -237,8 +216,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                 );
 
                 if (result > 0)
-                {
-                    _cache.Remove(CacheKey);
+                { 
                     return new Result { Success = true, Message = "Course deleted successfully." };
                 }
 

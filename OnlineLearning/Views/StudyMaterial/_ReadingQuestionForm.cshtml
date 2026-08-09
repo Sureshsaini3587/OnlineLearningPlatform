@@ -14,9 +14,9 @@
                 <input asp-for="QuestionNumber" class="form-control form-control-sm" type="number" placeholder="101" required />
             </div>
             <div class="col-md-3">
-                <label class="form-label fw-bold text-muted small">Exam *</label>
-                <select asp-for="ExamId" asp-items="ViewBag.Exams" class="form-select form-select-sm" required>
-                    <option value="">-- Select Exam --</option>
+                <label class="form-label fw-bold text-muted small">Course *</label>
+                <select asp-for="CourseId" asp-items="ViewBag.Courses" class="form-select form-select-sm" required>
+                    <option value="">-- Select Course --</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -42,9 +42,9 @@
             </div>
              
             <div class="col-md-6">
-                <label class="form-label fw-bold text-muted small">Subject / Category *</label>
-                <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select form-select-sm" required>
-                    <option value="">-- Select Category --</option>
+                <label class="form-label fw-bold text-muted small">Section / Chapter *</label>
+                <select asp-for="SectionId" asp-items="ViewBag.Sections" class="form-select form-select-sm" required>
+                    <option value="">-- Select Section --</option>
                 </select>
             </div>
             <div class="col-md-6">
@@ -96,4 +96,4 @@
             <i class="bi bi-save me-1"></i> Save Question
         </button>
     </div>
-</form>
+</form> 

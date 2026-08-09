@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.Models;
 using OnlineLearning.Models.ResponseModel;
@@ -12,12 +11,10 @@ namespace OnlineLearning.BusinessLogics.Repository
     {
 
         private readonly IConfiguration _config;
-
-        private readonly IMemoryCache _cache;
-        public CourseSectionRepository(IConfiguration config, IMemoryCache cache)
+         
+        public CourseSectionRepository(IConfiguration config)
         {
-            _config = config;
-            _cache = cache;
+            _config = config; 
         }
 
         private IDbConnection Connection
@@ -43,31 +40,15 @@ namespace OnlineLearning.BusinessLogics.Repository
         public async Task<List<CourseSectionDTO>> GetByCourseId(int courseId)
         {
             string cacheKey = $"COURSE_SECTIONS_{courseId}"; 
-            if (_cache.TryGetValue(  cacheKey, out List<CourseSectionDTO> sections))
-            {
-                return sections;
-            }
+           
             using var db = Connection; 
             var data = await db.QueryAsync<CourseSectionDTO>(
                   "sp_CourseSection",
                   new { Action = "GET_ALL_BYCourse", CourseId = courseId },
                   commandType: CommandType.StoredProcedure
               );
-            sections = data.ToList();  
-            _cache.Set(  cacheKey,  sections,
-                new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow =
-                        TimeSpan.FromMinutes(30),
-
-                    SlidingExpiration =
-                        TimeSpan.FromMinutes(10),
-
-                    Priority =
-                        CacheItemPriority.Normal
-                });
-
-            return sections;
+            return data.ToList();    
+             
         }  
         public async Task<List<CourseSectionDTO>> GetAllWithDetails()
         {
@@ -113,8 +94,7 @@ namespace OnlineLearning.BusinessLogics.Repository
 
                 if (result > 0)
                 { 
-                    string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
-                    _cache.Remove(cacheKey);
+                    string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}"; 
                     return new Result { Success = true, Message = "Section added successfully." };
                 }
 
@@ -148,8 +128,7 @@ namespace OnlineLearning.BusinessLogics.Repository
 
                 if (result > 0)
                 { 
-                    string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
-                    _cache.Remove(cacheKey);
+                    string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}"; 
                     return new Result { Success = true, Message = "Section updated successfully." };
                 }
 
@@ -174,8 +153,7 @@ namespace OnlineLearning.BusinessLogics.Repository
 
                 if (result > 0)
                 {  
-                    string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}";
-                    _cache.Remove(cacheKey);
+                    string cacheKey = $"COURSE_SECTIONS_{entity.CourseId}"; 
                     return new Result { Success = true, Message = "Section deleted successfully." };
                 }
 

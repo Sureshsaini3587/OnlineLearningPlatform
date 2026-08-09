@@ -7,9 +7,7 @@
         public string QuestionTextHi { get; set; } 
 
         public int CourseId { get; set; }
-        public int CategoryId { get; set; }      
-        public int? SubCategoryId { get; set; }   
-        public int ExamId { get; set; }         
+        public int SectionId { get; set; }              
         public int Year { get; set; }        
         public string Shift { get; set; }    
         public int QuestionNumber { get; set; } 

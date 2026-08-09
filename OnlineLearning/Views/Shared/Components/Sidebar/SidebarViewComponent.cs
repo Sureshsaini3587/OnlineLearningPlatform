@@ -22,6 +22,7 @@ namespace OnlineLearning.Views.Shared.Components.Sidebar
                 menu.Add(new NavigationItem { Title = "Subscription", Controller = "Student", Action = "Subscription", Icon = "bi bi-gem" });
                 menu.Add(new NavigationItem { Title = "PQJ Practice", Controller = "Student", Action = "PQJ", Icon = "bi bi-ui-checks-grid" });
                 menu.Add(new NavigationItem { Title = "Profile", Controller = "Student", Action = "Profile", Icon = "bi bi-person-circle" });
+                menu.Add(new NavigationItem { Title = "ReadingMode", Controller = "Student", Action = "ReadingMode", Icon = "bi bi-person-circle" });
                 menu.Add(new NavigationItem { Title = "Logout", Controller = "Account", Action = "Logout", Icon = "bi bi-box-arrow-right" }); 
             } 
            

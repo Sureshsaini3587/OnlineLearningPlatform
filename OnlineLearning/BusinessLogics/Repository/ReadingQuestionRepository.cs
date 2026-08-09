@@ -24,6 +24,58 @@ namespace OnlineLearning.Repositories
                 return new SqlConnection(_config.GetConnectionString("DbConnection"));
             }
         }
+        public async Task<StudentReadingVM> GetStudentReadingSyllabusAsync(int studentId)
+        {
+            using var db = Connection;
+             
+            var courseQuery = @"
+        SELECT DISTINCT 
+            c.CourseId,  
+            c.CourseTitle,    
+            c.Description,   
+            c.Thumbnail,
+            c.IsActive,   
+            L.LevelName,  
+            CT.CategoryName,   
+            ss.EndDate   
+        FROM StudentSubscriptions ss   
+        INNER JOIN PlanCourses pc ON ss.PlanId = pc.PlanCourseId   
+        INNER JOIN Courses c ON pc.CourseId = c.CourseId   
+        INNER JOIN CourseCategories CT ON CT.CategoryId = C.CategoryId  
+        INNER JOIN CourseLevels L ON L.LevelId = c.Level  
+        WHERE ss.StudentId = @StudentId  
+          AND ss.IsActive = 1  
+          AND ss.EndDate >= GETDATE()
+          AND c.IsDeleted = 0";
+
+            var courses = (await db.QueryAsync<EnrolledCourseVM>(courseQuery, new { StudentId = studentId })).ToList();
+             
+            foreach (var course in courses)
+            {
+                var sectionQuery = "SELECT SectionId, SectionTitle FROM CourseSections WHERE CourseId = @CourseId AND IsDeleted = 0 ORDER BY SectionId ASC";
+                var sections = await db.QueryAsync<CourseSectionVM>(sectionQuery, new { CourseId = course.CourseId });
+                course.Sections = sections.ToList();
+            }
+
+            return new StudentReadingVM { EnrolledCourses = courses };
+        }
+        public async Task<IEnumerable<ReadingQuestionVM>> GetQuestionsBySectionAsync(int courseId, int sectionId)
+        {
+            using var db = Connection;
+            var query = "SELECT * FROM ReadingQuestions WHERE CourseId = @CourseId AND SectionId = @SectionId AND IsDeleted = 0 ORDER BY QuestionNumber ASC";
+
+            var questions = await db.QueryAsync<ReadingQuestionVM>(query, new { CourseId = courseId, SectionId = sectionId });
+            return questions;
+        }
+         
+        public async Task<IEnumerable<ReadingOptionVM>> GetOptionsByQuestionIdAsync(int questionId)
+        {
+            using var db = Connection;
+            var query = "SELECT * FROM ReadingOptions WHERE QuestionId = @QuestionId";
+
+            var options = await db.QueryAsync<ReadingOptionVM>(query, new { QuestionId = questionId });
+            return options;
+        }
         public async Task<List<ReadingQuestionVM>> GetAllAsync()
         {
             using var _db = Connection;
@@ -63,9 +115,7 @@ namespace OnlineLearning.Repositories
                     model.QuestionTextEn,
                     model.QuestionTextHi,
                     model.CourseId,
-                    model.CategoryId,
-                    model.SubCategoryId,
-                    model.ExamId,
+                    model.SectionId,  
                     model.Year,
                     model.Shift,
                     model.DifficultyLevel,
@@ -107,9 +157,7 @@ namespace OnlineLearning.Repositories
                     model.QuestionTextEn,
                     model.QuestionTextHi,
                     model.CourseId,
-                    model.CategoryId,
-                    model.SubCategoryId,
-                    model.ExamId,
+                    model.SectionId,  
                     model.Year,
                     model.Shift,
                     model.DifficultyLevel,
@@ -121,17 +169,13 @@ namespace OnlineLearning.Repositories
 
                 var affectedRows = await _db.ExecuteAsync(query, parameters, commandType: CommandType.StoredProcedure);
 
-                if (affectedRows > 0)
-                { 
+                 
                     if (model.Options != null && model.Options.Any())
                     {
                         await SaveOptionsAsync(model.QuestionId, model.Options);
                     }
 
-                    return new Result { Success = true, Message = "Question updated successfully." };
-                }
-
-                return new Result { Success = false, Message = "Question not found or update failed." };
+                    return new Result { Success = true, Message = "Question updated successfully." }; 
             }
             catch (Exception ex)
             {

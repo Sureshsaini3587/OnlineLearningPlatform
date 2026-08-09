@@ -2,30 +2,24 @@
 {
     public class StudentReadingVM
     {
-        public int QuestionId { get; set; }
-        public int QuestionNumber { get; set; }
-        public string QuestionTextEn { get; set; }
-        public string QuestionTextHi { get; set; }
-        public int DifficultyLevel { get; set; }
-        public string? DiagramImageUrl { get; set; }
-        public string? ExplanationText { get; set; }
-
-        public int ExamId { get; set; }
-        public int Year { get; set; }
-        public string Shift { get; set; }
-
-        public List<StudentOptionVM> Options { get; set; } = new List<StudentOptionVM>();
-         
-        public int TotalQuestions { get; set; }
-        public int AttemptedCount { get; set; }
-        public int CurrentIndex { get; set; }
+        public List<EnrolledCourseVM> EnrolledCourses { get; set; } = new List<EnrolledCourseVM>();
     }
 
-    public class StudentOptionVM
+    public class EnrolledCourseVM
     {
-        public int OptionId { get; set; }
-        public string OptionTextEn { get; set; }
-        public string OptionTextHi { get; set; }
-        public bool IsCorrect { get; set; }
+        public int CourseId { get; set; }
+        public string CourseTitle { get; set; }
+        public string Description { get; set; }
+        public string Thumbnail { get; set; }
+        public string LevelName { get; set; }
+        public string CategoryName { get; set; }
+        public DateTime EndDate { get; set; } 
+        public List<CourseSectionVM> Sections { get; set; } = new List<CourseSectionVM>();
+    }
+
+    public class CourseSectionVM
+    {
+        public int SectionId { get; set; }
+        public string SectionTitle { get; set; }
     }
 }
