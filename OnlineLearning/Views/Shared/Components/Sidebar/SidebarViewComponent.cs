@@ -49,10 +49,8 @@ namespace OnlineLearning.Views.Shared.Components.Sidebar
                      new NavigationItem { Title = "Course Videos", Controller = "CourseVideo", Action = "Index" },
                      new NavigationItem { Title = "Course Plan Mapping", Controller = "PlanCourse", Action = "Index" }
                  }},
-             
-                 new NavigationItem { Title = "Study Materials", Icon = "bi bi-file-earmark-text-fill", SubItems = new List<NavigationItem> {
-                     new NavigationItem { Title = "Upload Notes", Controller = "Study", Action = "UploadNotes" }
-                 }}
+
+                 new NavigationItem { Title = "Study Material", Controller = "StudyMaterial", Action = "Index", Icon = "bi bi-people-fill" },
              };
 
             return menu;

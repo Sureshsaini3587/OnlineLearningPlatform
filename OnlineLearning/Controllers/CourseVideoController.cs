@@ -31,16 +31,16 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> Create()
         {
             await LoadDropdowns();
-            return View();
+            return PartialView("_VideoForm", new CourseVideo());
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CourseVideo model)
         {
             if (!ModelState.IsValid)
             {
-                await LoadDropdowns();
-                return View(model);
+                return Json(new { success = false, message = "Fill the data correctly !" });
             }
             int userId = UserHelper.GetUserId(User);
             var CourseDTO = new CourseVideoDTO
@@ -74,16 +74,20 @@ namespace OnlineLearning.Controllers
                 IsDemo = course.IsDemo,
                 SortOrder = course.SortOrder,
                 IsActive = course.IsActive,
-            };
-            return View(CourseDTO);
+            }; 
+            return PartialView("_VideoForm", CourseDTO); 
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CourseVideo model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                int userId = UserHelper.GetUserId(User);
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            }
+
+            int userId = UserHelper.GetUserId(User);
                 var CourseDTO = new CourseVideoDTO
                 {
                     VideoId = model.VideoId,
@@ -98,31 +102,28 @@ namespace OnlineLearning.Controllers
                 };
                 var result = await _video.UpdateAsync(CourseDTO);
                 return Json(new { success = result.Success, message = result.Message });
-            }
-            await LoadDropdowns();
-            return View(model);
+            
         }
 
-        public async Task<IActionResult> Delete(int id)
-        {
-            var course = await _video.GetByIdAsync(id);
-            var CourseDTO = new CourseVideo
-            {
-                Title = course.Title,
-                VideoId = course.VideoId
-            };
-            return View(CourseDTO);
-        }
-
+        
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int VideoId)
         {
-            int userId = UserHelper.GetUserId(User);
-            var course = await _video.GetByIdAsync(VideoId);
-            course.IsDeleted = true;
-            course.UpdatedBy = userId;
-            var result = await _video.DeleteAsync(course);
-            return Json(new { success = result.Success, message = result.Message });
+            try
+            {
+                int userId = UserHelper.GetUserId(User);
+                var course = await _video.GetByIdAsync(VideoId);
+                course.IsDeleted = true;
+                course.UpdatedBy = userId;
+                var result = await _video.DeleteAsync(course);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            }
+           
         }
         private async Task LoadDropdowns()
         {

@@ -248,7 +248,7 @@ namespace OnlineLearning.Controllers
         [HttpGet]
         public async Task<IActionResult> Categories()
         {
-            var courses = await _coursecategory.GetAllWithDetails();
+            var courses = await _coursecategory.GetAllWithDetails(); 
             return View(courses);
         }
 
@@ -256,17 +256,17 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> CategoriesCreate()
         {
            await LoadParentCategory();
-            return View();
+            return PartialView("_CategoryForm", new CourseCategories()); 
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CategoriesCreate(CourseCategories model)
         {
             if (!ModelState.IsValid)
             {
-                await LoadParentCategory();
-                return View(model);
-            }
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            } 
             int userId = UserHelper.GetUserId(User);
             var CourseDTO = new CourseCategoriesDTO
             { 
@@ -283,8 +283,7 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> CategoryEdit(int id)
         {
             var course = await _coursecategory.GetByIdAsync(id);
-            if (course == null) return NotFound();
-             
+            if (course == null) return NotFound(); 
             var CourseDTO = new CourseCategories
             {
                 CategoryId = course.CategoryId,
@@ -295,14 +294,18 @@ namespace OnlineLearning.Controllers
             };
 
             await LoadParentCategory();
-            return View(CourseDTO);
+            return PartialView("_CategoryForm", CourseDTO); 
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CategoryEdit(CourseCategories model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            }
+          
                 int userId = UserHelper.GetUserId(User);
                 var CourseDTO = new CourseCategoriesDTO
                 {
@@ -314,33 +317,27 @@ namespace OnlineLearning.Controllers
                     UpdatedBy = userId
                 };
                 var result = await _coursecategory.UpdateAsync(CourseDTO);
-                return Json(new { success = result.Success, message = result.Message }); 
-            }
-
-            await LoadParentCategory();
-            return View(model);
+                return Json(new { success = result.Success, message = result.Message });  
         }
-        public async Task<IActionResult> CategoryDelete(int id)
-        {
-            var course = await _coursecategory.GetByIdAsync(id);
-            var CourseDTO = new CourseCategories
-            {
-                CategoryId = course.CategoryId,
-                CategoryName= course.CategoryName,
-            };
-            return View(CourseDTO);
-        }
+        
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CategoryDeleteConfirmed(int CategoryId)
         {
-            int userId = UserHelper.GetUserId(User);
-            var course = await _coursecategory.GetByIdAsync(CategoryId);
-            course.IsDeleted = true;
-            course.UpdatedBy = userId;
-            var result = await _coursecategory.DeleteAsync(course);
-            _notify.Success("Course delete successfully!");
-            return RedirectToAction("Index");
+            try
+            {
+                int userId = UserHelper.GetUserId(User);
+                var course = await _coursecategory.GetByIdAsync(CategoryId);
+                course.IsDeleted = true;
+                course.UpdatedBy = userId;
+                var result = await _coursecategory.DeleteAsync(course);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            } 
         }
         private async Task LoadParentCategory()
         {

@@ -3,20 +3,23 @@
 
 <div class="card">
     <div class="card-header">
-        <div class="d-flex justify-content-between mb-3">
-            <h5>📚 Course Plan Mapping List</h5>
-            <a asp-action="Create" class="btn btn-primary">+ Add New</a>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">📚 Course Plan Mapping List</h5>
+            <button type="button" class="btn btn-nav-solid shadow-sm"
+                    onclick="openGlobalModal('Mapping Details', '/PlanCourse/Create')">
+                <i class="bi bi-plus-lg me-1"></i> New Mapping
+            </button>
         </div>
     </div>
-    <div class="card-block table-border-style">
+    <div class="card-block table-border-style p-3">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover align-middle" id="mappingtable">
                 <thead>
                     <tr>
-                        <th>Sr.No.</th>
+                        <th width="80">Sr.No.</th>
                         <th>Plan</th>
-                        <th>Courses</th> 
-                        <th width="180">Action</th>
+                        <th>Mapped Courses</th>
+                        <th width="120" class="text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,35 +29,99 @@
                     @foreach (var item in Model)
                     {
                         <tr>
+                            <td>@srNo</td>
+                            <td class="fw-bold">@item.Plans.First().Text</td>
                             <td>
-                                @srNo
-                            </td>
-                            <td>
-                                @item.Plans.First().Text
-                            </td>
-
-                            <td>
-                                @foreach (var course in item.Courses)
+                                @if (item.Courses != null && item.Courses.Any())
                                 {
-                                    <span class="badge bg-primary me-1">
-                                        @course.Text
-                                    </span>
+                                    @foreach (var course in item.Courses)
+                                    {
+                                        <span class="badge bg-success bg-opacity-75 text-white me-1 mb-1 p-2">
+                                            @course.Text
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">No courses mapped</span>
                                 }
                             </td>
-
-                            <td>
-                                <a asp-action="Edit"
-                                       asp-route-planId="@item.PlanId"
-                                       class="btn btn-warning btn-sm">
-                                    <i class="icofont icofont-pencil-alt-5"></i> 
-                                </a>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                        onclick="openGlobalModal('Edit Mapping Details', '@Url.Action("Edit", "PlanCourse", new { planId = item.PlanId })')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
                             </td>
                         </tr>
-                        
                         srNo++;
-                    } 
+                    }
                 </tbody>
             </table>
         </div>
     </div>
-</div> 
+</div>
+ 
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#mappingtable').DataTable({
+                "dom": "<'row mb-3 mt-2 px-3'<'col-auto'l><'col-auto ms-auto'f>>tr<'row px-3 pb-3'<'col-auto'i><'col-auto ms-auto'p>>",
+                "language": { "search": "", "searchPlaceholder": "Search Mapping..." }
+            });
+            $('.dataTables_filter input').addClass('form-control shadow-none');
+        });
+
+
+        $(document).on('change', '#selectAll', function (e) {
+            $('.course-checkbox').prop('checked', this.checked);
+        }); 
+
+        $(document).on('change', '.course-checkbox', function () {
+            if ($('.course-checkbox:checked').length === $('.course-checkbox').length) {
+                $('#selectAll').prop('checked', true);
+            } else {
+                $('#selectAll').prop('checked', false);
+            }
+        });
+         
+        $(document).on('submit', '#MappingForm', function (e) {
+            e.preventDefault();
+    
+            var form = $(this);
+            var submitBtn = form.find('button[type="submit"]');
+            var originalBtnText = submitBtn.text();
+            var formData = new FormData(this);
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    "RequestVerificationToken": token
+                },
+                beforeSend: function () {
+                    submitBtn.prop('disabled', true).text('Saving...');
+                },
+                success: function (response) {
+                    if(response.success){
+                        $('#globalModal').modal('hide');
+                        showNotification('Success', response.message, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                    else{
+                        showNotification('Error', response.message, 'error');
+                    }
+                },
+                error: function (xhr) {
+                    showNotification('Error', 'Unable to save data. Please check your inputs.', 'error');
+                },
+                complete: function () {
+                    submitBtn.prop('disabled', false).text(originalBtnText);
+                }
+            });
+        });
+    </script>
+}

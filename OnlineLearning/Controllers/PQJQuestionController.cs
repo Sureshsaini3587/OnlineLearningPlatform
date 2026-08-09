@@ -115,7 +115,7 @@ namespace OnlineLearning.Controllers
             try
             {
                 int userId = UserHelper.GetUserId(User);
-             var result = await _service.DeleteAsync(QuestionId, userId);
+                var result = await _service.DeleteAsync(QuestionId, userId);
                 return Json(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)

@@ -115,9 +115,9 @@
     
             var form = $(this);
             var submitBtn = form.find('button[type="submit"]');
-            var originalBtnText = submitBtn.text(); 
-            var formData = new FormData(this); 
-            var token = $('input[name="__RequestVerificationToken"]').val(); 
+            var originalBtnText = submitBtn.text();
+            var formData = new FormData(this);
+            var token = $('input[name="__RequestVerificationToken"]').val();
             $.ajax({
                 url: form.attr('action'),
                 type: 'POST',
@@ -148,7 +148,7 @@
                 }
             });
         });
-                function previewFile(event) {  
+                function previewFile(event) {
             var input = event.target;
             var output = document.getElementById('thumbPreview');
             var text = document.getElementById('uploadText');
@@ -156,7 +156,7 @@
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
             
-                reader.onload = function(e) { 
+                reader.onload = function(e) {
                     output.src = e.target.result;
                  
                     output.style.display = 'block';

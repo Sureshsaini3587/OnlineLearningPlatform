@@ -1,0 +1,90 @@
+﻿ 
+@model StudentReadingVM
+
+<div class="container-fluid py-4 bg-light min-vh-100">
+     
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8 text-center">
+            <div class="btn-group shadow-sm bg-white p-1 rounded-pill w-100" role="group">
+                <a href="#" class="btn btn-outline-secondary rounded-pill border-0">🎥 VIDEO MODE</a>
+                <a href="#" class="btn btn-warning rounded-pill fw-bold shadow-sm">📖 READING MODE (Notes + PYQs)</a>
+                <a href="#" class="btn btn-outline-secondary rounded-pill border-0">📝 TEST MODE (PYQ)</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row"> 
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm p-4 mb-3 bg-white rounded-4">
+                 
+                <div class="mb-3">
+                    <h5 class="fw-bold text-dark">
+                        Q. @Model.QuestionNumber. @Model.QuestionTextEn
+                    </h5>
+                </div> 
+                <div class="mb-4 pb-3 border-bottom">
+                    <h5 class="fw-bold text-secondary">
+                        प्र. @Model.QuestionNumber. @Model.QuestionTextHi
+                    </h5>
+                </div>
+                 
+                @if (!string.IsNullOrEmpty(Model.DiagramImageUrl))
+                {
+                    <div class="text-center my-4 p-3 border rounded bg-light">
+                        <img src="@Model.DiagramImageUrl" alt="Diagram" class="img-fluid rounded" style="max-height: 350px;" />
+                    </div>
+                } 
+                <div class="row g-3 mb-4">
+                    @foreach (var opt in Model.Options)
+                    {
+                        string optionClass = opt.IsCorrect ? "border-success bg-success bg-opacity-10 text-success fw-bold" : "border-light bg-light";
+                        
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 @optionClass d-flex align-items-center">
+                                <div class="ms-2">
+                                    <div>@opt.OptionTextEn</div>
+                                    <div class="small text-muted">@opt.OptionTextHi</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                 
+                @if (!string.IsNullOrEmpty(Model.ExplanationText))
+                {
+                    <div class="p-3 mt-3 bg-info bg-opacity-10 border border-info rounded-3">
+                        <h6 class="fw-bold text-info mb-1"><i class="bi bi-info-circle me-1"></i> Explanation & Notes:</h6>
+                        <p class="mb-0 text-dark small">@Model.ExplanationText</p>
+                    </div>
+                }
+
+            </div>
+        </div>
+         
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm p-3 mb-3 bg-white rounded-4">
+                <h6 class="fw-bold text-muted border-bottom pb-2">QUESTION INFO</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li class="d-flex justify-content-between py-1"><span>Exam:</span> <strong class="text-primary">RAS</strong></li>
+                    <li class="d-flex justify-content-between py-1"><span>Year:</span> <strong>@Model.Year</strong></li>
+                    <li class="d-flex justify-content-between py-1"><span>Question No:</span> <strong>Q.@Model.QuestionNumber</strong></li>
+                    <li class="d-flex justify-content-between py-1">
+                        <span>Difficulty:</span>
+                        <strong class="@(Model.DifficultyLevel == 1 ? "text-success" : "text-warning")">
+                            @(Model.DifficultyLevel == 1 ? "Easy" : Model.DifficultyLevel == 2 ? "Medium" : "Hard")
+                        </strong>
+                    </li>
+                </ul>
+            </div>
+             
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-4">
+                <h6 class="fw-bold text-muted border-bottom pb-2">LEGEND</h6>
+                <div class="small text-muted">
+                    <div class="mb-1"><i class="bi bi-check-circle-fill text-success me-1"></i> Correct Answer Highlighted</div>
+                    <div class="mb-1"><i class="bi bi-bookmark-fill text-warning me-1"></i> Bookmark Question</div>
+                    <div><i class="bi bi-journal-text text-info me-1"></i> Includes Notes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

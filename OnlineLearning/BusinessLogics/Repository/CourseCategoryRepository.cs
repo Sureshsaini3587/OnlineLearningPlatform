@@ -42,28 +42,14 @@ namespace OnlineLearning.BusinessLogics.Repository
         }
         public async Task<List<CourseCategoriesDTO>> GetAllWithDetails()
         {
-            string cacheKey = "CategoryWithDetails";
-            if (_cache.TryGetValue(cacheKey, out List<CourseCategoriesDTO> courses))
-            {
-                return courses;
-            }
+            string cacheKey = "CategoryWithDetails"; 
             using var db = Connection; 
             var data = await db.QueryAsync<CourseCategoriesDTO>(
                 "sp_CourseCategory",                
                 new { Action = "GET_ALL_DETAILS" },
                 commandType: CommandType.StoredProcedure                
-            );
-            courses = data.ToList();
-            _cache.Set(cacheKey, courses,
-                new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow =
-                        TimeSpan.FromMinutes(30),
-                    SlidingExpiration =
-                        TimeSpan.FromMinutes(10),
-                    Priority =
-                        CacheItemPriority.High
-                });
+            ); 
+                 
             return data.ToList();
         }
 

@@ -1,6 +1,7 @@
 ﻿using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.BusinessLogics.Repository;
 using OnlineLearning.BusinessLogics.Services;
+using OnlineLearning.Repositories;
 using OnlineLearning.Views.Services;
 
 namespace OnlineLearning.Extensions
@@ -24,6 +25,7 @@ namespace OnlineLearning.Extensions
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddTransient<ISubscriberRepository, SubscriberRepository>();
+            services.AddTransient<IReadingQuestionRepository, ReadingQuestionRepository>();
             services.AddDataProtection();
             services.AddScoped<ProtectorService>();
         }
