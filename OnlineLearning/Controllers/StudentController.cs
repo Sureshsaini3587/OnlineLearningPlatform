@@ -48,18 +48,44 @@ namespace OnlineLearning.Controllers
             return View(data);
         }
 
+
         [Authorize(Roles = "Student")]
         [HttpGet]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoadModePartial(string mode, int courseId, int sectionId)
+        {
+            switch (mode?.ToLower())
+            {
+                case "video":
+                    return PartialView("_VideoMode");
+                case "reading":
+                    var questions = await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId);
+
+                    foreach (var q in questions)
+                    {
+                        q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
+                    }
+                    return PartialView("_ReadingMode", questions);
+                case "test":
+                    return PartialView("_TestMode");
+                default:
+                    return PartialView("_ReadingMode");
+            }
+        }
+
+        [Authorize(Roles = "Student")]
+        [HttpGet]
+        [ValidateAntiForgeryToken]  
         public async Task<IActionResult> GetQuestionsPartial(int courseId, int sectionId)
         { 
+            // var notes = await _notesRepo.GetNotesBySectionAsync(sectionId); 
             var questions = await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId);
-             
+
             foreach (var q in questions)
             {
                 q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
-            }
-             
-            return PartialView("_StudentQuestionsList", questions);
+            } 
+            return PartialView("_ReadingMode", questions);
         }
 
         [Authorize(Roles = "Student")]

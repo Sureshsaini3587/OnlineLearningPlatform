@@ -3542,3 +3542,12 @@ table.dataTable thead .sorting_desc:before {
 .navbar {
     z-index: 1000 !important;
 }
+.active-mode-btn {
+    border-radius: 999px !important;
+    font-weight: 800 !important;
+    color: #101726 !important;
+    background: linear-gradient(135deg, #2ec5a7, #ffb38a) !important;
+    border: none !important;
+    transition: all .3s ease !important;
+    box-shadow: 0 4px 15px rgba(46, 197, 167, 0.3);
+}

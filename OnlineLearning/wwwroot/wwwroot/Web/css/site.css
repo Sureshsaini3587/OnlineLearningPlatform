@@ -3448,3 +3448,14 @@ html, body {
         gap: 10px !important;
     }
 }
+.active-section-style {
+    background: linear-gradient(135deg, #2ec5a7, #ffb38a) !important;
+    color: #101726 !important;
+    font-weight: 800 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 15px rgba(46, 197, 167, 0.25);
+}
+
+    .active-section-style i {
+        color: #101726 !important;
+    }

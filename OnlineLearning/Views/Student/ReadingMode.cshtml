@@ -1,36 +1,32 @@
 ﻿@model OnlineLearning.Models.StudentReadingVM
+ 
+ 
+@Html.AntiForgeryToken()
 
-<div class="container-fluid my-3">
-    <!-- Top Mode Navigation Bar -->
+<div class="container-fluid my-3 px-4"> 
     <div class="row mb-3">
         <div class="col-md-12">
-            <div class="card border-0 shadow-sm rounded-4 p-2 bg-white">
-                <div class="d-flex justify-content-around text-center">
-                    <a href="javascript:void(0);" class="btn btn-outline-secondary border-0 flex-fill py-2 text-muted fw-bold">
-                        <i class="bi bi-play-circle-fill me-1"></i> VIDEO MODE <br><small class="text-muted fw-normal" style="font-size: 11px;">Learn with Video + Notes</small>
+            <div class="card border-0 shadow-sm rounded-4 p-2" style="background-color: #1c2541;">
+                <div class="d-flex justify-content-around text-center mode-tabs">
+                    <a href="javascript:void(0);" onclick="loadModeContent('Video', this)" class="mode-btn btn border-0 flex-fill py-2 text-light fw-bold" style="opacity: 0.7;">
+                        <i class="bi bi-play-circle-fill me-1"></i> VIDEO MODE <br>
+                        <small class="fw-normal" style="font-size: 11px;">Learn with Video + Notes</small>
+                    </a> 
+                    <a href="javascript:void(0);" onclick="loadModeContent('Reading', this)" class="mode-btn btn flex-fill py-2 shadow-sm active-mode-btn active-mode">
+                        <i class="bi bi-book-half me-1"></i> READING MODE (Notes + PYQs) <br>
+                        <small class="fw-bold" style="font-size: 11px; opacity: 0.85;">Study Notes + PYQs with Explanations</small>
                     </a>
-                    <a href="javascript:void(0);" class="btn btn-warning bg-opacity-10 text-dark border border-warning flex-fill py-2 fw-bold rounded-3 shadow-sm">
-                        <i class="bi bi-book-half text-warning me-1"></i> READING MODE (Notes + PYQs) <br><small class="text-muted fw-normal" style="font-size: 11px;">Study Notes + PYQs with Explanations</small>
-                    </a>
-                    <a href="javascript:void(0);" class="btn btn-outline-secondary border-0 flex-fill py-2 text-muted fw-bold">
-                        <i class="bi bi-file-earmark-text-fill me-1"></i> TEST MODE (PYQ) <br><small class="text-muted fw-normal" style="font-size: 11px;">Practice PYQs in Test Environment</small>
+                    <a href="javascript:void(0);" onclick="loadModeContent('Test', this)" class="mode-btn btn border-0 flex-fill py-2 text-light fw-bold" style="opacity: 0.7;">
+                        <i class="bi bi-file-earmark-text-fill me-1"></i> TEST MODE (PYQ) <br>
+                        <small class="fw-normal" style="font-size: 11px;">Practice PYQs in Test Environment</small>
                     </a>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="row g-3">
-        
-        <!-- 1. LEFT SIDEBAR (Courses & Sections Syllabus) -->
+    </div> 
+    <div class="row g-3"> 
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 20px; max-height: 80vh; overflow-y: auto;">
-                <div class="card-header bg-white py-3 border-0">
-                    <h5 class="fw-bold text-dark mb-0">
-                        <i class="bi bi-list-nested text-primary me-2"></i> Reading Syllabus
-                    </h5>
-                </div>
-                <div class="card-body p-2">
+            <div class="card-body p-2">
                     @if (Model != null && Model.EnrolledCourses != null && Model.EnrolledCourses.Any())
                     {
                         <div class="accordion accordion-flush" id="courseAccordion">
@@ -48,13 +44,13 @@
                                             <div class="list-group list-group-flush small">
                                                 @if (course.Sections != null && course.Sections.Any())
                                                 {
-                                                    foreach (var sec in course.Sections)
-                                                    {
-                                                        <a href="javascript:void(0);" onclick="loadQuestions(@course.CourseId, @sec.SectionId)"
-                                                               class="list-group-item list-group-item-action border-0 rounded my-1 text-secondary section-link">
-                                                            <i class="bi bi-chevron-right me-1 text-muted small"></i> @sec.SectionTitle
-                                                        </a>
-                                                    }
+                                                   foreach (var sec in course.Sections)
+                                                   {
+                                                       <a href="javascript:void(0);" onclick="loadSectionQuestions(this, @course.CourseId, @sec.SectionId)"
+                                                          class="list-group-item list-group-item-action border-0 rounded my-1 text-secondary section-link">
+                                                           <i class="bi bi-chevron-right me-1 text-muted small"></i> @sec.SectionTitle
+                                                       </a>
+                                                   }
                                                 }
                                                 else
                                                 {
@@ -72,57 +68,72 @@
                         <p class="text-muted small text-center p-3">No enrolled courses found.</p>
                     }
                 </div>
-            </div>
-        </div>
-         
-        <!-- 2. MIDDLE CONTENT AREA (Questions Display Container) -->
-        <div class="col-md-6">
+        </div> 
+        <div class="col-md-9">
             <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body p-4" id="questionsContainer" style="min-height: 75vh; background-color: #f8f9fa;">
+                <div class="card-body p-4 maincontent" style="min-height: 75vh; background-color: #f8f9fa;">
                     <div class="text-center py-5 text-muted my-5">
                         <i class="bi bi-arrow-left-circle display-4 text-primary"></i>
                         <h5 class="fw-bold mt-3">Select a section from the left sidebar</h5>
-                        <p class="small">Click on any course and section to start reading questions and explanations.</p>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- 3. RIGHT SIDEBAR (Question Info & Filters - As per Image) -->
-        <div class="col-md-3">
-            <!-- Question Info Box -->
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-3 sticky-top" style="top: 20px;">
-                <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-info-circle me-1"></i> QUESTION INFO</h6>
-                <div class="small text-muted mb-2 d-flex justify-content-between"><span>Exam:</span> <strong class="text-dark">General</strong></div>
-                <div class="small text-muted mb-2 d-flex justify-content-between"><span>Year:</span> <span class="badge bg-success bg-opacity-10 text-success">2026</span></div>
-                <div class="small text-muted mb-2 d-flex justify-content-between"><span>Paper:</span> <strong class="text-dark">Shift-1</strong></div>
-                <div class="small text-muted mb-2 d-flex justify-content-between"><span>Question No.:</span> <span class="badge bg-warning bg-opacity-10 text-dark">--</span></div>
-                <div class="small text-muted d-flex justify-content-between"><span>Difficulty:</span> <span class="badge bg-primary bg-opacity-10 text-primary">Medium</span></div>
-            </div>
-
-            <!-- Filters Box -->
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-                <h6 class="fw-bold text-dark border-bottom pb-2 mb-2"><i class="bi bi-funnel me-1"></i> FILTERS</h6>
-                <div class="form-check small mb-2">
-                    <input class="form-check-input" type="checkbox" id="allExams" checked>
-                    <label class="form-check-label text-dark fw-bold" for="allExams">All Questions</label>
-                </div>
-                <div class="form-check small mb-2">
-                    <input class="form-check-input" type="checkbox" id="pyqs">
-                    <label class="form-check-label text-muted" for="pyqs">PYQs Only</label>
-                </div>
-                <div class="form-check small">
-                    <input class="form-check-input" type="checkbox" id="favorites">
-                    <label class="form-check-label text-muted" for="favorites">Favorites / Bookmarks</label>
-                </div>
-            </div>
-        </div>
-
+        </div>  
     </div>
 </div>
 
 @section Scripts {
-    <script>
+    <script> 
+        var currentCourseId = 0;
+        var currentSectionId = 0;
+        var currentMode = 'Reading';
+        function escapeHtml(string) {
+            var matchHtmlRegExp = /["'&<>]/;
+            var match = matchHtmlRegExp.exec(string);
+            if (!match) return string;
+            var escape = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+            return string.replace(/["'&<>]/g, function (s) { return escape[s]; });
+        }
+
+       
+        function loadModeContent(modeType, element) {
+            currentMode = modeType; 
+            $('.mode-btn').removeClass('active-mode-btn text-dark fw-bold').addClass('text-light border-0').css('background-color', 'transparent');
+            $(element).removeClass('text-light border-0').addClass('active-mode-btn'); 
+            if (currentCourseId > 0 && currentSectionId > 0) {
+                fetchContent();
+            } 
+        }
+    function loadSectionQuestions(element, courseId, sectionId) {
+        currentCourseId = courseId;
+        currentSectionId = sectionId;
+        $('.section-link').removeClass('active-section-style').addClass('text-secondary');
+            $(element).removeClass('text-secondary').addClass('active-section-style');
+        fetchContent();
+    }
+       function fetchContent() {
+          $('.maincontent').html(`
+              <div class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status"></div>
+               <p class="text-muted mt-2 small">Loading ${currentMode} content...</p>
+              </div>
+          `);
+          
+          var token = $('input[name="__RequestVerificationToken"]').val(); 
+          $.ajax({
+              url: '/Student/LoadModePartial', 
+              type: 'GET', 
+              data: { mode: currentMode, courseId: currentCourseId, sectionId: currentSectionId },
+              headers: { "RequestVerificationToken": token },
+              success: function (responseHtml) {
+                  $('.maincontent').html(responseHtml);
+              },
+              error: function() {
+                  $('.maincontent').html('<div class="text-center text-danger py-5">Failed to load content. Please try again.</div>');
+              }
+          });
+       }
+     
         function loadQuestions(courseId, sectionId) { 
             $('.section-link').removeClass('active bg-primary text-white');
             event.currentTarget.classList.add('active', 'bg-primary', 'text-white');
