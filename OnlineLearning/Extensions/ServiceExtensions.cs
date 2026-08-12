@@ -16,7 +16,8 @@ namespace OnlineLearning.Extensions
             services.AddScoped<ICourseLevelRepository, CourseLevelRepository>();
             services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
-            services.AddScoped<ICourseSectionRepository, CourseSectionRepository>();
+            services.AddScoped<ICourseSectionRepository, CourseSectionRepository>(); 
+            services.AddScoped<ICourseSubSectionRepository,CourseSubSectionRepository>();
             services.AddScoped<ICourseVideoRepository, CourseVideoRepository>();
             services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
             services.AddScoped<IStudentRepository, StudentRepository>();

@@ -1,0 +1,49 @@
+﻿@model SubSection
+<form asp-action="Upsert" method="post" id="SubSectionForm" class="needs-validation">
+      
+    @Html.AntiForgeryToken()
+
+    @if (Model.SubSectionId != 0)
+    {
+        <input type="hidden" asp-for="SubSectionId" />
+    }
+
+    <div class="modal-body p-4">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-muted small">Sub-Section Title <span class="text-danger">*</span></label>
+                <input asp-for="SubSectionTitle" class="form-control" placeholder="Enter sub-section name..." required />
+                <span asp-validation-for="SubSectionTitle" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-muted small">Sort Order <span class="text-danger">*</span></label>
+                <input asp-for="SortOrder" class="form-control" type="number" placeholder="Enter sort order..." required />
+                <span asp-validation-for="SortOrder" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold text-muted small">Parent Section <span class="text-danger">*</span></label>
+                <select asp-for="SectionId" asp-items="ViewBag.Sections" class="form-control" required>
+                    <option value="">-- Select Section --</option>
+                </select>
+                <span asp-validation-for="SectionId" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="mt-4 p-3 border rounded bg-light">
+            <div class="form-check form-switch d-flex justify-content-between align-items-center">
+                <label class="form-check-label fw-bold text-muted small" for="IsActive">Active</label>
+                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer border-0 p-3 bg-white rounded-bottom">
+        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-success px-4 shadow-sm">
+            <i class="bi bi-save me-1"></i> @(Model.SubSectionId == 0 ? "Save" : "Update Changes")
+        </button>
+    </div>
+</form>

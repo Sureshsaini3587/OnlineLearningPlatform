@@ -47,25 +47,100 @@ namespace OnlineLearning.Controllers
              
             return View(data);
         }
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Watch(string I, int? contentId)
+        {
+            int studentId = UserHelper.GetUserId(User);
+
+            int courseId = _protect.Decrypt(I);
+            bool hasAccess = await _student.CheckCourseAccessAsync(studentId, courseId);
+            if (!hasAccess)
+            {
+                _notify.Error("Access Denied. This course is not included in your active subscription plan.");
+                return RedirectToAction("MyCourses");
+            }
+
+            CourseDetailsVM courseDetails = await _student.GetCourseDetailsById(courseId);
+
+            if (courseDetails == null || courseDetails.Sections == null || !courseDetails.Sections.Any())
+            {
+                _notify.Error("This course doesn't have any content yet.");
+                return RedirectToAction("MyCourses");
+            }
+            ViewBag.CourseDetails = courseDetails;
+
+            VideoVM activeVideo = null;
+
+            if (contentId.HasValue)
+            {
+                activeVideo = courseDetails.Sections.SelectMany(s => s.Videos).FirstOrDefault(v => v.VideoId == contentId.Value);
+            }
+            else
+            {
+                activeVideo = courseDetails.Sections.OrderBy(s => s.SectionId).FirstOrDefault()?.Videos.OrderBy(v => v.VideoId).FirstOrDefault();
+            }
+
+            return View(activeVideo);
+        }
 
 
         [Authorize(Roles = "Student")]
         [HttpGet]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LoadModePartial(string mode, int courseId, int sectionId)
+        public async Task<IActionResult> LoadModePartial(string mode, int courseId, int sectionId, int? contentId)
         {
+            CourseDetailsVM courseDetails = await _student.GetCourseDetailsById(courseId);
+            if (courseDetails != null && courseDetails.Sections != null)
+            { 
+                if (sectionId > 0)
+                {
+                    courseDetails.Sections = courseDetails.Sections
+                        .Where(s => s.SectionId == sectionId)
+                        .ToList();
+                }
+            }
+            ViewBag.CourseDetails = courseDetails;
             switch (mode?.ToLower())
             {
                 case "video":
-                    return PartialView("_VideoMode");
+                    VideoVM activeVideo = null;
+
+                    if (courseDetails?.Sections != null && courseDetails.Sections.Any())
+                    {
+                        var allVideos = courseDetails.Sections.SelectMany(s => s.Videos).ToList();
+
+                        if (contentId.HasValue)
+                        {
+                            activeVideo = allVideos.FirstOrDefault(v => v.VideoId == contentId.Value);
+                        }
+                         
+                        if (activeVideo == null)
+                        {
+                            activeVideo = allVideos.OrderBy(v => v.VideoOrder).FirstOrDefault();
+                        }
+                    }
+
+                    return PartialView("_VideoMode", activeVideo);
                 case "reading":
-                    var questions = await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId);
+                    var questions = (await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId))?.ToList();
+
+                    if (questions == null || !questions.Any())
+                    {
+                        return Content("<div class='alert alert-info'>No questions available for this section.</div>");
+                    }
 
                     foreach (var q in questions)
                     {
                         q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
                     }
-                    return PartialView("_ReadingMode", questions);
+                     
+                    int currentIndex = 0;
+                    ViewBag.CourseId = courseId;
+                    ViewBag.SectionId = sectionId;
+                    ViewBag.CurrentIndex = currentIndex;
+                    ViewBag.TotalQuestions = questions.Count;
+                     
+                    return PartialView("_ReadingMode", questions[currentIndex]);
                 case "test":
                     return PartialView("_TestMode");
                 default:
@@ -76,17 +151,30 @@ namespace OnlineLearning.Controllers
         [Authorize(Roles = "Student")]
         [HttpGet]
         [ValidateAntiForgeryToken]  
-        public async Task<IActionResult> GetQuestionsPartial(int courseId, int sectionId)
+        public async Task<IActionResult> GetQuestionsPartial(int courseId, int sectionId, int currentIndex = 0)
         { 
             // var notes = await _notesRepo.GetNotesBySectionAsync(sectionId); 
-            var questions = await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId);
-
+            var questions = (await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId))?.ToList();
+            if (questions == null || !questions.Any())
+            {
+                return Content("<div class='alert alert-info'>No questions available for this section.</div>");
+            }
             foreach (var q in questions)
             {
                 q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
-            } 
-            return PartialView("_ReadingMode", questions);
+            }
+            if (currentIndex < 0) currentIndex = 0;
+            if (currentIndex >= questions.Count()) currentIndex = questions.Count() - 1;
+             
+            var currentQuestion = questions[currentIndex];
+            ViewBag.CourseId = courseId;
+            ViewBag.SectionId = sectionId;
+            ViewBag.CurrentIndex = currentIndex;
+            ViewBag.TotalQuestions = questions.Count;
+
+            return PartialView("_ReadingMode", currentQuestion);
         }
+        
 
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> MyCourses()
@@ -134,42 +222,7 @@ namespace OnlineLearning.Controllers
         }
 
 
-        [Authorize(Roles = "Student")]
-        public async Task<IActionResult> Watch(string I, int? contentId)
-        {
-            int studentId = UserHelper.GetUserId(User);
-
-            int courseId = _protect.Decrypt(I);
-            bool hasAccess = await _student.CheckCourseAccessAsync(studentId, courseId);
-            if (!hasAccess)
-            {
-                _notify.Error("Access Denied. This course is not included in your active subscription plan.");
-                return RedirectToAction("MyCourses");
-            }
-
-            CourseDetailsVM courseDetails = await _student.GetCourseDetailsById(courseId);
-            
-            if (courseDetails == null || courseDetails.Sections == null || !courseDetails.Sections.Any())
-            {
-                _notify.Error("This course doesn't have any content yet.");
-                return RedirectToAction("MyCourses");
-            }
-            ViewBag.CourseDetails = courseDetails;
-
-            VideoVM activeVideo = null;
-
-            if (contentId.HasValue)
-            {
-                activeVideo = courseDetails.Sections.SelectMany(s => s.Videos).FirstOrDefault(v => v.VideoId == contentId.Value);
-            }
-            else
-            {
-                activeVideo = courseDetails.Sections.OrderBy(s => s.SectionId).FirstOrDefault()?.Videos.OrderBy(v => v.VideoId).FirstOrDefault();
-            }
-
-            return View(activeVideo);
-        }
-     
+      
         [Authorize(Roles = "Student")]
         [HttpPost]
         [ValidateAntiForgeryToken]

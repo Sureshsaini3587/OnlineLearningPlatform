@@ -38,7 +38,7 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label fw-bold text-muted small">Question (Hindi) *</label>
-                <textarea asp-for="QuestionTextHi" class="form-control form-control-sm" rows="3" placeholder="हिंदी में प्रश्न लिखें..." required></textarea>
+                <textarea asp-for="QuestionTextHi" class="form-control form-control-sm" rows="3" placeholder="हिंदी में प्रश्न लिखें..." lang="hi" required></textarea>
             </div>
              
             <div class="col-md-6">
@@ -46,7 +46,7 @@
                 <select asp-for="SectionId" asp-items="ViewBag.Sections" class="form-select form-select-sm" required>
                     <option value="">-- Select Section --</option>
                 </select>
-            </div>
+            </div> 
             <div class="col-md-6">
                 <label class="form-label fw-bold text-muted small">Diagram / Map Image (Optional)</label>
                 <input type="file" name="DiagramFile" class="form-control form-control-sm" accept="image/*" />

@@ -13,11 +13,13 @@ namespace OnlineLearning.Controllers
         private readonly ICourseRepository _course;
         private readonly IReadingQuestionRepository _questionRepo; 
         private readonly ICourseSectionRepository _section;
-        public StudyMaterialController(ICourseRepository cousre,IReadingQuestionRepository questionRepo, ICourseSectionRepository section)
+        private readonly ICourseSubSectionRepository _subSectionRepo;
+        public StudyMaterialController(ICourseRepository cousre,IReadingQuestionRepository questionRepo, ICourseSectionRepository section, ICourseSubSectionRepository subSectionRepo)
         {
             _course = cousre;
             _questionRepo = questionRepo;
             _section = section;
+            _subSectionRepo = subSectionRepo;
         }
          
         public async Task<IActionResult> Index()
@@ -87,6 +89,17 @@ namespace OnlineLearning.Controllers
             var sectionList = sections.Select(x => new {
                 id = x.SectionId,
                 title = x.SectionTitle
+            });
+            return Json(sectionList);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetSubSectionsBysectionId(int sectionId)
+        {
+            var subSections = await _subSectionRepo.GetAllAsync(sectionId);
+
+            var sectionList = subSections.Select(x => new {
+                id = x.SubSectionId,
+                title = x.SubSectionTitle
             });
             return Json(sectionList);
         }

@@ -1,66 +1,157 @@
-﻿@model IEnumerable<OnlineLearning.Models.ReadingQuestionVM>
+﻿@model OnlineLearning.Models.ReadingQuestionVM
 
-<div class="reading-content-wrapper">
-   
-    <div class="p-3 rounded-4 shadow-sm mb-4" style="background: linear-gradient(135deg, #2ec5a7, #ffb38a); color: #101726;">
-        <div class="d-flex align-items-center justify-content-between">
+<div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+    @if (Model != null)
+    { 
+        <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
             <div>
-                <h4 class="fw-bold mb-1"><i class="bi bi-book-half me-2"></i> Enrolled Courses & Reading Content</h4>
-                <p class="small mb-0 opacity-75">Overview of your enrolled courses and sections.</p>
+                <span class="badge bg-primary px-3 py-2 rounded-pill fw-bold shadow-sm">
+                    <i class="bi bi-question-circle me-1"></i> Question No. @Model.QuestionNumber
+                </span>
+                <span class="badge bg-light text-dark border px-2.5 py-2 ms-2 rounded-pill fw-semibold">
+                    <i class="bi bi-bar-chart-steps me-1 text-muted"></i>
+                    Level: @(Model.DifficultyLevel == 1 ? "Easy" : Model.DifficultyLevel == 2 ? "Medium" : "Hard")
+                </span>
             </div>
-            <span class="badge bg-dark text-white px-3 py-2 fw-bold">Active View</span>
+            <div class="text-secondary small fw-bold bg-light px-3 py-1.5 rounded-pill border">
+                Question <span class="text-primary">@(ViewBag.CurrentIndex + 1)</span> of <span class="text-dark">@ViewBag.TotalQuestions</span>
+            </div>
         </div>
-    </div>
-     
-    <div class="card border-0 shadow-sm rounded-4 p-4 mb-3 bg-white">
-        <h5 class="fw-bold text-primary mb-3"><i class="bi bi-journals me-2"></i> Your Enrolled Courses</h5>
-
-        @if (Model != null)
+         
+        <div class="row g-3 mb-4"> 
+            <div class="col-md-6">
+                <div class="p-3.5 rounded-3 bg-light border-start border-4 border-primary h-100 shadow-none p-1">
+                    <span class="d-block text-uppercase fw-bold text-primary small mb-1" style="font-size: 10px; letter-spacing: 0.5px;">English</span>
+                    <p class="text-dark fw-medium mb-0" style="line-height: 1.6; font-size: 14.5px;">@Model.QuestionTextEn</p>
+                </div>
+            </div> 
+            <div class="col-md-6">
+                <div class="p-3.5 rounded-3 bg-light border-start border-4 border-success h-100 shadow-none p-1">
+                    <span class="d-block text-uppercase fw-bold text-success small mb-1" style="font-size: 10px; letter-spacing: 0.5px;">हिंदी (Hindi)</span>
+                    <p class="text-dark fw-medium mb-0" style="line-height: 1.6; font-size: 14.5px;" lang="hi">@Model.QuestionTextHi</p>
+                </div>
+            </div>
+        </div>
+         
+        @if (!string.IsNullOrEmpty(Model.DiagramImageUrl))
         {
-            <div class="row g-3">
-                  @foreach (var q in Model)
+            <div class="mb-4 text-center p-3 border rounded-3 bg-light">
+                <img src="@Model.DiagramImageUrl" alt="Question Diagram" class="img-fluid rounded shadow-sm" style="max-height: 250px;" />
+            </div>
+        }
+         
+        <div class="mb-4">
+            <h6 class="fw-bold text-muted small text-uppercase mb-3" style="letter-spacing: 0.5px;">
+                <i class="bi bi-list-check me-1"></i> Answer Options / विकल्प
+            </h6>
+            
+            @if (Model.Options != null && Model.Options.Any())
+            {
+                <div class="vstack gap-2">
+                    @{
+                        char[] optionLabels = { 'A', 'B', 'C', 'D', 'E', 'F' };
+                        int idx = 0;
+                    }
+                    @foreach (var opt in Model.Options)
                     {
-                    <div class="col-md-12">
-                        <div class="p-3 border rounded-3 bg-light">
-                           
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <h6 class="fw-bold text-dark mb-1">@q.QuestionTextEn</h6>
-                                    <p class="text-muted small mb-1">@q.QuestionTextHi</p> 
-                                    <span class="badge bg-info text-dark small">Level: @q.DifficultyLevel</span>
+                        string optLabel = idx < optionLabels.Length ? optionLabels[idx].ToString() : (idx + 1).ToString();
+                         
+                        string cardClass = opt.IsCorrect
+                            ? "border-success bg-success bg-opacity-10 text-dark shadow-sm"
+                            : "border-light bg-light text-secondary";
+                        
+                        string badgeClass = opt.IsCorrect
+                            ? "bg-success text-white"
+                            : "bg-secondary text-white";
+
+                        <div class="p-3 rounded-3 border @cardClass d-flex align-items-center justify-content-between transition-all">
+                            <div class="d-flex align-items-center w-100"> 
+                                <span class="badge @badgeClass rounded-circle me-3 d-flex align-items-center justify-content-center fw-bold" style="width: 30px; height: 30px; flex-shrink: 0;">
+                                    @optLabel
+                                </span>
+                                 
+                                <div class="w-100 row align-items-center">
+                                    <div class="col-md-6">
+                                        <span class="d-block fw-semibold text-dark" style="font-size: 13.5px;">@opt.OptionTextEn</span>
+                                    </div>
+                                    <div class="col-md-6 border-start ps-md-3 mt-1 mt-md-0">
+                                        <span class="d-block fw-semibold text-muted" style="font-size: 13.5px;" lang="hi">@opt.OptionTextHi</span>
+                                    </div>
                                 </div>
-                                <span class="text-muted small">Year: @q.Year.ToString("dd MMM yyyy")</span>
                             </div>
                              
-                            <div class="mt-3 pt-2 border-top">
-                                <span class="fw-bold text-secondary small d-block mb-2">Course Sections:</span>
-                                @if (q.Options != null && q.Options.Any())
-                                {
-                                    <ul class="list-unstyled mb-0 small">
-                                        @foreach (var sec in q.Options)
-                                        {
-                                            <li class="py-1 text-dark">
-                                                <i class="bi bi-check-circle-fill text-success me-1"></i> @sec.OptionTextEn
-                                                <i class="bi bi-check-circle-fill text-success me-1"></i> @sec.OptionTextHi
-                                            </li>
-                                        }
-                                    </ul>
-                                }
-                                else
-                                {
-                                    <p class="text-muted small mb-0">No sections available for this course.</p>
-                                }
-                            </div>
+                            @if (opt.IsCorrect)
+                            {
+                                <div class="ms-3 text-end" style="flex-shrink: 0;">
+                                    <span class="badge bg-success px-2.5 py-1.5 rounded-pill small shadow-sm">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Correct Answer
+                                    </span>
+                                </div>
+                            }
                         </div>
-                    </div>
-                }
-            </div>
-        }
-        else
+                        idx++;
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning small py-2 mb-0">No options available for this question.</div>
+            }
+        </div>
+         
+        @if (!string.IsNullOrEmpty(Model.ExplanationText))
         {
-            <div class="text-center py-4 text-muted border rounded-3 bg-light">
-                <i class="bi bi-info-circle me-1">Details not found.</i>
+            <div class="p-3 rounded-3 bg-info bg-opacity-10 border border-info border-opacity-25 mb-4">
+                <span class="fw-bold text-info-emphasis d-block mb-1 small">
+                    <i class="bi bi-lightbulb-fill me-1 text-warning"></i> Detailed Explanation / स्पष्टीकरण:
+                </span>
+                <p class="text-dark small mb-0" style="line-height: 1.5;">@Model.ExplanationText</p>
             </div>
         }
-    </div>
+         
+        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+            @{
+                int courseId = ViewBag.CourseId;
+                int sectionId = ViewBag.SectionId;
+                int currentIndex = ViewBag.CurrentIndex;
+                int totalQuestions = ViewBag.TotalQuestions;
+            }
+             
+            @if (currentIndex > 0)
+            {
+                <button type="button" class="btn btn-outline-secondary btn-sm px-4 rounded-pill fw-semibold shadow-sm"
+                        onclick="loadQuestion(@courseId, @sectionId, @(currentIndex - 1), event)">
+                    <i class="bi bi-arrow-left me-1"></i> Previous
+                </button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-outline-secondary btn-sm px-4 rounded-pill fw-semibold" disabled>Previous</button>
+            }
+
+            <span class="text-muted small fw-bold">Page @(currentIndex + 1) of @totalQuestions</span>
+             
+            @if (currentIndex < totalQuestions - 1)
+            {
+                <button type="button" class="btn btn-primary btn-sm px-4 rounded-pill fw-semibold shadow-sm"
+                        onclick="loadQuestion(@courseId, @sectionId, @(currentIndex + 1), event)">
+                    Next <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-success btn-sm px-4 rounded-pill fw-semibold shadow-sm" disabled>
+                    <i class="bi bi-check2-all me-1"></i> Completed
+                </button>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-info-circle display-6 text-warning mb-2 d-block"></i>
+            <h6 class="fw-bold text-dark">Question details not found.</h6>
+            <p class="small text-muted mb-0">Please select a valid section or chapter from the sidebar to begin reading.</p>
+        </div>
+    }
 </div>

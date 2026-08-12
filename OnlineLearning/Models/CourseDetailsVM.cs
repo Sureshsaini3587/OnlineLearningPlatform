@@ -28,6 +28,7 @@
     public class VideoVM
     {
         public int VideoId { get; set; }
+        public string SectionTitle { get; set; }
         public string Title { get; set; }
         public bool IsDemo { get; set; }
         public string VideoUrl { get; set; } 
