@@ -1,24 +1,237 @@
-﻿<div class="test-mode-wrapper"> 
-    <div class="p-3 rounded-4 shadow-sm mb-4" style="background: linear-gradient(135deg, #2ec5a7, #ffb38a); color: #101726;">
-        <div class="d-flex align-items-center justify-content-between">
-            <div>
-                <h4 class="fw-bold mb-1"><i class="bi bi-file-earmark-text-fill me-2"></i> Test Environment</h4>
-                <p class="small mb-0 opacity-75">Practice questions in a real-time exam-like environment.</p>
-            </div>
-            <span class="badge bg-dark text-white px-3 py-2 fw-bold">Live Test</span>
+﻿@model OnlineLearning.Models.ReadingQuestionVM
+
+@{
+    int courseId = ViewBag.CourseId;
+    int sectionId = ViewBag.SectionId;
+    int currentIndex = ViewBag.CurrentIndex;
+    int totalQuestions = ViewBag.TotalQuestions;
+    var questionIds = ViewBag.QuestionIds as List<int> ?? new List<int>();
+}
+
+<div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white mb-4" id="test-mode-container">
+    <!-- Top Header Progress Bar -->
+    <div class="bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="fw-bold mb-0 text-white"><i class="bi bi-mortarboard-fill me-2 text-warning"></i> LMS Assessment Hub</h5>
+            <small class="text-white-50">Section Assessment Mode</small>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-warning text-dark px-3 py-2 fw-bold rounded-pill">
+                <i class="bi bi-clock me-1"></i> <span id="test-timer">30:00</span>
+            </span>
+            <span class="badge bg-primary px-3 py-2 fw-semibold rounded-pill">Question @(currentIndex + 1) of @totalQuestions</span>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white">
-        <div class="py-4">
-            <i class="bi bi-stopwatch display-4 text-warning mb-3"></i>
-            <h5 class="fw-bold text-dark">Ready to test your knowledge?</h5>
-            <p class="text-muted small mx-auto" style="max-width: 400px;">
-                Evaluate your performance with a built-in timer and instant evaluations.
-            </p>
-            <button class="btn fw-bold px-4 py-2 rounded-3 text-white shadow-sm mt-2" style="background-color: #1c2541;">
-                <i class="bi bi-play-fill me-1"></i> Start Practice Test
-            </button>
+    <div class="row g-0">
+        <!-- Main Question Section -->
+        <div class="col-lg-8 p-4 border-end">
+            @if (Model != null)
+            {
+                <input type="hidden" id="current-question-id" value="@Model.QuestionId" />
+                <input type="hidden" id="current-index" value="@currentIndex" />
+
+                <!-- Question Header -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-light text-secondary border fw-normal">Level: @Model.DifficultyLevel</span>
+                        <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-3" id="flag-btn" onclick="toggleFlag(@Model.QuestionId)">
+                            <i class="bi bi-flag me-1"></i> Mark for Review
+                        </button>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-1">@Model.QuestionTextEn</h4>
+                    <p class="text-muted small mb-0">@Model.QuestionTextHi</p>
+                </div>
+
+                <!-- Options List -->
+                <div class="options-container mb-4">
+                    @if (Model.Options != null && Model.Options.Any())
+{
+    @foreach (var opt in Model.Options)
+    {
+        <div class="form-check p-3 mb-3 border rounded-3 option-card transition-all cursor-pointer shadow-sm" onclick="selectOptionCard(@opt.OptionId)">
+            <input class="form-check-input ms-1 mt-1" type="radio" name="selectedOption" 
+                   id="opt_@opt.OptionId" value="@opt.OptionId" 
+                   onchange="saveAnswer(@Model.QuestionId, @opt.OptionId)">
+            <label class="form-check-label w-100 ms-3 cursor-pointer" for="opt_@opt.OptionId">
+                <span class="fw-semibold text-dark d-block">@opt.OptionTextEn</span>
+                <span class="text-muted small">@opt.OptionTextHi</span>
+            </label>
+        </div>
+    }
+}
+else
+{
+    <div class="alert alert-warning">No options found.</div>
+}
+                </div>
+
+                <!-- Footer Navigation Buttons -->
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    @if (currentIndex > 0)
+                    {
+                        <button type="button" class="btn btn-outline-secondary px-4 rounded-pill fw-semibold" 
+                                onclick="loadTestQuestion(@courseId, @sectionId, @(currentIndex - 1))">
+                            <i class="bi bi-arrow-left me-1"></i> Previous
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-outline-secondary px-4 rounded-pill fw-semibold" disabled>Previous</button>
+                    }
+
+                    <div class="d-flex gap-2">
+                        @if (currentIndex < totalQuestions - 1)
+                        {
+                            <button type="button" class="btn btn-primary px-4 rounded-pill fw-semibold shadow-sm" 
+                                    onclick="loadTestQuestion(@courseId, @sectionId, @(currentIndex + 1))">
+                                Save & Next <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-success px-4 rounded-pill fw-bold shadow" onclick="submitTestAnswers(@courseId, @sectionId)">
+                                Submit Assessment <i class="bi bi-check-circle-fill ms-1"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar Question Palette (LMS Style Grid) -->
+        <div class="col-lg-4 p-4 bg-light d-flex flex-column justify-content-between">
+            <div>
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i> Question Palette</h6>
+                <div class="d-flex flex-wrap gap-2 mb-4" id="question-palette-grid">
+                    @for (int i = 0; i < totalQuestions; i++)
+                    {
+                        int qId = questionIds.Count > i ? questionIds[i] : 0;
+                        string btnClass = i == currentIndex ? "btn-primary shadow" : "btn-outline-secondary bg-white";
+                        <button type="button" class="btn btn-sm palette-box fw-bold rounded-circle @btnClass" 
+                                style="width: 40px; height: 40px;" 
+                                onclick="loadTestQuestion(@courseId, @sectionId, @i)" id="palette_@qId">
+                            @(i + 1)
+                        </button>
+                    }
+                </div>
+
+                <!-- Legend details -->
+                <div class="small text-muted border-top pt-3">
+                    <div class="d-flex align-items-center mb-2"><span class="badge bg-success rounded-circle p-2 me-2"> </span> Answered</div>
+                    <div class="d-flex align-items-center mb-2"><span class="badge bg-primary rounded-circle p-2 me-2"> </span> Current Question</div>
+                    <div class="d-flex align-items-center mb-2"><span class="badge bg-warning rounded-circle p-2 me-2"> </span> Marked for Review</div>
+                    <div class="d-flex align-items-center"><span class="badge bg-secondary bg-opacity-25 text-dark rounded-circle p-2 me-2"> </span> Not Visited</div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top">
+                <button type="button" class="btn btn-danger w-100 rounded-pill fw-semibold btn-sm" onclick="submitTestAnswers(@courseId, @sectionId)">
+                    <i class="bi bi-send-fill me-1"></i> Finish Test Early
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .option-card:hover {
+        background-color: #f8f9fa !important;
+        border-color: #0d6efd !important;
+    }
+    .transition-all {
+        transition: all 0.2s ease-in-out;
+    }
+</style>
+
+<script>
+    // 1. LocalStorage Management for full reload persistence
+    function getStoredAnswers() {
+        let data = localStorage.getItem('lms_test_answers_' + @courseId + '_' + @sectionId);
+        return data ? JSON.parse(data) : {};
+    }
+
+    function saveAnswer(questionId, optionId) {
+        let answers = getStoredAnswers();
+        answers[questionId] = optionId;
+        localStorage.setItem('lms_test_answers_' + @courseId + '_' + @sectionId, JSON.stringify(answers));
+        
+        // Update palette style immediately to green (answered)
+        $(`#palette_${questionId}`).removeClass('btn-outline-secondary btn-primary').addClass('btn-success text-white');
+    }
+
+    function selectOptionCard(optionId) {
+        $(`#opt_${optionId}`).prop('checked', true).trigger('change');
+    }
+
+    // 2. Initialize state on load (Fixes reload issue completely)
+    $(document).ready(function () {
+        let currentQId = $('#current-question-id').val();
+        let answers = getStoredAnswers();
+
+        // Restore answered states on the UI palette and selected radios
+        for (let qId in answers) {
+            $(`#palette_${qId}`).removeClass('btn-outline-secondary').addClass('btn-success text-white');
+        }
+
+        if (answers[currentQId]) {
+            $(`input[name='selectedOption'][value='${answers[currentQId]}']`).prop('checked', true);
+        }
+    });
+
+    // 3. Navigation with state continuity
+    function loadTestQuestion(courseId, sectionId, index) {
+        $.ajax({
+            url: '@Url.Action("LoadTestPartial", "YourControllerName")',
+            type: 'GET',
+            data: { courseId: courseId, sectionId: sectionId, currentIndex: index },
+            success: function (result) {
+                $('#test-mode-container').replaceWith(result);
+            },
+            error: function (xhr) {
+                console.error("Error loading question:", xhr.responseText);
+            }
+        });
+    }
+
+    // 4. Submit payload using persistent localStorage answers
+    function submitTestAnswers(courseId, sectionId) {
+        if (!confirm("Are you ready to submit your exam answers?")) return;
+
+        let finalAnswers = getStoredAnswers();
+
+        $.ajax({
+            url: '@Url.Action("SubmitTest", "YourControllerName")',
+            type: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                submission: {
+                    CourseId: courseId,
+                    SectionId: sectionId,
+                    SelectedAnswers: finalAnswers
+                }
+            },
+            success: function (result) {
+                // Clear storage on successful submission
+                localStorage.removeItem('lms_test_answers_' + courseId + '_' + sectionId);
+                $('#test-mode-container').replaceWith(result);
+            },
+            error: function (xhr) {
+                alert("Submission failed. Please check your network.");
+                console.error(xhr.responseText);
+            }
+        });
+    }
+
+    // 5. Flag for review logic
+    function toggleFlag(questionId) {
+        let paletteBtn = $(`#palette_${questionId}`);
+        paletteBtn.toggleClass('border border-warning border-3');
+        let isFlagged = paletteBtn.hasClass('border-warning');
+        if(isFlagged) {
+            $('#flag-btn').html('<i class="bi bi-flag-fill text-warning me-1"></i> Unflag Review').addClass('btn-warning text-dark').removeClass('btn-outline-warning');
+        } else {
+            $('#flag-btn').html('<i class="bi bi-flag me-1"></i> Mark for Review').removeClass('btn-warning text-dark').addClass('btn-outline-warning');
+        }
+    }
+</script>

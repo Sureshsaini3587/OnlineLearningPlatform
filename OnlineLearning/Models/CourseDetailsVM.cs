@@ -35,4 +35,18 @@
         public int Duration { get; set; } 
         public int VideoOrder { get; set; } 
     }
+    public class TestSubmissionVM
+    {
+        public int CourseId { get; set; }
+        public int SectionId { get; set; } 
+        public Dictionary<int, int> SelectedAnswers { get; set; } = new Dictionary<int, int>();
+    }
+
+    public class TestResultVM
+    {
+        public int TotalQuestions { get; set; }
+        public int CorrectAnswers { get; set; }
+        public int IncorrectAnswers { get; set; }
+        public double ScorePercentage { get; set; }
+    }
 }

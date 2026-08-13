@@ -83,7 +83,6 @@ namespace OnlineLearning.Controllers
             return View(activeVideo);
         }
 
-
         [Authorize(Roles = "Student")]
         [HttpGet]
         [ValidateAntiForgeryToken]
@@ -91,7 +90,7 @@ namespace OnlineLearning.Controllers
         {
             CourseDetailsVM courseDetails = await _student.GetCourseDetailsById(courseId);
             if (courseDetails != null && courseDetails.Sections != null)
-            { 
+            {
                 if (sectionId > 0)
                 {
                     courseDetails.Sections = courseDetails.Sections
@@ -100,6 +99,7 @@ namespace OnlineLearning.Controllers
                 }
             }
             ViewBag.CourseDetails = courseDetails;
+
             switch (mode?.ToLower())
             {
                 case "video":
@@ -113,7 +113,7 @@ namespace OnlineLearning.Controllers
                         {
                             activeVideo = allVideos.FirstOrDefault(v => v.VideoId == contentId.Value);
                         }
-                         
+
                         if (activeVideo == null)
                         {
                             activeVideo = allVideos.OrderBy(v => v.VideoOrder).FirstOrDefault();
@@ -121,31 +121,101 @@ namespace OnlineLearning.Controllers
                     }
 
                     return PartialView("_VideoMode", activeVideo);
+
                 case "reading":
+                case "test":
                     var questions = (await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId))?.ToList();
 
+                    string modeName = mode.ToLower() == "test" ? "test questions" : "questions";
                     if (questions == null || !questions.Any())
                     {
-                        return Content("<div class='alert alert-info'>No questions available for this section.</div>");
+                        return Content($"<div class='alert alert-info'>No {modeName} available for this section.</div>");
                     }
 
                     foreach (var q in questions)
                     {
                         q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
                     }
-                     
-                    int currentIndex = 0;
+
+                    int currentIndex = 0;  
                     ViewBag.CourseId = courseId;
                     ViewBag.SectionId = sectionId;
                     ViewBag.CurrentIndex = currentIndex;
                     ViewBag.TotalQuestions = questions.Count;
-                     
-                    return PartialView("_ReadingMode", questions[currentIndex]);
-                case "test":
-                    return PartialView("_TestMode");
+
+                    string partialName = mode.ToLower() == "test" ? "_TestMode" : "_ReadingMode";
+                    return PartialView(partialName, questions[currentIndex]);
+
                 default:
                     return PartialView("_ReadingMode");
             }
+        }
+
+        [Authorize(Roles = "Student")]
+        [HttpGet]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoadTestPartial(int courseId, int sectionId, int currentIndex = 0)
+        {
+            var questions = (await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId))?.ToList();
+
+            if (questions == null || !questions.Any())
+            {
+                return Content("<div class='alert alert-info rounded-4 p-4 shadow-sm text-center'>No test questions available for this section.</div>");
+            }
+
+            foreach (var q in questions)
+            {
+                q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
+            }
+
+            if (currentIndex < 0) currentIndex = 0;
+            if (currentIndex >= questions.Count) currentIndex = questions.Count - 1;
+
+            ViewBag.CourseId = courseId;
+            ViewBag.SectionId = sectionId;
+            ViewBag.CurrentIndex = currentIndex;
+            ViewBag.TotalQuestions = questions.Count;
+             
+            ViewBag.QuestionIds = questions.Select(q => q.QuestionId).ToList();
+
+            return PartialView("_TestMode", questions[currentIndex]);
+        }
+        [Authorize(Roles = "Student")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitTest(TestSubmissionVM submission)
+        {
+            var questions = (await _questionRepo.GetQuestionsBySectionAsync(submission.CourseId, submission.SectionId))?.ToList();
+
+            if (questions == null || !questions.Any())
+            {
+                return BadRequest("Invalid test submission.");
+            }
+
+            int correct = 0;
+            foreach (var q in questions)
+            {
+                var options = await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId); 
+                var correctOption = options.FirstOrDefault(o => o.IsCorrect);
+
+                if (submission.SelectedAnswers.TryGetValue(q.QuestionId, out int selectedOptionId))
+                {
+                    if (correctOption != null && correctOption.OptionId == selectedOptionId)
+                    {
+                        correct++;
+                    }
+                }
+            }
+
+            var result = new TestResultVM
+            {
+                TotalQuestions = questions.Count,
+                CorrectAnswers = correct,
+                IncorrectAnswers = questions.Count - correct,
+                ScorePercentage = Math.Round((double)correct / questions.Count * 100, 2)
+            };
+
+            return PartialView("_TestResult", result);
         }
 
         [Authorize(Roles = "Student")]

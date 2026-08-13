@@ -35,10 +35,10 @@
                         <i class="bi bi-book-half me-1"></i> READING MODE (Notes + PYQs) <br>
                         <small class="fw-bold" style="font-size: 11px; opacity: 0.85;">Study Notes + Question with Explanations</small>
                     </a>
-                    <a href="javascript:void(0);" onclick="loadModeContent('Test', this)" class="mode-btn btn border-0 flex-fill py-2 text-light fw-bold" style="opacity: 0.7;">
+                    @* <a href="javascript:void(0);" onclick="loadModeContent('Test', this)" class="mode-btn btn border-0 flex-fill py-2 text-light fw-bold" style="opacity: 0.7;">
                         <i class="bi bi-file-earmark-text-fill me-1"></i> TEST MODE (PYQ) <br>
                         <small class="fw-normal" style="font-size: 11px;">Practice PYQs in Test Environment</small>
-                    </a>
+                    </a> *@
                 </div>
             </div>
         </div>
@@ -59,7 +59,7 @@
                         @foreach (var course in Model.EnrolledCourses)
                         {
                             <div class="accordion-item border-0 mb-2 rounded-3 overflow-hidden shadow-none border bg-light bg-opacity-50">
-                                <!-- Course Accordion Header -->
+                                
                                 <h2 class="accordion-header" id="heading_@course.CourseId">
                                     <button class="accordion-button collapsed bg-transparent fw-bold text-dark small py-2.5 px-3 shadow-none"
                                             type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@course.CourseId">
@@ -67,8 +67,7 @@
                                         <span class="text-truncate" style="max-width: 170px;" title="@course.CourseTitle">@course.CourseTitle</span>
                                     </button>
                                 </h2>
-                                
-                                <!-- Course Sections Collapse Body -->
+                                 
                                 <div id="collapse_@course.CourseId" class="accordion-collapse collapse" data-bs-parent="#courseAccordion">
                                     <div class="accordion-body px-2 py-2 bg-white border-top">
                                         <div class="list-group list-group-flush small gap-1">
@@ -102,7 +101,7 @@
                     </div>
                 }
             </div>
-<       </div>
+       </div>
 
         <div class="col-md-9">
             <div class="card border-0 shadow-sm rounded-4">

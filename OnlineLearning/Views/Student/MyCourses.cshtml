@@ -1,99 +1,123 @@
 ﻿@{
-    
-    ViewData["Title"] = "My Course";
+    ViewData["Title"] = "My Courses";
 }
 @model List<CourseDTO> 
 @using OnlineLearning.Views.Services
 @inject ProtectorService protector
- 
-<div class="row g-4">
-    <div class="col-xl-12">  
-        <div class="student-panel-card mt-4">
-            <div class="panel-head">
-                <h4>My Courses</h4> 
-                <p>
-                    Continue your enrolled learning programs.
-                </p>
-            </div>
-            <section >
-                <div class="container">
-                    @if (Model.Any())
-                    {  
-                       @foreach (var course in Model)
-                       {
-                           <div class="col-md-6 col-lg-4">
 
-                               <div class="course-show-card">
-
-                                   <div class="course-thumb">
-                                        <img src="~/Uploads/courses/@course.Thumbnail"  />  
-                                   <span class="course-chip @(course.IsActive ? "premium" : "bg-danger")">
-                                       @(course.IsActive ? "Active" : "Inactive")
-                                   </span>
-
-                                   </div>
-
-                                   <div class="course-body">
-
-                                       <h5>
-                                           @course.CourseTitle
-                                       </h5>
-
-                                       <p>
-                                           @course.Description
-                                       </p>
-
-                                       <div class="course-meta">
-
-                                           <span>
-                                               <i class="bi bi-bar-chart"></i>
-                                               @course.LevelName
-                                           </span>
-
-                                           <span>
-                                               <i class="bx bx-category"></i>
-                                               @course.CategoryName
-                                           </span>
-
-                                       </div>
-
-                                       <div class="mt-4">
-                                            <a asp-action="Watch" asp-route-I="@protector.Encrypt(course.CourseId)" class="btn btn-plan w-100">
-                                                Start Learning 🚀
-                                            </a> 
-                                       </div>
-
-                                   </div>
-
-                               </div>
-
-                           </div>
-                       } 
-                    }
-                    else
-                    {
-                        <div class="empty-course-box text-center">
-
-                            <h3>
-                                No Active Courses
-                            </h3>
-
-                            <p class="text-muted">
-                                You have not enrolled in any course yet.
-                            </p>
-
-                            <a href="/WebHome/Courses"
-                                   class="btn btn-plan px-5 mt-3">
-
-                                Browse Courses
-
-                            </a>
-
-                        </div>
-                    }
-
+<div class="container py-4">
+    <div class="row">
+        <div class="col-xl-12">  
+            <!-- Panel Header Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <h3 class="fw-bold text-dark mb-1">
+                            <i class="bi bi-journal-bookmark-fill me-2" style="color: #1c2541;"></i> My Courses
+                        </h3>
+                        <p class="text-muted small mb-0">Continue your enrolled learning programs and track your progress.</p>
+                    </div>
+                    <a href="/WebHome/Courses" class="btn text-white rounded-pill px-4 py-2 fw-semibold shadow-sm btn-sm" style="background-color: #1c2541;">
+                        <i class="bi bi-search me-1 text-warning"></i> Explore More Courses
+                    </a>
                 </div>
-            </section>
-        </div>
-    </div> 
+            </div>
+
+            <!-- Courses Grid Section -->
+            @if (Model != null && Model.Any())
+            {  
+                <div class="row g-4">
+                    @foreach (var course in Model)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white course-hover-card overflow-hidden">
+                                
+                                <!-- Course Thumbnail -->
+                                <div class="position-relative" style="height: 180px; overflow: hidden; background-color: #f8f9fa;">
+                                    <img src="~/Uploads/courses/@course.Thumbnail" class="w-100 h-100 object-fit-cover" alt="@course.CourseTitle" />  
+                                    
+                                    <!-- Status Chip -->
+                                    <span class="position-absolute top-0 end-0 m-3 badge px-3 py-2 rounded-pill shadow-sm @(course.IsActive ? "bg-success" : "bg-danger")">
+                                        @(course.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </div>
+
+                                <!-- Course Body -->
+                                <div class="card-body d-flex flex-column p-4">
+                                    <h5 class="fw-bold text-dark mb-2 text-truncate-2">
+                                        @course.CourseTitle
+                                    </h5>
+
+                                    <p class="text-muted small mb-3 text-truncate-3 flex-grow-1">
+                                        @course.Description
+                                    </p>
+
+                                    <!-- Meta Information -->
+                                    <div class="d-flex align-items-center justify-content-between text-muted small pt-3 border-top mb-3">
+                                        <span class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-bar-chart text-secondary"></i>
+                                            @course.LevelName
+                                        </span>
+                                        <span class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-folder2-open text-secondary"></i>
+                                            @course.CategoryName
+                                        </span>
+                                    </div>
+
+                                    <!-- Action Button -->
+                                    <div class="mt-auto">
+                                        <a asp-action="Watch" asp-route-I="@protector.Encrypt(course.CourseId)" class="btn text-white w-100 rounded-pill py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" style="background-color: #1c2541;">
+                                            <span>Start Learning</span> 🚀
+                                        </a> 
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    } 
+                </div>
+            }
+            else
+            {
+                <!-- Empty State Box -->
+                <div class="card border-0 shadow-sm rounded-4 text-center py-5 px-4 bg-white">
+                    <div class="empty-course-box py-4">
+                        <div class="mb-3 display-4 text-muted">📚</div>
+                        <h4 class="fw-bold text-dark mb-2">No Active Courses Found</h4>
+                        <p class="text-muted small mb-4 max-w-400 mx-auto">
+                            You have not enrolled in any course yet or your active subscriptions haven't loaded. Browse our catalog to get started!
+                        </p>
+                        <a href="/WebHome/Courses" class="btn text-white px-5 py-2 rounded-pill fw-bold shadow-sm" style="background-color: #1c2541;">
+                            Browse Courses
+                        </a>
+                    </div>
+                </div>
+            }
+        </div> 
+    </div>
 </div>
+
+<style>
+    .course-hover-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .course-hover-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important;
+    }
+    .object-fit-cover {
+        object-fit: cover;
+    }
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .text-truncate-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>

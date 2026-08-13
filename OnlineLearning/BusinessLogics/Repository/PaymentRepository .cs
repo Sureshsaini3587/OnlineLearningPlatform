@@ -34,10 +34,12 @@ namespace OnlineLearning.BusinessLogics.Repository
             using var db = Connection;
             return await db.ExecuteScalarAsync<bool>(
                 @"SELECT COUNT(1)
-                    FROM StudentSubscriptions
-                    WHERE StudentId=@StudentId 
-                    AND IsActive=1
-                    AND EndDate > GETDATE()",
+              FROM StudentSubscriptions ss
+              JOIN PlanCourses pc ON ss.PlanId = pc.PlanId
+              WHERE ss.StudentId=@StudentId
+              AND pc.CourseId=@CourseId
+              AND ss.IsActive=1
+              AND ss.EndDate > GETDATE()",
                 new
                 {
                     StudentId = studentId,
@@ -274,7 +276,7 @@ namespace OnlineLearning.BusinessLogics.Repository
               WHERE ss.StudentId=@UserId
               AND pc.CourseId=@CourseId
               AND ss.IsActive=1
-              AND ss.ExpiryDate > GETDATE()",
+              AND ss.EndDate > GETDATE()",
                 new { UserId = userId, CourseId = courseId });
 
             return count > 0;
