@@ -1,0 +1,216 @@
+﻿@using OnlineLearning.DTO
+@model PQJPlayerVM
+@{
+    
+    ViewData["Title"] = $"PQJ | {Model.CourseTitle}";
+}
+
+<style>
+    .pqj-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    /* Hide all question cards by default */
+    .question-card {
+        display: none;
+        border: 1px solid #e2e8f0;
+        background-color: #ffffff;
+        border-radius: 1rem;
+    }
+    /* Only display the card with the .active class */
+    .question-card.active {
+        display: block;
+        animation: fadeIn 0.4s ease-in-out;
+    }
+    .option-wrapper {
+        display: block;
+        position: relative;
+        padding: 1rem 1rem 1rem 3rem;
+        margin-bottom: 0.75rem;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+    }
+    .option-wrapper:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+    }
+    .option-wrapper input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .option-marker {
+        position: absolute;
+        top: 50%;
+        left: 1.25rem;
+        transform: translateY(-50%);
+        height: 1.25rem;
+        width: 1.25rem;
+        background-color: #fff;
+        border: 2px solid #cbd5e1;
+        border-radius: 50%;
+    }
+    .option-wrapper input:checked ~ .option-marker {
+        background-color: #111827;
+        border-color: #111827;
+    }
+    .option-wrapper.correct-choice {
+        background-color: #d1fae5 !important;
+        border-color: #10b981 !important;
+        color: #065f46 !important;
+    }
+    .option-wrapper.incorrect-choice {
+        background-color: #fee2e2 !important;
+        border-color: #ef4444 !important;
+        color: #991b1b !important;
+    }
+    .explanation-box {
+        display: none;
+        background-color: #f0fdf4;
+        border-left: 4px solid #10b981;
+        border-radius: 0.25rem;
+    }
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="pqj-page-wrap">
+    <div class="pqj-top-card">
+        <div>
+          <input type="hidden" id="courseId" value="@Model.CourseId" />  
+            <span class="text-primary fw-bold text-uppercase small tracking-wider">Practice Question Journal</span>
+            <h2 class="fw-bold text-dark mt-1">@Model.CourseTitle</h2>
+        </div> 
+    </div> 
+    <div class="row g-4 mt-1">
+        <div class="col-lg-4">
+            <div class="student-panel-card">
+                <div class="panel-head">
+                    <h4>Set Preferences</h4>
+                </div>   
+                <div class="mb-3">
+                    <label class="form-label">Topic</label>
+                    <select id="topicId" name="topicId" class="form-select auth-input">
+                        <option value="">Select Topic</option>
+                    </select>
+                </div> 
+                <div class="mb-4">
+                    <label class="form-label">Difficulty</label>
+                    <select class="form-select auth-input" name="difficulty">
+                        <option value="1">Easy</option>
+                        <option value="2">Medium</option>
+                        <option value="3">Hard</option>
+                    </select>
+                </div>
+                <button class="btn btn-plan w-100" onclick="loadQuestion(1)">Generate Questions</button> 
+            </div>
+        </div> 
+        <div class="col-lg-8">
+            <div id="pqjPlayerContainer">
+                @await Html.PartialAsync("_PQJPlayer", Model)
+            </div>
+        </div> 
+    </div>
+</div> 
+ <script>
+        let currentIndexPointer = 1;  
+        document.addEventListener("DOMContentLoaded", function () {
+            const courseId = document.getElementById("courseId").value;
+            const topicDropdown = document.getElementById("topicId");
+            const difficultyDropdown = document.getElementById("difficultyDropdown"); 
+            fetch(`/WebHome/GetTopicsByCourse?courseId=${courseId}`)
+                .then(res => {
+                    if (!res.ok) throw new Error();
+                    return res.json();
+                })
+                .then(data => {
+                    topicDropdown.innerHTML = `<option value="0">All Topics</option>`;
+                    data.forEach(t => { 
+                        const isSelected = t.sectionId == "@Model.TopicId" ? "selected" : "";
+                        topicDropdown.innerHTML += `<option value="${t.sectionId}" ${isSelected}>${t.sectionTitle}</option>`;
+                    }); 
+                    loadQuestion(currentIndexPointer);
+                })
+                .catch(() => {
+                    topicDropdown.innerHTML = `<option value="0">Error loading topics</option>`; 
+                    loadQuestion(currentIndexPointer);
+                }); 
+            topicDropdown.addEventListener("change", () => loadQuestion(1));
+            difficultyDropdown.addEventListener("change", () => loadQuestion(1));
+        });
+         
+        function loadQuestion(index) {
+            let courseId = document.getElementById("courseId")?.value;
+            let topicId = document.getElementById("topicId")?.value;
+            let difficulty = document.querySelector("[name='difficulty']")?.value;
+        
+            fetch(`/Student/LoadQuestion?index=${index}&courseId=${courseId}&topicId=${topicId}&difficulty=${difficulty}`, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("pqjPlayerContainer").innerHTML = html;
+            });
+        } 
+     document.addEventListener('change', function (e) {
+        if (e.target.matches('input[type="radio"]')) {
+            fetch('/PQJ/SaveAnswer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    attemptId:
+                        e.target.dataset.attempt,
+                    questionId:
+                        e.target.dataset.question,
+                    selectedOptionId:
+                        e.target.value
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                let selected =
+                    e.target.closest('.pqj-option');
+                document
+                    .querySelectorAll(
+                        `input[name="${e.target.name}"]`)
+                    .forEach(r => {
+                        r.disabled = true;
+                    });
+                if (data.isCorrect)
+                {
+                    selected.classList.add('correct-option');
+                }
+                else
+                {
+                    selected.classList.add(
+                        'wrong-option');
+                    document
+                        .querySelectorAll(
+                            `input[name="${e.target.name}"]`)
+                        .forEach(r => {
+
+                            if (r.value ==
+                                data.correctOptionId)
+                            {
+                                r.closest('.pqj-option')
+                                 .classList.add(
+                                    'correct-option');
+                            }
+                        });
+                }
+            });
+        }
+    });
+    </script>
+ 

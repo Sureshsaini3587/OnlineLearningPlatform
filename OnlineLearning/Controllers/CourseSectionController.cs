@@ -31,17 +31,17 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> Create()
         {
             await LoadDropdowns();
-            return View();
+            return PartialView("_SectionForm", new CourseSection()); 
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CourseSection model)
         {
             if (!ModelState.IsValid)
             {
-                await LoadDropdowns();
-                return View(model);
-            }
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            } 
             int userId = UserHelper.GetUserId(User);
             var CourseDTO = new CourseSectionDTO
             {
@@ -52,17 +52,7 @@ namespace OnlineLearning.Controllers
                 CreatedBy = userId
             };
             var result = await _section.AddAsync(CourseDTO);
-
-            if (result)
-            {
-                _notify.Success("Section saved successfully!");
-                return RedirectToAction("Index");
-            }
-
-            _notify.Error("Something went wrong!");
-            await LoadDropdowns();
-
-            return View(model);
+            return Json(new { success = result.Success, message = result.Message }); 
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -78,16 +68,19 @@ namespace OnlineLearning.Controllers
                 SectionTitle = course.SectionTitle,
                 SortOrder = course.SortOrder, 
                 IsActive = course.IsActive
-            };
-            return View(CourseDTO);
+            }; return PartialView("_SectionForm", CourseDTO); 
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CourseSection model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                int userId = UserHelper.GetUserId(User);
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            }
+
+               int userId = UserHelper.GetUserId(User);
                 var CourseDTO = new CourseSectionDTO
                 {
                     CourseId = model.CourseId, 
@@ -98,41 +91,27 @@ namespace OnlineLearning.Controllers
                     UpdatedBy = userId
                 };
                 var result = await _section.UpdateAsync(CourseDTO);
-                if (!result)
-                {
-                    _notify.Error("An Error Occures While Updating Section Details !");
-                    await LoadDropdowns();
-                    return View(model);
-                }
-
-                _notify.Success("Section Details Update Successfully !");
-                return RedirectToAction("Index");
-            }
-            await LoadDropdowns();
-            return View(model);
-        }
-
-        public async Task<IActionResult> Delete(int id)
-        {
-            var course = await _section.GetByIdAsync(id);
-            var CourseDTO = new CourseSection
-            {
-                SectionTitle = course.SectionTitle,
-                SectionId = course.SectionId
-            };
-            return View(CourseDTO);
-        }
-
+                return Json(new { success = result.Success, message = result.Message }); 
+        } 
+        
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int SectionId)
         {
-            int userId = UserHelper.GetUserId(User);
-            var course = await _section.GetByIdAsync(SectionId);
-            course.IsDeleted = true;
-            course.UpdatedBy = userId;
-            var result = await _section.DeleteAsync(course);
-            _notify.Success("Section Delete Successfully !");
-            return RedirectToAction("Index");
+            try
+            {
+                int userId = UserHelper.GetUserId(User);
+                var course = await _section.GetByIdAsync(SectionId);
+                course.IsDeleted = true;
+                course.UpdatedBy = userId;
+                var result = await _section.DeleteAsync(course);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            }
+           
         }
         private async Task LoadDropdowns()
         {

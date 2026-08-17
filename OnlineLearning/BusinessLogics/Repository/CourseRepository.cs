@@ -1,23 +1,20 @@
 ﻿using Dapper;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Caching.Memory;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 using System.Data;
 
 namespace OnlineLearning.BusinessLogics.Repository
 {
     public class CourseRepository : ICourseRepository
-    {
+    { 
+        private readonly IConfiguration _config; 
 
-        private readonly IConfiguration _config;
-        private readonly IMemoryCache _cache;
-
-        public CourseRepository(IConfiguration config, IMemoryCache cache)
+        public CourseRepository(IConfiguration config )
         {
-            _config = config;
-            _cache = cache;
+            _config = config; 
         }
 
         private IDbConnection Connection
@@ -63,10 +60,7 @@ namespace OnlineLearning.BusinessLogics.Repository
         public async Task<List<CourseDTO>> GetAllWithDetails()
         {
             string cacheKey = "CourseWithDetails";
-            if (_cache.TryGetValue( cacheKey, out List<CourseDTO> courses))
-            {
-                return courses;
-            }
+            
             using var db = Connection;
 
             var data = await db.QueryAsync<CourseDTO>(
@@ -75,19 +69,7 @@ namespace OnlineLearning.BusinessLogics.Repository
                 commandType: CommandType.StoredProcedure
             );
 
-            courses = data.ToList();
-            _cache.Set(cacheKey,courses,
-                new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow =
-                        TimeSpan.FromMinutes(30), 
-                    SlidingExpiration =
-                        TimeSpan.FromMinutes(10), 
-                    Priority =
-                        CacheItemPriority.High
-                });
-
-            return courses;
+            return  data.ToList(); 
         }
 
         public async Task<CourseDTO?> GetByIdAsync(int id)
@@ -145,74 +127,105 @@ namespace OnlineLearning.BusinessLogics.Repository
             return courseDict.Values.FirstOrDefault();
         }
 
-        public async Task<bool> AddAsync(CourseDTO entity)
+        public async Task<Result> AddAsync(CourseDTO entity)
         {
-            using var db = Connection;
-            var result = await db.ExecuteAsync(
-                 "sp_Course",
-                 new
-                 {
-                     Action = "INSERT",
-                     entity.CourseTitle,
-                     entity.Description,
-                     entity.CategoryId,
-                     entity.InstructorId,
-                     entity.Price,
-                     entity.Thumbnail,
-                     entity.Language,
-                     entity.Level,
-                     entity.IsPublished,
-                     entity.IsActive,
-                     entity.CreatedBy
-                 },
-                 commandType: CommandType.StoredProcedure
-             );
-            string cacheKey = "CourseWithDetails"; 
-            _cache.Remove(cacheKey);
-            return result > 0; 
+            try
+            {
+                using var db = Connection;
+                var result = await db.ExecuteAsync(
+                     "sp_Course",
+                     new
+                     {
+                         Action = "INSERT",
+                         entity.CourseTitle,
+                         entity.Description,
+                         entity.CategoryId,
+                         entity.InstructorId,
+                         entity.Price,
+                         entity.Thumbnail,
+                         entity.Language,
+                         entity.Level,
+                         entity.IsPublished,
+                         entity.IsActive,
+                         entity.CreatedBy
+                     },
+                     commandType: CommandType.StoredProcedure
+                 );
+
+                if (result > 0)
+                { 
+                    return new Result { Success = true, Message = "Course added successfully." };
+                }
+
+                return new Result { Success = false, Message = "Failed to add course." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
-        public async Task<bool> UpdateAsync(CourseDTO entity)
+
+        public async Task<Result> UpdateAsync(CourseDTO entity)
         {
-            using var db = Connection;
+            try
+            {
+                using var db = Connection;
+                var result = await db.ExecuteAsync(
+                    "sp_Course",
+                    new
+                    {
+                        Action = "UPDATE",
+                        entity.CourseId,
+                        entity.CourseTitle,
+                        entity.Description,
+                        entity.CategoryId,
+                        entity.InstructorId,
+                        entity.Price,
+                        entity.Thumbnail,
+                        entity.Language,
+                        entity.Level,
+                        entity.IsPublished,
+                        entity.IsActive,
+                        entity.UpdatedBy
+                    },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            var result = await db.ExecuteAsync(
-                "sp_Course",
-                new
-                {
-                    Action = "UPDATE",
-                    entity.CourseId,
-                    entity.CourseTitle,
-                    entity.Description,
-                    entity.CategoryId,
-                    entity.InstructorId,
-                    entity.Price,
-                    entity.Thumbnail,
-                    entity.Language,
-                    entity.Level,
-                    entity.IsPublished,
-                    entity.IsActive,
-                    entity.UpdatedBy
-                },
-                commandType: CommandType.StoredProcedure
-            );
-            string cacheKey = "CourseWithDetails";
+                if (result > 0)
+                { 
+                    return new Result { Success = true, Message = "Course updated successfully." };
+                }
 
-            _cache.Remove(cacheKey);
-            return result > 0;
+                return new Result { Success = false, Message = "Course update failed or not found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
-        public async Task<bool> DeleteAsync(CourseDTO entity)
+
+        public async Task<Result> DeleteAsync(CourseDTO entity)
         {
-            using var db = Connection;
+            try
+            {
+                using var db = Connection;
+                var result = await db.ExecuteAsync(
+                    "sp_Course",
+                    new { Action = "DELETE", entity.CourseId },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            var result = await db.ExecuteAsync(
-                "sp_Course",
-                new { Action = "DELETE", entity.CourseId },
-                commandType: CommandType.StoredProcedure
-            );
-            string cacheKey = "CourseWithDetails";
+                if (result > 0)
+                { 
+                    return new Result { Success = true, Message = "Course deleted successfully." };
+                }
 
-            _cache.Remove(cacheKey);
-            return result > 0;
+                return new Result { Success = false, Message = "Course could not be found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
 
         public async Task<int> AddCourseToPlanAsync(PlanCourseDto dto)

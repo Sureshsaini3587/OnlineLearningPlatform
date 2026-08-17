@@ -4,6 +4,7 @@ using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 using System.Data;
 
 namespace OnlineLearning.BusinessLogics.Repository
@@ -60,66 +61,96 @@ namespace OnlineLearning.BusinessLogics.Repository
             );  
         }
 
-        public async Task<bool> AddAsync(InstructorDTO entity)
+        public async Task<Result> AddAsync(InstructorDTO entity)
         {
-            var Pswd = PasswordHelper.HashPassword("Ins@123");
-            using var db = Connection;
-            var result = await db.ExecuteAsync(
-                 "sp_Instructor",
-                 new
-                 {
-                     Action = "INSERT",
-                     entity.FullName, 
-                     entity.Email, 
-                     entity.Mobile, 
-                     entity.Role, 
-                     entity.Bio, 
-                     entity.ExperienceYears, 
-                     entity.ProfileImage, 
-                     entity.IsActive,
-                     entity.CreatedBy,
-                     Pswd 
-                 },
-                 commandType: CommandType.StoredProcedure
-             ); 
-            return result > 0; 
+            try
+            {
+                var pswd = PasswordHelper.HashPassword("Ins@123");
+                using var db = Connection;
+                 
+                var result = await db.QueryFirstOrDefaultAsync<int>(
+                     "sp_Instructor",
+                     new
+                     {
+                         Action = "INSERT",
+                         entity.FullName,
+                         entity.Email,
+                         entity.Mobile,
+                         entity.Role,
+                         entity.Bio,
+                         entity.ExperienceYears,
+                         entity.ProfileImage,
+                         entity.IsActive,
+                         entity.CreatedBy,
+                         Pswd = pswd
+                     },
+                     commandType: CommandType.StoredProcedure
+                 );
+
+                if (result == -1) return new Result { Success = false, Message = "Email already exists." };
+                return result > 0
+                    ? new Result { Success = true, Message = "Instructor added successfully." }
+                    : new Result { Success = false, Message = "Failed to add instructor." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
-        public async Task<bool> UpdateAsync(InstructorDTO entity)
+
+        public async Task<Result> UpdateAsync(InstructorDTO entity)
         {
-            using var db = Connection;
+            try
+            {
+                using var db = Connection;
+                var result = await db.ExecuteAsync(
+                    "sp_Instructor",
+                    new
+                    {
+                        Action = "UPDATE",
+                        entity.InstructorId,
+                        entity.FullName,
+                        entity.Email,
+                        entity.Mobile,
+                        entity.Role,
+                        entity.Bio,
+                        entity.ExperienceYears,
+                        entity.ProfileImage,
+                        entity.IsActive,
+                        entity.UpdatedBy
+                    },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            var result = await db.ExecuteAsync(
-                "sp_Instructor",
-                new
-                {
-                    Action = "UPDATE",
-                    entity.InstructorId, 
-                    entity.FullName,
-                    entity.Email,  
-                    entity.Mobile,
-                    entity.Role,
-                    entity.Bio,
-                    entity.ExperienceYears,
-                    entity.ProfileImage,
-                    entity.IsActive,
-                    entity.UpdatedBy
-                },
-                commandType: CommandType.StoredProcedure
-            );
-
-            return result > 0;
+                return result > 0
+                    ? new Result { Success = true, Message = "Instructor updated successfully." }
+                    : new Result { Success = false, Message = "Instructor update failed or not found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
         }
-        public async Task<bool> DeleteAsync(InstructorDTO entity)
+
+        public async Task<Result> DeleteAsync(InstructorDTO entity)
         {
-            using var db = Connection;
+            try
+            {
+                using var db = Connection;
+                var result = await db.ExecuteAsync(
+                    "sp_Instructor",
+                    new { Action = "DELETE", entity.InstructorId },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            var result = await db.ExecuteAsync(
-                "sp_Instructor",
-                new { Action = "DELETE", entity.InstructorId },
-                commandType: CommandType.StoredProcedure
-            );
-
-            return result > 0;
-        } 
+                return result > 0
+                    ? new Result { Success = true, Message = "Instructor deleted successfully." }
+                    : new Result { Success = false, Message = "Instructor could not be found." };
+            }
+            catch (Exception ex)
+            {
+                return new Result { Success = false, Message = $"Database error: {ex.Message}" };
+            }
+        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿@using OnlineLearning.Views.Services
 @model VideoVM
 @{
-    Layout = "~/Views/Shared/Web/_StudentLayout.cshtml";
+    
      
     var course = ViewBag.CourseDetails as CourseDetailsVM;
     ViewData["Title"] = Model?.Title ?? course?.CourseTitle;
@@ -79,8 +79,14 @@
                     @course.Description
                 </p>
                 <div class="watch-actions">
-                    <button class="btn btn-plan">Mark as Complete</button>
-                    <a href="/PQJ" class="btn btn-outline-dark rounded-pill px-4 py-2.5 d-inline-flex align-items-center">Take PQJ</a>
+                    @* <button class="btn btn-plan">Mark as Complete</button> *@
+                      <a asp-controller="Student" 
+                         asp-action="CoursePQJ" 
+                         asp-route-courseId="@protector.Encrypt(course.CourseId)" 
+                         class="btn btn-outline-dark rounded-pill px-4 py-2.5 d-inline-flex align-items-center">
+                         Take PQJ
+                      </a>
+                    
                 </div>
             </div>
         }

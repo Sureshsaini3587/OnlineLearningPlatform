@@ -40,59 +40,7 @@
             </div> 
         <div id="courseContainer">
             @await Html.PartialAsync("_CourseList", Model.Courses)
-        </div>
-       @*  <div class="row g-4 mt-2">
-            @foreach (var course in Model.Courses)
-            {
-                <div class="col-md-6 col-xl-4">
-                    <div class="course-show-card">
-                        <div class="course-thumb">
-                            @if (course.IsDemo)
-                            {
-                                <span class="course-chip">Demo Available</span>
-                            }
-                            else
-                            {
-                                <span class="course-chip premium">Premium</span>
-                            }
-
-                            <img src="@(course.Thumbnail ?? $"https://picsum.photos/600/420?random={course.CourseId}")"
-                                 alt="Course Image" />
-                        </div>
-
-                        <div class="course-body">
-
-                            <div class="course-meta">
-                                <span>
-                                    <i class="bi bi-camera-video"></i>
-                                    @course.TotalLectures lessons
-                                </span> 
-                                <span>
-                                    <i class="bi bi-bar-chart"></i>
-                                    @course.LevelName
-                                </span>
-                                <span>
-                                    <i class="bx bx-category"></i>
-                                    @course.CategoryName
-                                 </span>
-                            </div> 
-                            <h5>@course.CourseTitle</h5> 
-                            <p>@course.Description</p> 
-                            <div class="course-footer-row">
-                                <div class="course-price">₹@course.Price</div> 
-                                <a asp-controller="WebHome"
-                                       asp-action="CourseDetails"
-                                       asp-route-id="@course.CourseId"
-                                       class="btn btn-course-view">
-                                    View Details
-                                </a>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>  *@
+        </div> 
     </div>
 </section>
 <script>
@@ -105,11 +53,7 @@
         const search = searchInput.value;
         const categoryId = categorySelect.value;
 
-        fetch(`/WebHome/Courses?search=${search}&categoryId=${categoryId}`, {
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
-            }
-        })
+        fetch(`/WebHome/Courses?search=${search}&categoryId=${categoryId}&isAjax=true`)
         .then(res => res.text())
         .then(data => {
             document.getElementById("courseContainer").innerHTML = data;

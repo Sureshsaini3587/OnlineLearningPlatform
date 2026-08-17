@@ -4,7 +4,6 @@ using OnlineLearning.BusinessLogics.Services;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
 using OnlineLearning.Models.ResponseModel;
-using Org.BouncyCastle.Crypto.Generators;
 using System.Data;
 
 public class AuthRepository : IAuthRepository
@@ -89,5 +88,21 @@ public class AuthRepository : IAuthRepository
         return null;
     }
 
+    public async Task<bool> UpdatePasswordAsync(int userId, string newPasswordHash)
+    {
+        using var db = Connection;
+         
+        string updateQuery = @"
+        UPDATE Users 
+        SET PasswordHash = @PasswordHash 
+        WHERE UserId = @UserId  ";
+        string passwordHash = PasswordHelper.HashPassword(newPasswordHash);
+        int rowsAffected = await db.ExecuteAsync(updateQuery, new
+        {
+            UserId = userId,
+            PasswordHash = passwordHash
+        });
 
+        return rowsAffected > 0;
+    }
 }

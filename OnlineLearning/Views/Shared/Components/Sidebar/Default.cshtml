@@ -1,0 +1,108 @@
+﻿@using OnlineLearning.Helpers
+@model List<NavigationItem>
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    string IsActive(string controller, string action = "Index")
+    {
+        return currentController.Equals(controller, StringComparison.OrdinalIgnoreCase)
+            && currentAction.Equals(action, StringComparison.OrdinalIgnoreCase)
+            ? "active" : "";
+    }
+
+    string IsControllerActive(params string[] controllers)
+    {
+        return controllers.Any(x => currentController.Equals(x, StringComparison.OrdinalIgnoreCase))
+            ? "active" : "";
+    } 
+}
+<nav class="navbar navbar-expand-lg fixed-top app-navbar" id="appNavbar"  >
+    <div class="container">
+        <a class="navbar-brand brand-mark" asp-controller="Home" asp-action="Index">
+            <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+            <span>Manika Learning Academy </span>
+        </a>
+
+        <button class="navbar-toggler border-0 shadow-none text-white" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-list fs-2"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav mx-auto align-items-lg-center gap-lg-2">
+                @foreach (var item in Model)
+                { 
+                    @if (item.HasSubMenu)
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle @IsControllerActive(item.Controller)"
+                                   href="#" id="@item.Title+Dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                @item.Title
+                            </a>
+
+                            <ul class="dropdown-menu app-dropdown" aria-labelledby="@item.Title+Dropdown">
+                                @foreach (var sub in item.SubItems)
+                                {
+                                    <li>
+                                        <a class="dropdown-item @IsActive(@sub.Controller, @sub.Action)"
+                                               asp-controller="@sub.Controller"
+                                               asp-action="@sub.Action">
+                                            <i class="bi bi-collection-play me-2"></i>@sub.Title
+                                        </a>
+                                    </li> 
+                                }  
+                            </ul>
+                        </li> 
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @IsActive(@item.Controller, @item.Action)"
+                                   asp-controller="@item.Controller"
+                                   asp-action="@item.Action">
+                                @item.Title
+                            </a>
+                        </li>
+                        
+                    }
+                } 
+            </ul>
+            <div class="d-flex align-items-center gap-2 nav-actions">
+                @if (User?.Identity?.IsAuthenticated ?? false)
+                { 
+                    var name = UserHelper.GetUserName(User);
+                    var role = UserHelper.GetUserRole(User);
+                    var initials = string.Join("", name.Split(' ').Where(s => !string.IsNullOrEmpty(s)).Select(x => x[0])).ToUpper();
+
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                               id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="student-user-chip d-flex align-items-center gap-2">
+                                <div class="student-avatar" style="background: linear-gradient(135deg, #2ec5a7, #ff9b71);">@initials</div>
+                                <div class="d-none d-lg-block">
+                                    <strong class="d-block text-white" style="font-size: 0.9rem;">@name</strong>
+                                    <span class="text-white-50" style="font-size: 0.75rem;">@role</span>
+                                </div>
+                            </div>
+                        </a>
+                         
+                        <ul class="dropdown-menu dropdown-menu-end app-dropdown" aria-labelledby="userMenu">
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                { 
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-nav-outline">Login</a>
+                }
+            </div>
+        </div>
+    </div>
+</nav>            

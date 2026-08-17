@@ -1,0 +1,137 @@
+﻿@{
+    ViewData["Title"] = "Privacy Policy";
+    Layout = "~/Views/Shared/Web/_Layout.cshtml";
+}
+
+<section class="inner-hero">
+    <div class="container">
+        <div class="inner-hero-content text-center">
+            <span class="section-kicker">Legal & Transparency</span>
+            <h1>Privacy Policy</h1>
+            <p>
+                Learn how we collect, use, and protect your personal information when you use our platform and learning courses.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section-space">
+    <div class="container">
+        <div class="faq-search-box mb-4">
+            <i class="bi bi-search"></i>
+            <input type="text" id="policySearchInput" placeholder="Search privacy policy topics..." onkeyup="filterPolicy()" />
+        </div>
+
+        <div class="faq-shell">
+            <div class="accordion" id="policyAccordion">
+
+                <!-- Section 1 -->
+                <div class="accordion-item faq-item policy-card">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#policy1">
+                            1. Information We Collect
+                        </button>
+                    </h2>
+                    <div id="policy1" class="accordion-collapse collapse show" data-bs-parent="#policyAccordion">
+                        <div class="accordion-body">
+                            <p>We collect personal information to provide better services to all our users. This includes:</p>
+                            <ul>
+                                <li><strong>Account Data:</strong> Name, email address, and phone number when you register.</li>
+                                <li><strong>Payment Details:</strong> Transaction records when purchasing subscriptions (we do not store raw card details).</li>
+                                <li><strong>Usage Data:</strong> Course progress, demo video views, and practice flow (PQJ) logs.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2 -->
+                <div class="accordion-item faq-item policy-card">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#policy2">
+                            2. How We Use Your Information
+                        </button>
+                    </h2>
+                    <div id="policy2" class="accordion-collapse collapse" data-bs-parent="#policyAccordion">
+                        <div class="accordion-body">
+                            <p>Your data is used strictly to enhance your learning experience, including:</p>
+                            <ul>
+                                <li>Providing access to full course videos and premium practice modules.</li>
+                                <li>Managing active subscriptions, account verification, and security updates.</li>
+                                <li>Sending notifications regarding new course additions or account activity.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3 -->
+                <div class="accordion-item faq-item policy-card">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#policy3">
+                            3. Data Protection & Security
+                        </button>
+                    </h2>
+                    <div id="policy3" class="accordion-collapse collapse" data-bs-parent="#policyAccordion">
+                        <div class="accordion-body">
+                            <p>
+                                We implement industry-standard encryption protocols (SSL/TLS) to protect your personal details against unauthorized access, alteration, or disclosure. Demo sessions require no login, ensuring zero data collection for casual viewers.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4 -->
+                <div class="accordion-item faq-item policy-card">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#policy4">
+                            4. Cookies and Tracking Technologies
+                        </button>
+                    </h2>
+                    <div id="policy4" class="accordion-collapse collapse" data-bs-parent="#policyAccordion">
+                        <div class="accordion-body">
+                            <p>
+                                We use essential session cookies to keep you securely logged in while navigating between course videos and practice modules. You can manage cookie preferences directly from your browser settings.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 5 -->
+                <div class="accordion-item faq-item policy-card">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed faq-btn" type="button" data-bs-toggle="collapse" data-bs-target="#policy5">
+                            5. Your Rights & Support Contact
+                        </button>
+                    </h2>
+                    <div id="policy5" class="accordion-collapse collapse" data-bs-parent="#policyAccordion">
+                        <div class="accordion-body">
+                            <p>
+                                You have the right to request access to your data, request deletion of your account, or update your personal information.
+                            </p>
+                            <p class="mb-0">
+                                If you have any questions regarding this policy, please reach out to our support team at <a href="mailto:Manika.learning.academy@gmail.com">Manika.learning.academy@gmail.com</a>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+ 
+    <script>
+        function filterPolicy() {
+            let input = document.getElementById('policySearchInput').value.toLowerCase();
+            let items = document.querySelectorAll('.policy-card');
+
+            items.forEach(function (item) {
+                let text = item.innerText.toLowerCase();
+                if (text.includes(input)) {
+                    item.style.display = "";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+    </script>
+ 

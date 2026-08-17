@@ -1,25 +1,32 @@
 ﻿@using OnlineLearning.DTO
 @model IEnumerable<InstructorDTO>
 
+@{ 
+    ViewData["Title"] = "Instructor Management";
+}
+
+@Html.AntiForgeryToken()
 <div class="card">
     <div class="card-header">
         <div class="d-flex justify-content-between mb-3">
-            <h5>📚 Instructor Management</h5>
-            <a asp-action="Create" class="btn btn-primary">+ Add Instructor</a>
+            <h5><i class="bi bi-person-workspace me-2"></i> Instructors Management</h5> 
+            <button type="button"  class="btn btn-nav-solid"
+                    onclick="openGlobalModal('Add New Instructor', '/Instructor/Create')">
+                <i class="bi bi-plus-lg"></i> Add New Instructor
+            </button> 
         </div>
     </div>
     <div class="card-block table-border-style">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table id="instructorTable" class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Sr.No.</th> 
+                        <th>Sr.No.</th>
                         <th>Name</th>
-                        <th>Email</th>
-                        <th>Bio</th> 
-                        <th>Mobile No</th> 
+                        <th>Contact Info</th>
+                        <th>Bio</th>
                         <th>Status</th>
-                        <th width="180">Action</th>
+                        <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -30,25 +37,31 @@
                     {
                         <tr>
                             
-                            <th scope="row">@srNo</th> 
-                            <td>@item.FullName</td>
-                            <td>@item.Email</td>
-                            <td>@item.Bio</td> 
-                            <td>@item.Mobile</td> 
+                            <td scope="row">@srNo</td>
                             <td>
-                                @if (item.IsActive)
-                                {
-                                    <span class="badge bg-success">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Inactive</span>
-                                }
+                                 @item.FullName 
                             </td>
                             <td>
-                                <a asp-action="Edit" title="Edit" asp-route-id="@item.InstructorId" class="btn   btn-outline-primary"><i class="icofont icofont-pencil-alt-5"></i></a>
-                                <a asp-action="Delete" title="Delete" asp-route-id="@item.InstructorId" class="btn   btn-outline-danger"><i class="icofont icofont-ui-delete"></i></a>
+                                <div class="text-dark">@item.Email</div>
+                                <div class="text-muted small">@item.Mobile</div>
                             </td>
+                            <td><span class="text-muted">@(string.IsNullOrEmpty(item.Bio) ? "—" : item.Bio)</span></td>
+                            <td>
+                                <span class="badge rounded-pill @(item.IsActive ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") px-3 py-2 text-uppercase fw-bold fs-8">
+                                    @(item.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>                            
+                            <td class="text-end pe-4"> 
+                                <button type="button" class="btn btn-sm"
+                                        onclick="openGlobalModal('Edit Instructor', '@Url.Action("Edit", "Instructor", new { id = item.InstructorId })')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                 <button type="button"
+                                        class="btn btn-sm text-danger"
+                                        onclick="confirmDelete('@item.InstructorId')">
+                                    <i class="bi bi-trash"></i>
+                                </button> 
+                            </td> 
                         </tr>
                         srNo++;
                     }
@@ -57,3 +70,87 @@
         </div>
     </div>
 </div> 
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#instructorTable').DataTable({
+                "dom": "<'row mb-3 mt-2 px-3'<'col-auto'l><'col-auto ms-auto'f>>tr<'row px-3 pb-3'<'col-auto'i><'col-auto ms-auto'p>>",
+                "language": { "search": "", "searchPlaceholder": "Search instructors..." }
+            });
+            $('.dataTables_filter input').addClass('form-control shadow-none');
+        });
+        function confirmDelete(id) {
+            showConfirm(
+                "Delete Instructor",
+                "Are you sure you want to delete this instructor? This record will be removed permanently.",
+                function() { 
+                    var token = $('input[name="__RequestVerificationToken"]').val();
+
+                    $.ajax({
+                        url: '/Instructor/DeleteConfirmed',  
+                        type: 'POST',
+                        data: { id: id },  
+                        headers: {
+                            "RequestVerificationToken": token  
+                        },
+                        success: function(response) {
+                            showNotification('Success', 'Instructor deleted successfully!', 'success');
+                            
+                            setTimeout(() => location.reload(), 1000);
+                        },
+                        error: function(xhr) {
+                            showNotification('Error', 'Could not delete instructor. Error: ' + xhr.statusText, 'error');
+                        }
+                    });
+                }
+            );
+        }
+        function  previewFile(event){
+            var reader= new FileReader();
+            reader.onload=function(){
+                var output=document.getElementById('previewimage');
+                output.src=reader.result;
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+        $(document).on('submit', '#instructorForm', function (e) {
+            e.preventDefault();
+    
+            var form = $(this);
+            var submitBtn = form.find('button[type="submit"]');
+            var originalBtnText = submitBtn.text(); 
+            var formData = new FormData(this); 
+            var token = $('input[name="__RequestVerificationToken"]').val(); 
+             $.ajax({
+                 url: form.attr('action'),
+                 type: 'POST',
+                 data: formData,
+                 processData: false,
+                 contentType: false,
+                 headers: {
+                     "RequestVerificationToken": token                   
+                 },
+                 beforeSend: function () {
+                     submitBtn.prop('disabled', true).text('Saving...');
+                 },
+                success: function (response) {
+                    if(response.success){
+                       $('#globalModal').modal('hide');
+                       showNotification('Success', response.message, 'success');
+                       setTimeout(() => location.reload(), 3500);
+                    }
+                    else{
+                        showNotification('Error', response.message, 'error');
+                    }
+                },
+                error: function (xhr) {
+                    showNotification('Error', 'Unable to save data. Please check your inputs.', 'error');
+                }, 
+                complete: function () {
+                    submitBtn.prop('disabled', false).text(originalBtnText);
+                }
+            });
+        });
+    </script>
+}

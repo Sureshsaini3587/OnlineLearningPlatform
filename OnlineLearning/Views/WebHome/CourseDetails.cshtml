@@ -3,6 +3,21 @@
     Layout = "~/Views/Shared/Web/_Layout.cshtml";
 }
 @model CourseDetailsVM
+<style>
+    .details-video-preview {
+    width: 100%;
+    height: 350px;
+    
+    /* Yahan fix hai */
+    background-image: url('...'); /* Aapka logic yahan rahega */
+    background-repeat: no-repeat;  /* Yeh image ko repeat hone se rokega */
+    background-size: cover;        /* Yeh image ko stretch karke container mein fit karega */
+    background-position: center;   /* Image ko beech mein rakhega */
+    
+    border-radius: 12px;
+    position: relative;
+}
+</style>
 <section class="inner-hero inner-hero-sm">
     <div class="container">
         <div class="inner-hero-content">
@@ -19,9 +34,10 @@
     <div class="container">
         <div class="row g-4 align-items-start">
             <div class="col-lg-8">
-                <div class="details-main-card"> 
-                    <div class="details-video-preview"
-                         style="background-image:url('@(Model.Thumbnail ?? "/default.jpg")')"> 
+                <div class="details-main-card">  
+                  <div class="details-video-preview" 
+                         style="background-image: url('@(!string.IsNullOrEmpty(Model.Thumbnail) ? "/Uploads/courses/" + Model.Thumbnail : "/images/default.jpg")');">
+ 
                         @if (Model.HasDemo)
                         {
                             <span class="preview-pill">Preview Available</span>
@@ -94,7 +110,7 @@
                         </div> 
                     </div>
 
-                    <div class="details-section-block">
+                    @* <div class="details-section-block">
                         <h3>PQJ Practice included</h3>
                         <div class="pqj-inline-box">
                             <div>
@@ -105,7 +121,7 @@
                             </div>
                             <a href="/PQJ" class="btn btn-course-view">Open PQJ</a>
                         </div>
-                    </div>
+                    </div> *@
                 </div>
             </div>
 

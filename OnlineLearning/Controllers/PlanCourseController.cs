@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using OnlineLearning.BusinessLogics.IRepository;
 using OnlineLearning.DTO;
 using OnlineLearning.Models;
+using OnlineLearning.Models.ResponseModel;
 using System.Data;
 
 namespace OnlineLearning.Controllers
@@ -51,16 +52,16 @@ namespace OnlineLearning.Controllers
 
                 Plans =  Plans.Select(x=>new SelectListItem { Value=x.PlanId.ToString(),Text=x.PlanName}).ToList()
             };
-
-            return View(vm);
+            return PartialView("_MappingForm", vm); 
         }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PlanCourseVM vm)
         {
             if (vm.PlanId == 0 || vm.SelectedCourseIds == null || !vm.SelectedCourseIds.Any())
-            {
-                _notify.Error("Please select plan and at least one course"); 
-                return RedirectToAction("Create");
+            { 
+                return Json(new { success = false, message = "Please select plan and at least one course!" }); 
             }
 
             foreach (var courseId in vm.SelectedCourseIds)
@@ -71,11 +72,14 @@ namespace OnlineLearning.Controllers
                     CourseId = courseId
                 });
             }
-            _notify.Success("Courses assigned successfully");
-            return RedirectToAction("Create");
+            return Json(new { success = true, message = "Courses assigned successfully" }); 
         }
         public async Task<IActionResult> Edit(int planId)
         {
+            if (planId == 0)
+            {
+                return Json(new { success = false, message = "Invalid details !" });
+            }
             var assignedCourses =  await _course.GetCoursesByPlanAsync(planId);
             var Courses = await _course.GetAllAsync();
             var Plans = await _Plan.GetAllAsync();
@@ -86,25 +90,18 @@ namespace OnlineLearning.Controllers
                 Courses = Courses.Select(x => new SelectListItem { Value = x.CourseId.ToString(), Text = x.CourseTitle }).ToList(),
 
                 Plans = Plans.Select(x => new SelectListItem { Value = x.PlanId.ToString(), Text = x.PlanName }).ToList()
-            }; 
-
-            return View(vm);
+            };
+            return PartialView("_MappingForm", vm); 
         }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(PlanCourseVM vm)
         {
-            if (vm.PlanId == 0)
+            if (vm.PlanId == 0 || vm.SelectedCourseIds == null || !vm.SelectedCourseIds.Any())
             {
-                _notify.Error("Invalid Plan"); 
-                return RedirectToAction("Index");
-            }
-
-            if (vm.SelectedCourseIds == null || !vm.SelectedCourseIds.Any())
-            {
-                _notify.Error("Please select at least one course"); 
-                return RedirectToAction("Edit", new { planId = vm.PlanId });
-            }
-             
+                return Json(new { success = false, message = "Please select plan and at least one course!" });
+            }  
             await _course.DeleteByPlanIdAsync(vm.PlanId);
              
             foreach (var courseId in vm.SelectedCourseIds)
@@ -115,8 +112,7 @@ namespace OnlineLearning.Controllers
                     CourseId = courseId
                 });
             }
-            _notify.Success("updated successfully"); 
-            return RedirectToAction("Index");
+            return Json(new { success = true, message = "Update Successfully" }); 
         }
     }
 }

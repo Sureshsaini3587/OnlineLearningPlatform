@@ -26,19 +26,18 @@ namespace OnlineLearning.Controllers
             return View(Instructors);
         }
 
-        public async Task<IActionResult> Create()
-        { 
-            return View();
-        }
-         
+        [HttpGet]
+        public IActionResult Create() => PartialView("_InstructorForm", new Instructor());
+        
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Instructor model)
         {
             if (!ModelState.IsValid)
-            { 
-                return View(model);
-            }
+            {
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            }  
             int userId = UserHelper.GetUserId(User);
             if(model.ImageFile != null)
             {
@@ -60,17 +59,10 @@ namespace OnlineLearning.Controllers
                 CreatedBy = userId
             };
             var result = await _instructor.AddAsync(InstructorDTO);
-
-            if (result)
-            {
-                _notify.Success("Instructor saved successfully ! ");
-                return RedirectToAction("Index");
-            }
-             
-            _notify.Error("Some Error Occured while saving details!");
-            return View(model);
+            return Json(new { success = result.Success, message = result.Message });  
         }
 
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var Instructor = await _instructor.GetByIdAsync(id);
@@ -87,15 +79,22 @@ namespace OnlineLearning.Controllers
                 ProfileImage = Instructor.ProfileImage,
                 IsActive = Instructor.IsActive,
             };  
-            return View(InstructorDTO);
+            return PartialView("_InstructorForm", InstructorDTO);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Instructor model)
-        {
-            if (ModelState.IsValid)
+        { 
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, message = "Please fill the data correctly!" });
+            }
+
+            try
             {
                 int userId = UserHelper.GetUserId(User);
+                 
                 if (model.ImageFile != null)
                 {
                     using (var ms = new MemoryStream())
@@ -106,60 +105,60 @@ namespace OnlineLearning.Controllers
                 }
                 else
                 {
-                    var existingData = await _instructor.GetByIdAsync((int)model.InstructorId); 
+                    var existingData = await _instructor.GetByIdAsync((int)model.InstructorId);
                     model.ProfileImage = existingData?.ProfileImage;
                 }
-
+                 
                 var InstructorDTO = new InstructorDTO
                 {
-                    InstructorId = model.InstructorId, 
+                    InstructorId = model.InstructorId,
                     FullName = model.FullName,
                     Bio = model.Bio,
                     Email = model.Email,
-                    ExperienceYears = model.ExperienceYears, 
+                    ExperienceYears = model.ExperienceYears,
                     Mobile = model.Mobile,
                     ProfileImage = model.ProfileImage,
                     IsActive = model.IsActive,
                     UpdatedBy = userId
-                };
+                }; 
                 var result = await _instructor.UpdateAsync(InstructorDTO);
-                if (!result)
-                { 
-                    _notify.Error("An Error Occures While Updating Section Details !"); 
-                    return View(model);
-                }
-
-                if (result)
-                {
-                    _notify.Success("Instructor Profile updated successfully!"); 
-                    return RedirectToAction("Index");
-                } 
-            } 
-            return View(model);
+                return Json(new { success = result.Success, message = result.Message }); 
+            }
+            catch (Exception ex)
+            { 
+                // _logger.LogError(ex, "Error updating instructor ID {Id}", model.InstructorId); 
+                return Json(new { success = false, message = "System Error: " + ex.Message });
+            }
         }
 
-        public async Task<IActionResult> Delete(int id)
-        {
-            var Instructor = await _instructor.GetByIdAsync(id);
-            var InstructorDTO = new Instructor
-            {
-                FullName = Instructor.FullName,
-                InstructorId = Instructor.InstructorId
-            };
-            return View(InstructorDTO);
-        }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteConfirmed(int UserID)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            int userId = UserHelper.GetUserId(User);
-            var Instructor = await _instructor.GetByIdAsync(UserID);
-            Instructor.IsDeleted = true;
-            Instructor.UpdatedBy = userId;
-            var result = await _instructor.DeleteAsync(Instructor);
-            _notify.Success("Instructor Profile Delete successfully!");
-            return RedirectToAction("Index");
-        } 
+            try
+            {
+                int userId = UserHelper.GetUserId(User);
+                 
+                var instructor = await _instructor.GetByIdAsync(id);
+                 
+                if (instructor == null)
+                {
+                    return Json(new { success = false, message = "Instructor not found!" });
+                }
+                 
+                instructor.IsDeleted = true;
+                instructor.UpdatedBy = userId;
+                 
+                var result = await _instructor.DeleteAsync(instructor);
+                return Json(new { success = result.Success, message = result.Message }); 
+            }
+            catch (Exception ex)
+            { 
+                // _logger.LogError(ex, "Error deleting instructor ID {Id}", id); 
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            }
+        }
 
         #endregion
     }

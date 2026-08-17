@@ -7,7 +7,6 @@ using OnlineLearning.DTO;
 using OnlineLearning.Helpers;
 using OnlineLearning.Models;
 using OnlineLearning.Views.Services;
-using System.Security.Claims;
 
 namespace OnlineLearning.Controllers
 {
@@ -17,14 +16,16 @@ namespace OnlineLearning.Controllers
     {
         private readonly ICourseRepository _course;
         private readonly IPQJQuestionRepository _pqj;
-        private readonly IMemoryCache _cache; 
+        private readonly IMemoryCache _cache;
+        private readonly IReadingQuestionRepository _questionRepo;
         private readonly IStudentRepository _student;
         private readonly ProtectorService _protect;
-        public StudentController(ICourseRepository course, IMemoryCache cache, ProtectorService protect, INotificationService notify,IStudentRepository student, IPQJQuestionRepository pqj) :
+        public StudentController(ICourseRepository course, IMemoryCache cache, IReadingQuestionRepository questionRepo , ProtectorService protect, INotificationService notify,IStudentRepository student, IPQJQuestionRepository pqj) :
             base(notify)
         {
             _course = course;
             _protect = protect;
+            _questionRepo = questionRepo;
             _cache = cache;
             _student = student;
             _pqj = pqj;
@@ -37,7 +38,214 @@ namespace OnlineLearning.Controllers
             var data = await _student.GetDashboard(userId); 
             return View(data); 
         }
-   
+
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> ReadingMode()
+        {
+            int userId = UserHelper.GetUserId(User);
+            var data = await _questionRepo.GetStudentReadingSyllabusAsync(userId);
+             
+            return View(data);
+        }
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Watch(string I, int? contentId)
+        {
+            int studentId = UserHelper.GetUserId(User);
+
+            int courseId = _protect.Decrypt(I);
+            bool hasAccess = await _student.CheckCourseAccessAsync(studentId, courseId);
+            if (!hasAccess)
+            {
+                _notify.Error("Access Denied. This course is not included in your active subscription plan.");
+                return RedirectToAction("MyCourses");
+            }
+
+            CourseDetailsVM courseDetails = await _student.GetCourseDetailsById(courseId);
+
+            if (courseDetails == null || courseDetails.Sections == null || !courseDetails.Sections.Any())
+            {
+                _notify.Error("This course doesn't have any content yet.");
+                return RedirectToAction("MyCourses");
+            }
+            ViewBag.CourseDetails = courseDetails;
+
+            VideoVM activeVideo = null;
+
+            if (contentId.HasValue)
+            {
+                activeVideo = courseDetails.Sections.SelectMany(s => s.Videos).FirstOrDefault(v => v.VideoId == contentId.Value);
+            }
+            else
+            {
+                activeVideo = courseDetails.Sections.OrderBy(s => s.SectionId).FirstOrDefault()?.Videos.OrderBy(v => v.VideoId).FirstOrDefault();
+            }
+
+            return View(activeVideo);
+        }
+
+        [Authorize(Roles = "Student")]
+        [HttpGet]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoadModePartial(string mode, int courseId, int sectionId, int? contentId)
+        {
+            CourseDetailsVM courseDetails = await _student.GetCourseDetailsById(courseId);
+            if (courseDetails != null && courseDetails.Sections != null)
+            {
+                if (sectionId > 0)
+                {
+                    courseDetails.Sections = courseDetails.Sections
+                        .Where(s => s.SectionId == sectionId)
+                        .ToList();
+                }
+            }
+            ViewBag.CourseDetails = courseDetails;
+
+            switch (mode?.ToLower())
+            {
+                case "video":
+                    VideoVM activeVideo = null;
+
+                    if (courseDetails?.Sections != null && courseDetails.Sections.Any())
+                    {
+                        var allVideos = courseDetails.Sections.SelectMany(s => s.Videos).ToList();
+
+                        if (contentId.HasValue)
+                        {
+                            activeVideo = allVideos.FirstOrDefault(v => v.VideoId == contentId.Value);
+                        }
+
+                        if (activeVideo == null)
+                        {
+                            activeVideo = allVideos.OrderBy(v => v.VideoOrder).FirstOrDefault();
+                        }
+                    }
+
+                    return PartialView("_VideoMode", activeVideo);
+
+                case "reading":
+                case "test":
+                    var questions = (await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId))?.ToList();
+
+                    string modeName = mode.ToLower() == "test" ? "test questions" : "questions";
+                    if (questions == null || !questions.Any())
+                    {
+                        return Content($"<div class='alert alert-info'>No {modeName} available for this section.</div>");
+                    }
+
+                    foreach (var q in questions)
+                    {
+                        q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
+                    }
+
+                    int currentIndex = 0;  
+                    ViewBag.CourseId = courseId;
+                    ViewBag.SectionId = sectionId;
+                    ViewBag.CurrentIndex = currentIndex;
+                    ViewBag.TotalQuestions = questions.Count;
+
+                    string partialName = mode.ToLower() == "test" ? "_TestMode" : "_ReadingMode";
+                    return PartialView(partialName, questions[currentIndex]);
+
+                default:
+                    return PartialView("_ReadingMode");
+            }
+        }
+
+        [Authorize(Roles = "Student")]
+        [HttpGet]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoadTestPartial(int courseId, int sectionId, int currentIndex = 0)
+        {
+            var questions = (await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId))?.ToList();
+
+            if (questions == null || !questions.Any())
+            {
+                return Content("<div class='alert alert-info rounded-4 p-4 shadow-sm text-center'>No test questions available for this section.</div>");
+            }
+
+            foreach (var q in questions)
+            {
+                q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
+            }
+
+            if (currentIndex < 0) currentIndex = 0;
+            if (currentIndex >= questions.Count) currentIndex = questions.Count - 1;
+
+            ViewBag.CourseId = courseId;
+            ViewBag.SectionId = sectionId;
+            ViewBag.CurrentIndex = currentIndex;
+            ViewBag.TotalQuestions = questions.Count;
+             
+            ViewBag.QuestionIds = questions.Select(q => q.QuestionId).ToList();
+
+            return PartialView("_TestMode", questions[currentIndex]);
+        }
+        [Authorize(Roles = "Student")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitTest(TestSubmissionVM submission)
+        {
+            var questions = (await _questionRepo.GetQuestionsBySectionAsync(submission.CourseId, submission.SectionId))?.ToList();
+
+            if (questions == null || !questions.Any())
+            {
+                return BadRequest("Invalid test submission.");
+            }
+
+            int correct = 0;
+            foreach (var q in questions)
+            {
+                var options = await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId); 
+                var correctOption = options.FirstOrDefault(o => o.IsCorrect);
+
+                if (submission.SelectedAnswers.TryGetValue(q.QuestionId, out int selectedOptionId))
+                {
+                    if (correctOption != null && correctOption.OptionId == selectedOptionId)
+                    {
+                        correct++;
+                    }
+                }
+            }
+
+            var result = new TestResultVM
+            {
+                TotalQuestions = questions.Count,
+                CorrectAnswers = correct,
+                IncorrectAnswers = questions.Count - correct,
+                ScorePercentage = Math.Round((double)correct / questions.Count * 100, 2)
+            };
+
+            return PartialView("_TestResult", result);
+        }
+
+        [Authorize(Roles = "Student")]
+        [HttpGet]
+        [ValidateAntiForgeryToken]  
+        public async Task<IActionResult> GetQuestionsPartial(int courseId, int sectionId, int currentIndex = 0)
+        { 
+            // var notes = await _notesRepo.GetNotesBySectionAsync(sectionId); 
+            var questions = (await _questionRepo.GetQuestionsBySectionAsync(courseId, sectionId))?.ToList();
+            if (questions == null || !questions.Any())
+            {
+                return Content("<div class='alert alert-info'>No questions available for this section.</div>");
+            }
+            foreach (var q in questions)
+            {
+                q.Options = (await _questionRepo.GetOptionsByQuestionIdAsync(q.QuestionId)).ToList();
+            }
+            if (currentIndex < 0) currentIndex = 0;
+            if (currentIndex >= questions.Count()) currentIndex = questions.Count() - 1;
+             
+            var currentQuestion = questions[currentIndex];
+            ViewBag.CourseId = courseId;
+            ViewBag.SectionId = sectionId;
+            ViewBag.CurrentIndex = currentIndex;
+            ViewBag.TotalQuestions = questions.Count;
+
+            return PartialView("_ReadingMode", currentQuestion);
+        }
+        
+
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> MyCourses()
         {
@@ -84,41 +292,7 @@ namespace OnlineLearning.Controllers
         }
 
 
-        [Authorize(Roles = "Student")]
-        public async Task<IActionResult> Watch(string I, int? contentId)
-        {
-            int studentId = UserHelper.GetUserId(User);
-
-            int courseId = _protect.Decrypt(I);
-            bool hasAccess = await _student.CheckCourseAccessAsync(studentId, courseId);
-            if (!hasAccess)
-            {
-                _notify.Error("Access Denied. This course is not included in your active subscription plan.");
-                return RedirectToAction("MyCourses");
-            }
-
-            CourseDetailsVM courseDetails = await _student.GetCourseDetailsById(courseId);
-            
-            if (courseDetails == null || courseDetails.Sections == null || !courseDetails.Sections.Any())
-            {
-                _notify.Error("This course doesn't have any content yet.");
-                return RedirectToAction("MyCourses");
-            }
-            ViewBag.CourseDetails = courseDetails;
-
-            VideoVM activeVideo = null;
-
-            if (contentId.HasValue)
-            {
-                activeVideo = courseDetails.Sections.SelectMany(s => s.Videos).FirstOrDefault(v => v.VideoId == contentId.Value);
-            }
-            else
-            {
-                activeVideo = courseDetails.Sections.OrderBy(s => s.SectionId).FirstOrDefault()?.Videos.OrderBy(v => v.VideoId).FirstOrDefault();
-            }
-
-            return View(activeVideo);
-        }
+      
         [Authorize(Roles = "Student")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -163,6 +337,36 @@ namespace OnlineLearning.Controllers
             };
             return View(model); 
         }
+       
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> CoursePQJ(string courseId)
+        { 
+            if (string.IsNullOrEmpty(courseId))
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
+
+            try
+            { 
+                int cleanCourseId = _protect.Decrypt(courseId);
+                if (cleanCourseId <= 0)
+                {
+                    return BadRequest("Malformed authorization context or token corruption.");
+                }
+                var courses = await _student.GetCourse();
+                var course = courses.Where(w => w.CourseId == cleanCourseId).FirstOrDefault();
+                var model = new PQJPlayerVM
+                {
+                    CourseId =  course.CourseId,
+                    CourseTitle = course.CourseTitle
+                };   
+                return View(model);
+            }
+            catch
+            { 
+                return RedirectToAction("Index", "Dashboard");
+            }
+        } 
 
         [Authorize(Roles = "Student")]
         [HttpGet]
@@ -171,8 +375,7 @@ namespace OnlineLearning.Controllers
             string cacheKey = $"PQJ_{courseId}_{topicId}_{difficulty}";
             if (!_cache.TryGetValue(cacheKey, out List<QuestionVM> questions))
             {
-                questions =
-                    await _pqj.GetFilteredQuestions(courseId, topicId, difficulty, "Student");
+                questions =  await _pqj.GetFilteredQuestions(courseId, topicId, difficulty, "Student");
 
                 if (!questions.Any())
                 {
@@ -184,8 +387,7 @@ namespace OnlineLearning.Controllers
             }
             int attemptId = await _pqj.GetOrCreateAttempt(courseId);
             
-            if (index <= 0 ||
-                index > questions.Count)
+            if (index <= 0 ||  index > questions.Count)
             {
                 await _pqj.CompleteAttempt(attemptId);
                 return Content(@"
@@ -200,8 +402,7 @@ namespace OnlineLearning.Controllers
                          </div>");
             }
 
-            var question =
-                questions[index - 1]; 
+            var question =  questions[index - 1]; 
 
             var model = new PQJPlayerVM
             {
@@ -224,13 +425,14 @@ namespace OnlineLearning.Controllers
             var students = await _student.GetAllWithDetails();
             return View(students);
         }
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create()
-        {
-            await LoadGender();
-            return View();
-        }
+         
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create() {
+            await LoadGender();
+          return  PartialView("_StudentForm", new Student());
+        } 
         public async Task<IActionResult> LoadGender()
         {
             var list =await _student.GetGender();
@@ -248,9 +450,8 @@ namespace OnlineLearning.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await LoadGender();
-                return View(model);
-            }
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            } 
             int userId = UserHelper.GetUserId(User);
             if(model.ImageFile != null)
             {
@@ -273,16 +474,8 @@ namespace OnlineLearning.Controllers
                 CreatedBy = userId
             };
             var result = await _student.AddAsync(studentDTO);
-
-            if (result)
-            {
-                _notify.Success("Student saved successfully ! ");
-                return RedirectToAction("Index");
-            }
-
-            await LoadGender();
-            _notify.Error("Some Error Occured while saving details!");
-            return View(model);
+            return Json(new { success = result.Success, message = result.Message });
+             
         }
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id)
@@ -302,16 +495,20 @@ namespace OnlineLearning.Controllers
                 Mobile = student.Mobile,
                 ProfileImage = student.ProfileImage,
                 IsActive = student.IsActive,
-            };
+            }; 
             await LoadGender();
-            return View(studentDTO);
+            return PartialView("_StudentForm", studentDTO); 
         }
-
+       
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(Student model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, message = "Please fill the data correctly!" });
+            }
+            try
             {
                 int userId = UserHelper.GetUserId(User);
                 if (model.ImageFile != null)
@@ -324,14 +521,14 @@ namespace OnlineLearning.Controllers
                 }
                 else
                 {
-                    var existingData = await _student.GetByIdAsync((int)model.UserID); 
+                    var existingData = await _student.GetByIdAsync((int)model.UserID);
                     model.ProfileImage = existingData?.ProfileImage;
                 }
 
                 var studentDTO = new StudentDTO
                 {
                     StudentId = model.StudentId,
-                    UserID = model.UserID, 
+                    UserID = model.UserID,
                     FullName = model.FullName,
                     DOB = model.DOB,
                     Email = model.Email,
@@ -343,47 +540,40 @@ namespace OnlineLearning.Controllers
                     UpdatedBy = userId
                 };
                 var result = await _student.UpdateAsync(studentDTO);
-                if (!result)
-                {
-                    await LoadGender();
-                    _notify.Error("An Error Occures While Updating Section Details !"); 
-                    return View(model);
-                }
-
-                if (result)
-                {
-                    _notify.Success("Student Profile updated successfully!"); 
-                    return RedirectToAction("Index");
-                } 
+                return Json(new { success = result.Success, message = result.Message });
             }
-            await LoadGender();
-            return View(model);
-        }
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var student = await _student.GetByIdAsync(id);
-            var studentDTO = new Student
-            {
-                FullName = student.FullName,
-                UserID = student.UserID
-            };
-            return View(studentDTO);
+            catch (Exception ex)
+            { // _logger.LogError(ex, "Error updating Student ID {Id}", model.StudentId); 
+                return Json(new { success = false, message = "System Error: " + ex.Message });
+            } 
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteConfirmed(int UserID)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            int userId = UserHelper.GetUserId(User);
-            var student = await _student.GetByIdAsync(UserID);
-            student.IsDeleted = true;
-            student.UpdatedBy = userId;
-            var result = await _student.DeleteAsync(student);
-            _notify.Success("Student Profile Delete successfully!");
-            return RedirectToAction("Index");
-        } 
+            try
+            {
+                int userId = UserHelper.GetUserId(User);
+                var student = await _student.GetByIdAsync(id); 
 
+                if (student == null)
+                {
+                    return Json(new { success = false, message = "student not found!" });
+                } 
+                student.IsDeleted = true;
+                student.UpdatedBy = userId;
+
+                var result = await _student.DeleteAsync(student);
+                return Json(new { success = result.Success, message = result.Message }); 
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error deleting student ID {Id}", id); 
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            }
+        } 
         #endregion
     }
 }

@@ -3,8 +3,12 @@
 
 @inject ProtectorService protector
 <div class="row g-4 mt-2">
+    @{
+        int Courseindex = 0;
+    }
     @foreach (var course in Model)
     {
+        Courseindex++;
         <div class="col-md-6 col-xl-4">
             <div class="course-show-card">
 
@@ -17,8 +21,9 @@
                     {
                         <span class="course-chip premium">Premium</span>
                     }
-
-                    <img src="@(course.Thumbnail ?? $"https://picsum.photos/600/420?random={course.CourseId}")" />
+                    <img src="@(string.IsNullOrEmpty(course.Thumbnail) ? $"https://picsum.photos/600/420?random={Courseindex}" 
+                           : $"/Uploads/courses/{course.Thumbnail}")"
+                         alt="Course Image" /> 
                 </div>
 
                 <div class="course-body">

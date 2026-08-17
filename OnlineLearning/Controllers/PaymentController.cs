@@ -18,88 +18,73 @@ namespace OnlineLearning.Controllers
             _paymentService = paymentService;
         }
 
-         
+
         [HttpPost]
+        [ValidateAntiForgeryToken]  
         public async Task<IActionResult> CreateOrder([FromBody] CoursePaymentDTO dto)
         {
-            int userId = UserHelper.GetUserId(User);  
+            if (dto == null || dto.CourseId <= 0 || dto.PlanId <= 0)
+            {
+                return BadRequest(new { message = "Invalid order parameters." });
+            }
 
-            bool alreadySubscribed =
-                await _paymentService.HasActiveSubscription(
-                    userId,
-                    dto.CourseId);
+            int userId = UserHelper.GetUserId(User);
+
+            bool alreadySubscribed = await _paymentService.HasActiveSubscription(userId, dto.CourseId);
 
             if (alreadySubscribed)
-            {
-                _notify.Warning("Course already unlocked");
-                return BadRequest(new
-                {
-                    message = "Course already unlocked"
-                });
-            } 
-            var result = await _paymentService.CreateOrder(userId,dto);
+            { 
+                return BadRequest(new { message = "Course already unlocked" });
+            }
+
+            var result = await _paymentService.CreateOrder(userId, dto);
 
             return Json(result);
         }
 
-        [Authorize(Roles = "Student")]
         [HttpPost]
+        [ValidateAntiForgeryToken]  
         public async Task<IActionResult> Success([FromBody] CoursePaymentDTO dto)
         {
             try
             {
                 if (!User.Identity.IsAuthenticated)
                 {
-                    return Json(new
-                    {
-                        success = false,
-                        message = "Please login"
-                    });
-                } 
-                int userId = UserHelper.GetUserId(User); 
+                    return Json(new { success = false, message = "Please login" });
+                }
 
-                bool alreadySubscribed = await _paymentService.HasActiveSubscription(  userId,  dto.CourseId);
+                if (dto == null || string.IsNullOrEmpty(dto.RazorpayOrderId))
+                {
+                    return Json(new { success = false, message = "Invalid payment payload." });
+                }
+
+                int userId = UserHelper.GetUserId(User);
+
+                bool alreadySubscribed = await _paymentService.HasActiveSubscription(userId, dto.CourseId);
 
                 if (alreadySubscribed)
                 {
-                    return Json(new
-                    {
-                        success = false,
-                        message = "Course already unlocked"
-                    });
+                    return Json(new { success = false, message = "Course already unlocked" });
                 }
-                  
-                bool verified =
-                    await _paymentService.VerifyPayment(
-                        dto.RazorpayOrderId,
-                        dto.RazorpayPaymentId,
-                        dto.RazorpaySignature);
+
+                bool verified = await _paymentService.VerifyPayment(
+                    dto.RazorpayOrderId,
+                    dto.RazorpayPaymentId,
+                    dto.RazorpaySignature);
 
                 if (!verified)
                 {
-                    return Json(new
-                    {
-                        success = false,
-                        message = "Payment verification failed"
-                    });
+                    return Json(new { success = false, message = "Payment verification failed" });
                 }
-                 
-                int subscriptionId = await _paymentService.CompletePayment( userId, dto);
 
-                return Json(new
-                {
-                    success = true,
-                    subscriptionId = subscriptionId
-                });
+                int subscriptionId = await _paymentService.CompletePayment(userId, dto);
+
+                return Json(new { success = true, subscriptionId = subscriptionId });
             }
             catch (Exception ex)
             {
-                return Json(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
+                return Json(new { success = false, message = ex.Message });
             }
-        } 
+        }
     }
 }

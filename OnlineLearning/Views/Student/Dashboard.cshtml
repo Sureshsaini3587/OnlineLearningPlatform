@@ -3,7 +3,7 @@
 @inject ProtectorService protector
 @{
     ViewData["Title"] = "Dashboard";
-    Layout = "~/Views/Shared/Web/_StudentLayout.cshtml";
+    //Layout = "~/Views/Shared/Web/_StudentLayout.cshtml";
 }
 
 <div class="dashboard-header">
@@ -50,48 +50,8 @@
 
 <div class="row g-4">
      
-    <div class="col-xl-8">
-         
-        <div class="student-panel-card">
-            <div class="panel-head">
-                <h4>Continue Learning</h4>
-                <a href="/Student/Watch">View all</a>
-            </div>
-
-            @if (Model.ContinueCourse != null)
-            {
-                <div class="continue-course-card">
-                    <div class="continue-thumb">
-                        <img src="@Model.ContinueCourse.Thumbnail" alt="Course" />
-                    </div>
-
-                    <div class="continue-body">
-                        <span class="continue-label">Currently Watching</span>
-                        <h3>@Model.ContinueCourse.Title</h3>
-                        <p>Resume your last watched lesson</p>
-
-                        <div class="continue-progress">
-                            <div class="progress-track">
-                                <div class="progress-fill"
-                                     style="width:@Model.ContinueCourse.Progress%;">
-                                </div>
-                            </div>
-                            <span>@Model.ContinueCourse.Progress% completed</span>
-                        </div>
-
-                        <a href="/Student/Watch/@Model.ContinueCourse.CourseId"
-                               class="btn btn-plan mt-3">
-                            Resume Course
-                        </a>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <p>No active course found.</p>
-            }
-        </div> 
-        <div class="student-panel-card mt-4">
+    <div class="col-xl-8"> 
+        <div class="student-panel-card  ">
             <div class="panel-head">
                 <h4>Recent Courses</h4>
                 <a href="/WebHome/Courses">Browse more</a>
@@ -104,7 +64,7 @@
                     {
                         <div class="col-md-6">
                             <div class="mini-course-card">
-                                <img src="@course.Thumbnail" alt="@course.CourseTitle" />
+                                @* <img src="@course.Thumbnail" alt="@course.CourseTitle" /> *@
 
                                 <div class="mini-course-body">
                                     <h5>@course.CourseTitle</h5>

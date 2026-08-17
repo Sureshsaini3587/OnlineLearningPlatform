@@ -31,7 +31,7 @@
                             <div class="contact-icon"><i class="bi bi-envelope-fill"></i></div>
                             <div>
                                 <strong>Email</strong>
-                                <span>ManikaLearningAcademy@gmail.com</span>
+                                <span>Manika.Learning.Academy@gmail.com</span>
                             </div>
                         </div>
 
@@ -58,15 +58,8 @@
                 <div class="contact-form-card">
                     <h3>Send a message</h3>
                     <p class="mb-4">Fill in the form and we’ll contact you soon.</p>
-
-                    @if (TempData["SuccessMessage"] != null)
-                    {
-                        <div class="alert alert-success rounded-4">@TempData["SuccessMessage"]</div>
-                    }
-
                     <form asp-action="ContactUS" asp-controller="WebHome" method="post">
-                        @Html.AntiForgeryToken()
-
+                        @Html.AntiForgeryToken() 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Name" class="form-label"></label>

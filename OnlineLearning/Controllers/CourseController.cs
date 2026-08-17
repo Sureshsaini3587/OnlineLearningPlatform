@@ -32,67 +32,80 @@ namespace OnlineLearning.Controllers
             var courses = await _course.GetAllWithDetails(); 
             return View(courses);
         }
-         
+
+        [HttpGet] 
         public async Task<IActionResult> Create()
         {
             await LoadDropdowns();
-            return View();
+            return PartialView("_CourseForm", new Course());
         }
-        
+        [HttpGet]
+        public IActionResult GetImage(string filename)
+        {
+            string folder = Path.Combine(_env.ContentRootPath, "Uploads/courses");
+            string filePath = Path.Combine(folder, filename);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+             
+            return PhysicalFile(filePath, "image/jpeg"); 
+        }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Course model)
         {
             if (!ModelState.IsValid)
             {
-                await LoadDropdowns();
-                return View(model);
+                return Json(new { success = false, message = "Fill the data correctly !" });
             }
-            if (model.ThumbnailFile != null)
+            try
             {
-                string folder =  Path.Combine(_env.ContentRootPath,"Uploads/courses"); 
-                if (!Directory.Exists(folder))
+                if (model.ThumbnailFile != null)
                 {
-                    Directory.CreateDirectory(folder);
+                    string folder = Path.Combine(_env.ContentRootPath, "Uploads/courses");
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                    }
+
+                    string fileName = Guid.NewGuid() + Path.GetExtension(model.ThumbnailFile.FileName);
+                    string filePath = Path.Combine(folder, fileName);
+
+                    using var stream = new FileStream(filePath, FileMode.Create);
+
+                    await model.ThumbnailFile.CopyToAsync(stream);
+
+                    model.Thumbnail = fileName;
                 }
-
-                string fileName =  Guid.NewGuid() + Path.GetExtension(model.ThumbnailFile.FileName);
-                string filePath =  Path.Combine(folder, fileName);
-
-                using var stream =  new FileStream(   filePath,  FileMode.Create);
-
-                await model.ThumbnailFile.CopyToAsync(stream);
-
-                model.Thumbnail = fileName; 
-            }
                 int userId = UserHelper.GetUserId(User);
-            var CourseDTO = new CourseDTO
-            {
-                CourseTitle=model.CourseTitle,
-                Price=model.Price,
-                CategoryId=model.CategoryId,
-                Level=model.Level,
-                Language=model.Language,
-                InstructorId=model.InstructorId,
-                Thumbnail=model.Thumbnail,
-                Description=model.Description,
-                IsPublished=model.IsPublished,
-                IsActive=model.IsActive,
-                CreatedBy=userId
-            };
-            var result = await _course.AddAsync(CourseDTO);
-
-            if (result)
-            {
-                _notify.Success("Course saved successfully!");
-                return RedirectToAction("Index");
+                var CourseDTO = new CourseDTO
+                {
+                    CourseTitle = model.CourseTitle,
+                    Price = model.Price,
+                    CategoryId = model.CategoryId,
+                    Level = model.Level,
+                    Language = model.Language,
+                    InstructorId = model.InstructorId,
+                    Thumbnail = model.Thumbnail,
+                    Description = model.Description,
+                    IsPublished = model.IsPublished,
+                    IsActive = model.IsActive,
+                    CreatedBy = userId
+                };
+                var result = await _course.AddAsync(CourseDTO);
+                return Json(new { success = result.Success, message = result.Message });
             }
-
-            _notify.Error("Something went wrong!");
-           await LoadDropdowns();
-
-            return View(model);
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error updating Course ID {Id}", model.CourseTitle); 
+                return Json(new { success = false, message = "System Error: " + ex.Message });
+            }
         }
 
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var course = await _course.GetByIdAsync(id);
@@ -112,42 +125,45 @@ namespace OnlineLearning.Controllers
                 Description = course.Description,
                 IsPublished = course.IsPublished,
                 IsActive = course.IsActive 
-            };
-            return View(CourseDTO);
+            }; 
+            return PartialView("_CourseForm", CourseDTO); 
         }
          
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Course model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
+                return Json(new { success = false, message = "Please fill the data correctly!" });
+            }
+            try
+            {
+                var existingCourse = await _course.GetByIdAsync(model.CourseId);
+                if (existingCourse == null)
+                    return Json(new { success = false, message = "Course not found." });
+                model.Thumbnail = existingCourse.Thumbnail;
                 if (model.ThumbnailFile != null)
                 {
                     string folder = Path.Combine(_env.ContentRootPath, "Uploads/courses");
-                    if (!Directory.Exists(folder))
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                     
+                    if (!string.IsNullOrEmpty(existingCourse.Thumbnail))
                     {
-                        Directory.CreateDirectory(folder);
+                        string oldPath = Path.Combine(folder, existingCourse.Thumbnail);
+                        if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
                     }
-                    if (!string.IsNullOrEmpty(model.Thumbnail))
-                    { 
-                        string oldPath =  Path.Combine(folder,model.Thumbnail);
+                     
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ThumbnailFile.FileName);
+                    string filePath = Path.Combine(folder, fileName);
 
-                        if (System.IO.File.Exists(oldPath))
-                        {
-                            System.IO.File.Delete(oldPath);
-                        }
-                    }   
-                    string fileName =   Guid.NewGuid() + Path.GetExtension(model.ThumbnailFile.FileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.ThumbnailFile.CopyToAsync(stream);
+                    }
 
-                    string filePath =   Path.Combine(folder, fileName);
-
-                    using var stream =   new FileStream(  filePath, FileMode.Create);
-
-                    await model.ThumbnailFile.CopyToAsync(stream);
-
-                    model.Thumbnail =  fileName;
+                    model.Thumbnail = fileName; 
                 }
-
                 int userId = UserHelper.GetUserId(User); 
                 var CourseDTO = new CourseDTO
                 {
@@ -165,41 +181,33 @@ namespace OnlineLearning.Controllers
                     UpdatedBy = userId
                 };
                 var result= await _course.UpdateAsync(CourseDTO);
-                if (!result)
-                {
-                    _notify.Error("An Error Occures While Updating Course Details !");
-                    await LoadDropdowns();
-                    return View(model);
-                }
-
-                _notify.Success("Course Update successfully!");
-                return RedirectToAction("Index");
-            } 
-            await LoadDropdowns();
-            return View(model);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "System Error: " + ex.Message });
+            }
         }
          
-        public async Task<IActionResult> Delete(int id)
-        {
-            var course = await _course.GetByIdAsync(id);
-            var CourseDTO = new Course
-            {
-                CourseId = course.CourseId ,
-                CourseTitle=course.CourseTitle 
-            };
-            return View(CourseDTO);
-        }
+        
          
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int courseId)
         {
-            int userId = UserHelper.GetUserId(User);
-            var course = await _course.GetByIdAsync(courseId);
-            course.IsDeleted = true;
-            course.UpdatedBy = userId;
-            var result = await _course.DeleteAsync(course);
-            _notify.Success("Course delete successfully!");
-            return RedirectToAction("Index");
+            try
+            {
+                int userId = UserHelper.GetUserId(User);
+               var course = await _course.GetByIdAsync(courseId);
+               course.IsDeleted = true;
+               course.UpdatedBy = userId;
+               var result = await _course.DeleteAsync(course);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            }
         }
         private async Task LoadDropdowns()
         {
@@ -240,7 +248,7 @@ namespace OnlineLearning.Controllers
         [HttpGet]
         public async Task<IActionResult> Categories()
         {
-            var courses = await _coursecategory.GetAllWithDetails();
+            var courses = await _coursecategory.GetAllWithDetails(); 
             return View(courses);
         }
 
@@ -248,17 +256,17 @@ namespace OnlineLearning.Controllers
         public async Task<IActionResult> CategoriesCreate()
         {
            await LoadParentCategory();
-            return View();
+            return PartialView("_CategoryForm", new CourseCategories()); 
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CategoriesCreate(CourseCategories model)
         {
             if (!ModelState.IsValid)
             {
-                await LoadParentCategory();
-                return View(model);
-            }
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            } 
             int userId = UserHelper.GetUserId(User);
             var CourseDTO = new CourseCategoriesDTO
             { 
@@ -269,24 +277,13 @@ namespace OnlineLearning.Controllers
                 CreatedBy=userId
             };
             var result = await _coursecategory.AddAsync(CourseDTO);
-
-            if (result)
-            {
-                _notify.Success("Categories saved successfully!");
-                return RedirectToAction("Categories");
-            }
-
-            _notify.Error("Something went wrong!");
-
-            await LoadParentCategory();
-            return View(model);
+            return Json(new { success = result.Success, message = result.Message }); 
         }
         [HttpGet]
         public async Task<IActionResult> CategoryEdit(int id)
         {
             var course = await _coursecategory.GetByIdAsync(id);
-            if (course == null) return NotFound();
-             
+            if (course == null) return NotFound(); 
             var CourseDTO = new CourseCategories
             {
                 CategoryId = course.CategoryId,
@@ -297,14 +294,18 @@ namespace OnlineLearning.Controllers
             };
 
             await LoadParentCategory();
-            return View(CourseDTO);
+            return PartialView("_CategoryForm", CourseDTO); 
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CategoryEdit(CourseCategories model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
+                return Json(new { success = false, message = "Fill the data correctly !" });
+            }
+          
                 int userId = UserHelper.GetUserId(User);
                 var CourseDTO = new CourseCategoriesDTO
                 {
@@ -316,39 +317,27 @@ namespace OnlineLearning.Controllers
                     UpdatedBy = userId
                 };
                 var result = await _coursecategory.UpdateAsync(CourseDTO);
-                if (!result)
-                {
-                    _notify.Error("An Error Occures While Updating Categories Details !"); 
-                    return View(model);
-                }
-                _notify.Success("Categories Upadate Successfully ! ");
-                return RedirectToAction("Categories");
-            }
-
-            await LoadParentCategory();
-            return View(model);
+                return Json(new { success = result.Success, message = result.Message });  
         }
-        public async Task<IActionResult> CategoryDelete(int id)
-        {
-            var course = await _coursecategory.GetByIdAsync(id);
-            var CourseDTO = new CourseCategories
-            {
-                CategoryId = course.CategoryId,
-                CategoryName= course.CategoryName,
-            };
-            return View(CourseDTO);
-        }
+        
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CategoryDeleteConfirmed(int CategoryId)
         {
-            int userId = UserHelper.GetUserId(User);
-            var course = await _coursecategory.GetByIdAsync(CategoryId);
-            course.IsDeleted = true;
-            course.UpdatedBy = userId;
-            var result = await _coursecategory.DeleteAsync(course);
-            _notify.Success("Course delete successfully!");
-            return RedirectToAction("Index");
+            try
+            {
+                int userId = UserHelper.GetUserId(User);
+                var course = await _coursecategory.GetByIdAsync(CategoryId);
+                course.IsDeleted = true;
+                course.UpdatedBy = userId;
+                var result = await _coursecategory.DeleteAsync(course);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            } 
         }
         private async Task LoadParentCategory()
         {

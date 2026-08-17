@@ -1,0 +1,215 @@
+﻿@model OnlineLearning.Models.StudentReadingVM
+ 
+<style>
+    /* Custom Styling for Sidebar Sections */
+    .section-link:hover {
+        background-color: #f1f3f5 !important;
+        color: #0d6efd !important;
+        padding-left: 12px !important;
+    }
+    .section-link.active-section-style {
+        background-color: #0d6efd !important;
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+    .section-link.active-section-style i {
+        color: #ffffff !important;
+    }
+    .transition-all {
+        transition: all 0.2s ease-in-out;
+    }
+</style>
+ 
+@Html.AntiForgeryToken()
+
+<div class="container-fluid my-3 px-4"> 
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm rounded-4 p-2" style="background-color: #1c2541;">
+                <div class="d-flex justify-content-around text-center mode-tabs">
+                    <a href="javascript:void(0);" onclick="loadModeContent('Video', this)" class="mode-btn btn border-0 flex-fill py-2 text-light fw-bold" style="opacity: 0.7;">
+                        <i class="bi bi-play-circle-fill me-1"></i> VIDEO MODE <br>
+                        <small class="fw-normal" style="font-size: 11px;">Learn with Video  </small>
+                    </a> 
+                    <a href="javascript:void(0);" onclick="loadModeContent('Reading', this)" class="mode-btn btn flex-fill py-2 shadow-sm active-mode-btn active-mode">
+                        <i class="bi bi-book-half me-1"></i> READING MODE (Notes + PYQs) <br>
+                        <small class="fw-bold" style="font-size: 11px; opacity: 0.85;">Study Notes + Question with Explanations</small>
+                    </a>
+                    @* <a href="javascript:void(0);" onclick="loadModeContent('Test', this)" class="mode-btn btn border-0 flex-fill py-2 text-light fw-bold" style="opacity: 0.7;">
+                        <i class="bi bi-file-earmark-text-fill me-1"></i> TEST MODE (PYQ) <br>
+                        <small class="fw-normal" style="font-size: 11px;">Practice PYQs in Test Environment</small>
+                    </a> *@
+                </div>
+            </div>
+        </div>
+    </div> 
+    <div class="row g-3"> 
+         <div class="col-md-3 card border-0 shadow-sm rounded-4 bg-white overflow-hidden"> 
+            <div class="card-header bg-transparent border-0 pt-3 pb-2 px-3">
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                    <i class="bi bi-journal-bookmark-fill text-primary me-2"></i> Enrolled Courses
+                </h6>
+                <p class="text-muted small mb-0" style="font-size: 11px;">Select a section to start learning</p>
+            </div>
+
+            <div class="card-body p-2">
+                @if (Model != null && Model.EnrolledCourses != null && Model.EnrolledCourses.Any())
+                {
+                    <div class="accordion accordion-flush" id="courseAccordion">
+                        @foreach (var course in Model.EnrolledCourses)
+                        {
+                            <div class="accordion-item border-0 mb-2 rounded-3 overflow-hidden shadow-none border bg-light bg-opacity-50">
+                                
+                                <h2 class="accordion-header" id="heading_@course.CourseId">
+                                    <button class="accordion-button collapsed bg-transparent fw-bold text-dark small py-2.5 px-3 shadow-none"
+                                            type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@course.CourseId">
+                                        <i class="bi bi-book-half text-primary me-2"></i> 
+                                        <span class="text-truncate" style="max-width: 170px;" title="@course.CourseTitle">@course.CourseTitle</span>
+                                    </button>
+                                </h2>
+                                 
+                                <div id="collapse_@course.CourseId" class="accordion-collapse collapse" data-bs-parent="#courseAccordion">
+                                    <div class="accordion-body px-2 py-2 bg-white border-top">
+                                        <div class="list-group list-group-flush small gap-1">
+                                            @if (course.Sections != null && course.Sections.Any())
+                                            {
+                                                foreach (var sec in course.Sections)
+                                                {
+                                                    <a href="javascript:void(0);" onclick="loadSectionQuestions(this, @course.CourseId, @sec.SectionId)"
+                                                       class="list-group-item list-group-item-action border-0 rounded-2 py-2 px-2.5 text-secondary section-link d-flex align-items-center transition-all">
+                                                        <i class="bi bi-chevron-right me-2 text-muted" style="font-size: 10px;"></i> 
+                                                        <span class="text-wrap">@sec.SectionTitle</span>
+                                                    </a>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="text-muted small text-center py-2 fst-italic">No sections available</div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-journal-x fs-4 d-block mb-1 text-warning"></i>
+                        <span class="small">No enrolled courses found.</span>
+                    </div>
+                }
+            </div>
+       </div>
+
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 maincontent" style="min-height: 75vh; background-color: #f8f9fa;">
+                    <div class="text-center py-5 text-muted my-5">
+                        <i class="bi bi-arrow-left-circle display-4 text-primary"></i>
+                        <h5 class="fw-bold mt-3">Select a section from the left sidebar</h5>
+                    </div>
+                </div>
+            </div>
+        </div>  
+    </div>
+</div>
+
+@section Scripts {
+    <script> 
+        var currentCourseId = 0;
+        var currentSectionId = 0;
+        var currentMode = 'Reading';
+        function escapeHtml(string) {
+            var matchHtmlRegExp = /["'&<>]/;
+            var match = matchHtmlRegExp.exec(string);
+            if (!match) return string;
+            var escape = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+            return string.replace(/["'&<>]/g, function (s) { return escape[s]; });
+        }
+        function loadVideoContent(videoId) {
+            $('.maincontent').html(`
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2 small">Loading video...</p>
+                </div>
+            `);
+        
+            var token = $('input[name="__RequestVerificationToken"]').val(); 
+            $.ajax({
+                url: '/Student/LoadModePartial', 
+                type: 'GET', 
+                data: { mode: 'video', courseId: currentCourseId, sectionId: currentSectionId, contentId: videoId },
+                headers: { "RequestVerificationToken": token },
+                success: function (responseHtml) {
+                    $('.maincontent').html(responseHtml);
+                },
+                error: function() {
+                    $('.maincontent').html('<div class="text-center text-danger py-5">Failed to load video.</div>');
+                }
+            });
+        }
+       
+        function loadModeContent(modeType, element) {
+            currentMode = modeType; 
+            $('.mode-btn').removeClass('active-mode-btn text-dark fw-bold').addClass('text-light border-0').css('background-color', 'transparent');
+            $(element).removeClass('text-light border-0').addClass('active-mode-btn'); 
+            if (currentCourseId > 0 && currentSectionId > 0) {
+                fetchContent();
+            } 
+        }
+    function loadSectionQuestions(element, courseId, sectionId) {
+        currentCourseId = courseId;
+        currentSectionId = sectionId;
+        $('.section-link').removeClass('active-section-style').addClass('text-secondary');
+            $(element).removeClass('text-secondary').addClass('active-section-style');
+        fetchContent();
+    }
+       function fetchContent() {
+          $('.maincontent').html(`
+              <div class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status"></div>
+               <p class="text-muted mt-2 small">Loading ${currentMode} content...</p>
+              </div>
+          `);
+          
+          var token = $('input[name="__RequestVerificationToken"]').val(); 
+          $.ajax({
+              url: '/Student/LoadModePartial', 
+              type: 'GET', 
+              data: { mode: currentMode, courseId: currentCourseId, sectionId: currentSectionId },
+              headers: { "RequestVerificationToken": token },
+              success: function (responseHtml) {
+                  $('.maincontent').html(responseHtml);
+              },
+              error: function() {
+                  $('.maincontent').html('<div class="text-center text-danger py-5">Failed to load content. Please try again.</div>');
+              }
+          });
+       }
+     
+        function loadQuestion(courseId, sectionId,index) {  
+            $('.maincontent').html(`
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2 small">Loading questions...</p>
+                </div>
+            `);
+            var token = $('input[name="__RequestVerificationToken"]').val(); 
+              $.ajax({
+                 url: '/Student/GetQuestionsPartial', 
+                 type: 'GET', 
+                 data: {  courseId: courseId, sectionId: sectionId, currentIndex: index },
+                 headers: { "RequestVerificationToken": token },
+                 success: function (responseHtml) {
+                     $('.maincontent').html(responseHtml);
+                 },
+                 error: function() {
+                     $('.maincontent').html('<div class="text-center text-danger py-5">Failed to load content. Please try again.</div>');
+                 }
+              });
+           
+        }
+    </script>
+}

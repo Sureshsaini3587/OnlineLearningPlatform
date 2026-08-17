@@ -12,7 +12,7 @@
     <div class="hero-grid-lines"></div>
 
     <div class="container position-relative">
-        <div class="row align-items-center min-vh-100 pt-5">
+        <div class="row max-vh-100 mt-4">
             <div class="col-lg-6 pe-lg-5" data-aos="fade-right">
                 <div class="hero-badge">
                     <span class="dot"></span>
@@ -156,7 +156,7 @@
             </div>
         </div>
 
-        <div class="hero-brand-row" data-aos="fade-up">
+        <div class="hero-brand-row mt-4" data-aos="fade-up">
             <span>Trusted by ambitious students preparing for real growth</span>
             <div class="brand-pills">
                 <span>Interactive Learning</span>
@@ -274,17 +274,15 @@
                     <div class="category-card">
                         <div class="category-icon @colorClass">
                             <i class="@GetIcon(cat.CategoryName)"></i>
-                        </div> 
+                        </div>
                         <h5>@cat.CategoryName</h5>
-                        <p>@cat.Description</p> 
-                        <span>@cat.CourseCount  Courses</span> 
-                        <a asp-controller="WebHome"
-                               asp-action="Courses" 
-                               class="stretched-link">
+                        <p>@cat.Description</p>
+                        <span>@cat.CourseCount  Courses</span>
+                        <a asp-controller="WebHome" asp-action="Courses" class="stretched-link">
                         </a>
                     </div>
                 </div>
-            } 
+            }
         </div>
     </div>
 </section>
@@ -307,14 +305,15 @@
             @foreach (var course in Model.Courses)
             {
                 Courseindex++;
-                <div class="col-md-6 col-xl-4" data-aos="fade-up" >
+                <div class="col-md-6 col-xl-4" data-aos="fade-up">
                     <div class="course-show-card">
 
                         <div class="course-thumb">
-                            <span class="course-chip">Best Seller</span> 
-                            <img src="@(string.IsNullOrEmpty(course.Thumbnail) ? 
-                                $"https://picsum.photos/600/420?random={Courseindex}" : course.Thumbnail)"
-                                 alt="Course Image" />
+                            <span class="course-chip">Best Seller</span>
+                            <img src="@(string.IsNullOrEmpty(course.Thumbnail) 
+                                   ? $"https://picsum.photos/600/420?random={Courseindex}"
+                                   : $"/Uploads/courses/{course.Thumbnail}")"
+                            alt="Course Image" />
                         </div>
 
                         <div class="course-body">
@@ -356,7 +355,7 @@
         <div class="row g-4 align-items-center">
             <div class="col-lg-6" data-aos="fade-right">
                 <div class="demo-spotlight-media">
-                    <div class="play-button-glow"><i class="bi bi-play-fill"></i></div>
+                    @* <div class="play-button-glow"><i class="bi bi-play-fill"></i></div> *@
                     <span class="preview-pill">Free Demo Lesson</span>
                 </div>
             </div>
@@ -387,7 +386,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <a asp-controller="Demo" asp-action="Index" class="btn btn-plan">Explore Demo Classes</a>
+                    <a asp-controller="WebHome" asp-action="Demos" class="btn btn-plan">Explore Demo Classes</a>
                 </div>
             </div>
         </div>
@@ -519,8 +518,8 @@
                         <h3>@plan.PlanName</h3>
                         <div class="price">₹@plan.Price</div>
                         @{
-                            var features = plan.Description?.Split(',');  
-                        } 
+                            var features = plan.Description?.Split(',');
+                        }
                         <ul class="plan-list">
                             @if (features != null)
                             {
@@ -530,13 +529,13 @@
                                         <i class="bi bi-check2"></i> @item.Trim()
                                     </li>
                                 }
-                            } 
+                            }
                         </ul>
                         <a asp-controller="WebHome" asp-action="Plans" class="btn btn-plan">@plan.PlanName</a>
                     </div>
                 </div>
                 planindex += 80;
-            } 
+            }
         </div>
     </div>
 </section>
@@ -554,7 +553,7 @@
             </div>
 
             <div class="final-cta-actions">
-                <a asp-controller="Demo" asp-action="Index" class="btn btn-footer-secondary">Watch Demo</a>
+                <a asp-controller="WebHome" asp-action="Demos" class="btn btn-footer-secondary">Watch Demo</a>
                 <a asp-controller="Account" asp-action="Register" class="btn btn-footer-primary">Create Account</a>
             </div>
         </div>
